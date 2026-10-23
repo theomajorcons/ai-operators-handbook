@@ -1,0 +1,44 @@
+<svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The AI Operator's Handbook origami crane">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="42%" r="70%">
+      <stop offset="0%" stop-color="#0d2a20"/>
+      <stop offset="60%" stop-color="#07140f"/>
+      <stop offset="100%" stop-color="#030806"/>
+    </radialGradient>
+    <linearGradient id="sLight" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f4f6f8"/>
+      <stop offset="100%" stop-color="#cbd1d7"/>
+    </linearGradient>
+    <linearGradient id="sMid" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#d2d8dd"/>
+      <stop offset="100%" stop-color="#a0a7ae"/>
+    </linearGradient>
+    <linearGradient id="sDark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#aeb5bc"/>
+      <stop offset="100%" stop-color="#7c838a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Badge: dark green field + glowing teal ring -->
+  <circle cx="64" cy="64" r="61" fill="url(#bg)"/>
+  <circle cx="64" cy="64" r="58" fill="none" stroke="#0abd94" stroke-width="3" opacity="0.95"/>
+  <circle cx="64" cy="64" r="58" fill="none" stroke="#5fe9c6" stroke-width="1" opacity="0.5"/>
+
+  <!-- Origami crane: solid body with folds for beak, raised wing, tail, lower wing -->
+  <g stroke="#111619" stroke-width="2" stroke-linejoin="round">
+    <!-- body -->
+    <polygon points="52,64 72,60 76,74 56,78" fill="url(#sMid)"/>
+    <!-- beak and head, pointing left -->
+    <polygon points="52,64 26,62 48,70" fill="url(#sLight)"/>
+    <!-- throat / neck fold -->
+    <polygon points="48,70 52,64 56,78" fill="url(#sDark)"/>
+    <!-- raised wing, the tall dominant fold -->
+    <polygon points="52,64 70,28 72,60" fill="url(#sLight)"/>
+    <!-- back of the wing -->
+    <polygon points="70,28 86,46 72,60" fill="url(#sDark)"/>
+    <!-- tail sweeping right -->
+    <polygon points="72,60 104,58 76,74" fill="url(#sLight)"/>
+    <!-- lower wing dropping down -->
+    <polygon points="56,78 68,96 76,74" fill="url(#sDark)"/>
+  </g>
+</svg>
