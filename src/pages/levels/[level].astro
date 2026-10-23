@@ -83,8 +83,12 @@ const capstone = items.find((l) => l.data.kind === 'project');
 const miniProject = elective
   ? null
   : capstone
-    ? { href: withBase(`/lessons/${capstone.id}`), cta: 'Open the capstone', download: false }
-    : { href: withBase(`/artifacts/level-${level}-challenge.md`), cta: 'Get the challenge', download: true };
+    ? { kind: 'lesson' as const, href: withBase(`/lessons/${capstone.id}`), cta: 'Open the capstone' }
+    : {
+        kind: 'download' as const,
+        md: withBase(`/artifacts/level-${level}-challenge.md`),
+        docx: withBase(`/artifacts/level-${level}-challenge.docx`),
+      };
 
 // One merged cheat sheet per level: every lesson's naming rule on one page.
 const cheatsheetFile = elective ? 'electives-cheatsheet.md' : `level-${level}-cheatsheet.md`;
@@ -173,18 +177,37 @@ const cheatsheetFile = elective ? 'electives-cheatsheet.md' : `level-${level}-ch
 
   {miniProject && (
     <section class="mini" style={`--lv: ${lvColor}`} aria-labelledby="mini-title">
-      <a class="mini__card" href={miniProject.href} download={miniProject.download || undefined}>
-        <span class="mini__tag">Mini-project</span>
-        <h2 id="mini-title" class="mini__title">{label} mini-project</h2>
-        <p class="mini__body">
-          Put it all together: use everything you learned in {label.toLowerCase()} to build one
-          small project end to end.
-        </p>
-        <span class="mini__cta">
-          <span>{miniProject.cta}</span>
-          <span class="mini__arrow" aria-hidden="true">{miniProject.download ? '↓' : '→'}</span>
-        </span>
-      </a>
+      {miniProject.kind === 'lesson' ? (
+        <a class="mini__card" href={miniProject.href}>
+          <span class="mini__tag">Mini-project</span>
+          <h2 id="mini-title" class="mini__title">{label} mini-project</h2>
+          <p class="mini__body">
+            Put it all together: use everything you learned in {label.toLowerCase()} to build one
+            small project end to end.
+          </p>
+          <span class="mini__cta">
+            <span>{miniProject.cta}</span>
+            <span class="mini__arrow" aria-hidden="true">&rarr;</span>
+          </span>
+        </a>
+      ) : (
+        <div class="mini__card mini__card--static">
+          <span class="mini__tag">Mini-project</span>
+          <h2 id="mini-title" class="mini__title">{label} mini-project</h2>
+          <p class="mini__body">
+            Put it all together: use everything you learned in {label.toLowerCase()} to build one
+            small project end to end.
+          </p>
+          <span class="mini__links">
+            <a class="mini__dl" href={miniProject.md} download aria-label={`Download the ${label} mini-project as Markdown`}>
+              Markdown (.md) <span aria-hidden="true">&darr;</span>
+            </a>
+            <a class="mini__dl" href={miniProject.docx} download aria-label={`Download the ${label} mini-project as a Word document`}>
+              Word (.docx) <span aria-hidden="true">&darr;</span>
+            </a>
+          </span>
+        </div>
+      )}
     </section>
   )}
 
@@ -350,6 +373,34 @@ const cheatsheetFile = elective ? 'electives-cheatsheet.md' : `level-${level}-ch
     border-color: var(--lv);
     box-shadow: var(--glow-sm);
   }
+  /* Static variant (challenge offered as two downloads): the card itself is not
+     a link, so it should not lift or imply clickability on hover. */
+  .mini__card--static,
+  .mini__card--static:hover {
+    transform: none;
+    box-shadow: var(--shadow-panel);
+    cursor: default;
+  }
+  .mini__links { display: flex; flex-wrap: wrap; gap: var(--space-3); }
+  .mini__dl {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--lv);
+    background: color-mix(in srgb, var(--lv) 10%, transparent);
+    border: 1px solid color-mix(in srgb, var(--lv) 45%, var(--glass-border));
+    border-radius: var(--radius-sm);
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .mini__dl:hover {
+    text-decoration: none;
+    background: color-mix(in srgb, var(--lv) 18%, transparent);
+    border-color: var(--lv);
+  }
+  .mini__dl:focus-visible { outline: 2px solid var(--lv); outline-offset: 2px; }
   .mini__tag {
     display: inline-block;
     font-family: var(--font-mono);
