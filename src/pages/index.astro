@@ -175,6 +175,11 @@ const learn = levels
         </span>
         <span class="featured__cta">Begin at Lesson 1 <span aria-hidden="true">→</span></span>
       </a>
+      <p class="featured__alt">
+        Not sure where to start?
+        <a href={withBase('/where-to-start')}>Take the 2-minute check</a>
+        and jump straight to the right lesson.
+      </p>
     </section>
   )}
 
@@ -520,6 +525,12 @@ const learn = levels
     color: var(--accent-strong);
     font-weight: 650;
   }
+  .featured__alt {
+    margin: var(--space-4) 0 0;
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .featured__alt a { color: var(--accent-strong); font-weight: 600; }
 
   /* ── Section headings ──────────────────────────────────────────── */
   .section-heading {

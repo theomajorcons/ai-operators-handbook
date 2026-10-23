@@ -1,0 +1,558 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { withBase } from '../lib/base';
+import { byLessonOrder } from '../lib/lesson-order';
+import { lessonNumbers } from '../lib/lesson-number';
+
+// First lesson of each numbered level, with its global display number. The
+// result readout links a learner to the first lesson of the level where their
+// knowledge starts to slip - computed from content, nothing hardcoded.
+const lessons = (await getCollection('lessons')).sort(byLessonOrder);
+const nums = lessonNumbers(lessons);
+
+const firstOfLevel = new Map<number, { num: number; href: string }>();
+for (const l of lessons) {
+  if (l.data.track === 'Electives') continue;
+  if (firstOfLevel.has(l.data.level)) continue;
+  const n = nums.get(l.id);
+  if (n == null) continue;
+  firstOfLevel.set(l.data.level, { num: n, href: withBase(`/lessons/${l.id}`) });
+}
+
+// The "all correct -> go straight to the capstone/electives" target.
+const firstElective = lessons.find((l) => l.data.track === 'Electives');
+const electivesHref = firstElective ? withBase('/levels/electives') : null;
+
+// Per-level start info the client script reads to build the result.
+// { level -> { lesson: N, href } }. Level 1's lesson is the overall Lesson 1.
+const starts = Object.fromEntries(
+  [...firstOfLevel.entries()].map(([lvl, s]) => [lvl, { lesson: s.num, href: s.href }]),
+);
+
+// ~10 scenario/judgment questions, each tagged to the level it tests. The
+// correct index is NOT rendered into the DOM (see the define:vars script) -
+// it travels only in the client closure, like KnowledgeCheck. Questions test
+// "can you do this level's work", not vocabulary recall.
+interface Q {
+  level: 1 | 2 | 3 | 4;
+  question: string;
+  options: string[];
+  answer: number; // zero-based correct index, kept out of the DOM
+}
+const questions: Q[] = [
+  {
+    level: 1,
+    question:
+      'You need a quick draft of a routine email. Which is the right call for picking how much horsepower to spend?',
+    options: [
+      'Reach for the smallest, fastest model and low effort; step up only if the draft comes back weak.',
+      'Always use the largest model at maximum effort so the answer is never wrong.',
+      'It does not matter which model you pick; they all cost the same.',
+    ],
+    answer: 0,
+  },
+  {
+    level: 1,
+    question:
+      'Claude gives a vague, generic answer to your request. Before blaming the model, what is the first thing to check?',
+    options: [
+      'Whether you actually gave it the context and a clear description of the finished result you want.',
+      'Whether the servers are down.',
+      'Whether you used enough exclamation points.',
+    ],
+    answer: 0,
+  },
+  {
+    level: 1,
+    question: 'What can Claude see when you start a brand-new chat with no attachments?',
+    options: [
+      'Only what you type or paste into that chat; it cannot see your files, screen, or other chats.',
+      'Everything on your computer and your whole chat history automatically.',
+      'Your email and calendar by default.',
+    ],
+    answer: 0,
+  },
+  {
+    level: 2,
+    question:
+      'You want Claude to start every chat already knowing your team, your rules, and your reference docs. What do you set up?',
+    options: [
+      'A Project with its files and custom instructions.',
+      'A longer first message every single time.',
+      'Nothing; Claude remembers everything across chats on its own.',
+    ],
+    answer: 0,
+  },
+  {
+    level: 2,
+    question:
+      'A fact is only true for this one task today. Where does it belong?',
+    options: [
+      'In the chat as context for this task, not in long-term memory or standing instructions.',
+      'In permanent memory so Claude never forgets it.',
+      'In the Project instructions that apply to every chat.',
+    ],
+    answer: 0,
+  },
+  {
+    level: 2,
+    question:
+      'You are connecting an app (a connector) so Claude can act on your behalf. What is the safe default?',
+    options: [
+      'Grant only the narrow access the task needs, not full access to everything.',
+      'Grant full admin access so you never hit a permission wall.',
+      'Connectors have no access settings worth thinking about.',
+    ],
+    answer: 0,
+  },
+  {
+    level: 3,
+    question:
+      'You launch Claude Code in a practice project and it proposes changes to your files. What is the responsible first move?',
+    options: [
+      'Read the proposed changes, and know how to undo them with Git before you accept.',
+      'Accept everything immediately; Claude Code does not make mistakes.',
+      'Delete the project so nothing can go wrong.',
+    ],
+    answer: 0,
+  },
+  {
+    level: 3,
+    question:
+      'Claude reads a web page or a file you did not write, and it contains instructions. How should those instructions be treated?',
+    options: [
+      'As untrusted input, not as commands to obey; outside text can try to hijack the task.',
+      'As trusted orders, since Claude read them so they must be relevant.',
+      'The same as your own prompt, with no distinction.',
+    ],
+    answer: 0,
+  },
+  {
+    level: 4,
+    question:
+      'You are turning a big job into an automated workflow. Where should a human have to approve before Claude continues?',
+    options: [
+      'At the risky, hard-to-undo steps, planned in as deliberate gates.',
+      'Nowhere; the point of automation is that no human is ever involved.',
+      'Only at the very end, after everything has already happened.',
+    ],
+    answer: 0,
+  },
+  {
+    level: 4,
+    question:
+      'You are designing an automation that can act on its own. Which set of controls actually makes it safe to run?',
+    options: [
+      'A threat model, least privilege, logs, a working stop, and a recovery plan, each there for a reason.',
+      'A single big "run" button and trust that nothing will break.',
+      'Speed above all; guardrails only slow the automation down.',
+    ],
+    answer: 0,
+  },
+];
+
+const total = questions.length;
+---
+
+<BaseLayout
+  title="Find your level"
+  description="A two-minute self-check that tells you which lesson to start at, so you skip what you already know instead of starting from Lesson 1."
+  width="reading"
+>
+  <section class="w-head" aria-labelledby="w-title">
+    <p class="eyebrow">Placement check</p>
+    <h1 id="w-title" class="w-title">Find your level</h1>
+    <p class="w-lede">
+      The handbook has a lot of lessons, and not everyone needs to start at the
+      beginning. Answer {total} short questions and we will point you to the
+      lesson where your knowledge starts to run out, so you can skip what you
+      already know.
+    </p>
+    <div class="w-honest" role="note">
+      <p>
+        This is a self-check, not a gate. Nobody sees your answers and nothing is
+        saved. If a question feels unfamiliar, that is useful signal, not a
+        failure. Already comfortable with something? Skip it. If you are not sure
+        where to start, just start at Lesson 1 and go in order.
+      </p>
+    </div>
+  </section>
+
+  <form class="quiz" data-quiz aria-label="Placement questions">
+    <ol class="q-list">
+      {questions.map((q, i) => (
+        <li class="q" data-q data-level={q.level} id={`q-${i + 1}`}>
+          <fieldset class="q-fieldset">
+            <legend class="q-legend">
+              <span class="q-num" aria-hidden="true">{i + 1}</span>
+              <span class="q-text">{q.question}</span>
+            </legend>
+            <ul class="q-options" role="list">
+              {q.options.map((opt, oi) => (
+                <li class="q-option">
+                  <label class="q-label">
+                    <input
+                      class="q-radio"
+                      type="radio"
+                      name={`q-${i + 1}`}
+                      value={oi}
+                    />
+                    <span class="q-marker" aria-hidden="true">{String.fromCharCode(65 + oi)}</span>
+                    <span class="q-opt-text">{opt}</span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </fieldset>
+        </li>
+      ))}
+    </ol>
+
+    <div class="w-actions">
+      <button type="submit" class="w-btn w-btn--go" data-score>Show me where to start</button>
+      <button type="reset" class="w-btn w-btn--ghost" data-reset hidden>Start over</button>
+    </div>
+  </form>
+
+  {/* No-JS fallback: the questions render and read fine above; this static line
+      tells a reader with scripting off exactly what to do, matching the honest
+      framing. Hidden once JS is available, since the result region takes over. */}
+  <p class="w-nojs" data-nojs>
+    If scoring does not run in your browser, you can still read every question
+    above. When in doubt, start at
+    {firstOfLevel.get(1)
+      ? <a href={firstOfLevel.get(1)!.href}>Lesson {firstOfLevel.get(1)!.num}</a>
+      : <span>Lesson 1</span>}
+    and go in order.
+  </p>
+
+  <section
+    class="result"
+    data-result
+    aria-labelledby="result-title"
+    aria-live="polite"
+    aria-atomic="true"
+    hidden
+  >
+    <h2 id="result-title" class="result__title" data-result-headline></h2>
+    <p class="result__readout" data-result-readout></p>
+    <a class="result__cta" data-result-link href="#">Start there <span aria-hidden="true">→</span></a>
+    <p class="result__honest">
+      Remember: this is a suggestion, not a rule. If you would rather read every
+      lesson in order, that works too.
+    </p>
+  </section>
+</BaseLayout>
+
+{/* Scoring runs client-side. The answer key and per-level start lessons travel
+    through define:vars into a closure - the correct option index is never put
+    on any DOM node (no data-answer / aria-label), so the initial accessibility
+    tree does not leak which option is right. Pure DOM, no network, no storage. */}
+<script
+  define:vars={{
+    keys: questions.map((q) => q.answer),
+    levelOf: questions.map((q) => q.level),
+    starts,
+    electivesHref,
+    total,
+  }}
+>
+  (() => {
+    const form = document.querySelector('[data-quiz]');
+    const result = document.querySelector('[data-result]');
+    const nojs = document.querySelector('[data-nojs]');
+    const reset = document.querySelector('[data-reset]');
+    if (!form || !result) return;
+
+    // JS is live: the static no-JS line is redundant, the result region owns it.
+    if (nojs) nojs.hidden = true;
+    if (reset) reset.hidden = false;
+
+    const headline = result.querySelector('[data-result-headline]');
+    const readout = result.querySelector('[data-result-readout]');
+    const link = result.querySelector('[data-result-link]');
+
+    const LEVEL_NAMES = {
+      1: 'the basics of working in a plain chat',
+      2: 'everyday habits like Projects, memory, and connectors',
+      3: 'building with Claude Code, the filesystem, and safe tools',
+      4: 'running Claude as a dependable, guarded system',
+    };
+
+    // A level is "solid" if the learner got EVERY question tagged to it right.
+    // We walk levels 1..4 in order and stop at the first one that slips - that
+    // is where learning should begin.
+    function grade() {
+      // tally correct/total per level from the current radio selections
+      const perLevel = { 1: { ok: 0, n: 0 }, 2: { ok: 0, n: 0 }, 3: { ok: 0, n: 0 }, 4: { ok: 0, n: 0 } };
+      for (let i = 0; i < total; i++) {
+        const lvl = levelOf[i];
+        perLevel[lvl].n++;
+        const picked = form.querySelector('input[name="q-' + (i + 1) + '"]:checked');
+        if (picked && Number(picked.value) === keys[i]) perLevel[lvl].ok++;
+      }
+
+      // first level the learner is NOT solid on (missed at least one)
+      let firstGap = null;
+      for (const lvl of [1, 2, 3, 4]) {
+        const p = perLevel[lvl];
+        if (p.ok < p.n) { firstGap = lvl; break; }
+      }
+
+      if (firstGap === null) {
+        // Aced everything - send them past the core track.
+        const target = electivesHref || (starts[1] && starts[1].href) || '#';
+        return {
+          headline: 'You have got the whole core track down.',
+          readout:
+            'You answered every question right, across all four levels. Rather than re-reading the basics, jump straight to the electives and the capstone build - the optional deep dives and the hands-on lab.',
+          href: target,
+          cta: 'Go to the electives',
+        };
+      }
+
+      const start = starts[firstGap];
+      const lessonNum = start ? start.lesson : 1;
+      const href = start ? start.href : (starts[1] && starts[1].href) || '#';
+      const solidThrough = firstGap - 1;
+
+      const solidLine = solidThrough >= 1
+        ? 'You are solid through Level ' + solidThrough + ' - you have got ' +
+          (LEVEL_NAMES[solidThrough] || '') + '.'
+        : 'Everyone starts somewhere, and that is completely fine.';
+
+      return {
+        headline:
+          solidThrough >= 1
+            ? 'You are solid through Level ' + solidThrough + '. Start at Lesson ' + lessonNum + '.'
+            : 'Start at the beginning: Lesson ' + lessonNum + '.',
+        readout:
+          solidLine + ' Next, pick up ' + (LEVEL_NAMES[firstGap] || 'the next level') +
+          ' - that is where Lesson ' + lessonNum + ' begins.',
+        href,
+        cta: 'Start at Lesson ' + lessonNum,
+      };
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const r = grade();
+      if (headline) headline.textContent = r.headline;
+      if (readout) readout.textContent = r.readout;
+      if (link) {
+        link.setAttribute('href', r.href);
+        link.firstChild.textContent = r.cta + ' ';
+      }
+      result.hidden = false;
+      // Move focus to the result so screen-reader and keyboard users land on it.
+      result.setAttribute('tabindex', '-1');
+      result.focus();
+    });
+
+    form.addEventListener('reset', () => {
+      result.hidden = true;
+    });
+  })();
+</script>
+
+<style>
+  .w-head { max-width: 62ch; margin-bottom: var(--space-8); }
+  .w-title {
+    margin: 0;
+    font-size: var(--fs-display);
+    background: linear-gradient(120deg, var(--text) 30%, var(--accent-strong));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .w-lede {
+    margin: var(--space-6) 0 0;
+    font-size: var(--fs-md);
+    color: var(--muted);
+    line-height: var(--leading-body);
+  }
+  .w-honest {
+    margin-top: var(--space-6);
+    padding: var(--space-4) var(--space-6);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--note);
+    border-radius: var(--radius);
+  }
+  .w-honest p { margin: 0; font-size: var(--fs-sm); color: var(--muted); line-height: 1.55; }
+
+  /* ── Questions ─────────────────────────────────────────────────── */
+  .quiz { margin: 0; }
+  .q-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+  .q {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--note);
+    border-radius: var(--radius);
+    padding: var(--space-4) var(--space-6);
+  }
+  .q-fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+  .q-legend {
+    display: flex;
+    gap: var(--space-3);
+    align-items: baseline;
+    padding: 0;
+    margin-bottom: var(--space-4);
+    font-size: var(--fs-base);
+    font-weight: 600;
+    color: var(--text);
+  }
+  .q-num {
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    color: var(--accent-strong);
+  }
+  .q-options {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .q-label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: var(--fs-base);
+    cursor: pointer;
+    transition: border-color 0.1s ease, background 0.1s ease;
+  }
+  .q-label:hover { border-color: var(--note); background: var(--surface); }
+  /* Checked option: accent border + tint, so the choice reads without relying
+     on the native radio dot colour alone. */
+  .q-label:has(.q-radio:checked) {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+  .q-label:has(.q-radio:focus-visible) {
+    outline: 2px solid var(--accent-strong);
+    outline-offset: 2px;
+  }
+  .q-radio { flex: none; width: 1rem; height: 1rem; accent-color: var(--accent); }
+  .q-marker {
+    flex: none;
+    width: 1.4rem;
+    height: 1.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-sm);
+    color: var(--muted);
+    font-family: var(--font-mono);
+  }
+  .q-opt-text { min-width: 0; }
+
+  /* ── Actions ───────────────────────────────────────────────────── */
+  .w-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    margin: var(--space-8) 0;
+  }
+  .w-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-6);
+    font-weight: 650;
+    font-family: var(--font-sans);
+    font-size: var(--fs-base);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  }
+  .w-btn--go {
+    color: var(--bg);
+    background: linear-gradient(140deg, var(--accent-strong), var(--accent));
+    border: 1px solid transparent;
+    box-shadow: var(--glow);
+  }
+  .w-btn--go:hover { transform: translateY(-2px); box-shadow: var(--glow-lg); }
+  .w-btn--ghost {
+    color: var(--accent-strong);
+    background: var(--surface);
+    border: 1px solid var(--glass-border);
+  }
+  .w-btn--ghost:hover { border-color: var(--accent); }
+
+  .w-nojs {
+    margin: var(--space-6) 0;
+    padding: var(--space-4) var(--space-6);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+
+  /* ── Result ────────────────────────────────────────────────────── */
+  .result {
+    margin-top: var(--space-6);
+    padding: var(--space-6) var(--space-8);
+    background:
+      radial-gradient(120% 140% at 0% 0%, var(--accent-dim), transparent 55%),
+      var(--gradient-card);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--glow);
+  }
+  .result:focus-visible { outline: 2px solid var(--accent-strong); outline-offset: 3px; }
+  .result__title {
+    margin: 0;
+    font-size: var(--fs-lg);
+    line-height: var(--leading-tight);
+    color: var(--text);
+  }
+  .result__readout {
+    margin: var(--space-4) 0 0;
+    color: var(--muted);
+    line-height: var(--leading-body);
+  }
+  .result__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: var(--space-6) 0 0;
+    padding: var(--space-3) var(--space-6);
+    color: var(--bg);
+    background: linear-gradient(140deg, var(--accent-strong), var(--accent));
+    border-radius: var(--radius-pill);
+    font-weight: 650;
+    box-shadow: var(--glow-sm);
+  }
+  .result__cta:hover { text-decoration: none; box-shadow: var(--glow); }
+  .result__honest {
+    margin: var(--space-6) 0 0;
+    font-size: var(--fs-sm);
+    font-style: italic;
+    color: var(--muted);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .q-label, .w-btn, .result__cta { transition: none; }
+    .w-btn--go:hover { transform: none; }
+  }
+</style>

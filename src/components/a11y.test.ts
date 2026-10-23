@@ -13,6 +13,7 @@ const PAGES = [
   'skill-map/index.html',
   'levels/1/index.html',
   'glossary/index.html',
+  'where-to-start/index.html',
   'models/index.html',
   'faq/index.html',
   'resources/index.html',
