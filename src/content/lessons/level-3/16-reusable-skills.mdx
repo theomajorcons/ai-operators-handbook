@@ -1,0 +1,173 @@
+---
+title: "Reusable skills"
+level: 3
+lesson: "16"
+track: "Building with Claude"
+last_verified: 2026-10-12
+download: "starter-SKILL.md"
+summary: "A skill is a small file that captures how you do a repeated task, so once you write it down and test it, Claude stops needing the same thing re-explained every time."
+kind: exercise
+beforeYouLeave:
+  - "Do the task by hand twice first to learn the real steps, including the checks you tend to skip."
+  - "Put the file where Claude Code finds it, with the --- line first and reserved names avoided."
+  - "Write a description that says what the skill produces and when to use it, in one line."
+  - "Test the skill on three inputs, including a messy one, and read the output critically."
+  - "Fix and version it when it fails: tighten the description if it did not fire, tighten the steps if the output was wrong."
+---
+
+import Callout from '../../../components/Callout.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can write a real skill file, place it where Claude Code finds it, and test that it actually helps, so a task you do often stops needing to be re-explained every time.
+
+</Callout>
+
+## Why this matters
+
+There's a specific kind of waste that creeps into working with Claude: the task you do over and over, re-explaining it from scratch each time. Every week you paste the same format, remind it of the same tone, list the same checks, and some weeks you forget one, and the output drifts.
+
+A **skill** fixes exactly this. It's a way to write your instructions down *once*, in a place Claude Code can find on its own, so the next time the task comes up Claude already knows the steps. This lesson teaches what a skill is, where it lives, and how to write one that Claude will actually pick up and use.
+
+## What a skill actually is
+
+A skill is simpler than it sounds: it's a **folder with one file in it, called `SKILL.md`.** That file has two parts.
+
+- A short **header** at the very top, fenced by `---` lines, carrying a `name` and a `description`.
+- A **body** below it: the actual instructions, the steps you want Claude to follow for this task.
+
+That's the whole shape. The header tells Claude *what this skill is and when to use it*; the body tells it *how to do the thing*.
+
+The piece that does the real work is the **description**. Claude reads the descriptions of your available skills and uses them to decide, on its own, when a skill is relevant to what you just asked. Ask for "my weekly status report" and a skill whose description says *"Writes my weekly status report from raw notes"* is the one Claude reaches for. So the description isn't decoration; it's the trigger. A vague description means Claude never connects your request to the skill; a clear one means it loads automatically at the right moment.
+
+You can also run a skill **directly** by typing `/skill-name`, which skips the guessing entirely, useful when you want to be sure it fires.
+
+One honest limit to hold onto: a skill gives Claude the *same instructions* every time, not the *same output* every time. It's a reliable recipe, not a photocopier. You still review what comes back (especially the first few runs) the same way you'd check any work.
+
+## Where the file goes
+
+Claude Code looks for skills in two specific places, and which one you choose decides who gets the skill.
+
+- **Project skills** live in `.claude/skills/skill-name/SKILL.md`, inside a particular project. Use this when the skill only makes sense for that project, and when you want it shared with anyone who works in that repo.
+- **Personal skills** live in `~/.claude/skills/skill-name/SKILL.md`, in your home folder. Use this for skills you want available everywhere, across every project, just for you.
+
+Two placement details that trip people up:
+
+- The `---` line **must be the very first line of the file**: no blank line, no comment above it. If it isn't first, Claude Code won't read the header, and the skill won't register.
+- Avoid the names **`anthropic-skills`** and **`synced`**: Claude Code reserves them, and a skill folder with either name won't behave.
+
+## How to build one that works
+
+Don't write a skill from your imagination. The reliable path is to do the task *by hand first*, because that's how you discover the steps you actually take, including the small checks you'd forget if you tried to write the skill cold.
+
+<Callout variant="mistake" label="Common mistake">
+
+Writing a skill from memory, then giving it a vague description like "formats my notes." Written cold, the steps miss the small checks you actually do by hand; written vague, the description never matches a real request, so Claude never fires the skill. Do the task twice by hand first, and make the description say what it produces and when to use it.
+
+</Callout>
+
+<Callout variant="framework" label="Repeat Twice, Write It Down, Test It">
+
+1. **Do the task twice by hand** to learn the real steps, including the checks you tend to skip.
+2. **Create the file.** Project skills live in `.claude/skills/skill-name/SKILL.md`; personal skills live in `~/.claude/skills/skill-name/SKILL.md`. The `---` line must be the very first line. Avoid the reserved names `anthropic-skills` and `synced`.
+3. **Write the header and body:**
+
+```
+---
+name: weekly-status
+description: Writes my weekly status report from raw notes. Use when I ask for a status report.
+---
+
+# Weekly status
+1. Ask for this week's raw notes.
+2. Write three sections: Done, Next, Blockers.
+3. Keep it under 150 words, plain tone.
+4. Before finishing, check every number against the notes.
+```
+
+4. **Test it** on three inputs, including a messy one, and read the output critically.
+5. **Fix and version it** when it fails: tighten the description if it didn't fire, tighten the steps if the output was wrong.
+
+</Callout>
+
+Notice what the example description does: it says *what* the skill produces and *when* to use it, in one line. That "use when…" phrasing is what lets Claude match a real request to the skill.
+
+## Try it
+
+Make one real skill now.
+
+1. Pick a task you've done at least twice by hand.
+2. Create `.claude/skills/my-first/SKILL.md` with a name, a clear "use when…" description, and four steps.
+3. Ask Claude (in plain words, not with `/`) to do the task, and watch whether it picks up the skill on its own.
+4. Test with one messy input and note what failed.
+
+<ExerciseReveal prompt="Reveal what to expect" commit="Build the skill and run both tests, then reveal:">
+<Fragment slot="answer">
+
+If Claude didn't use the skill when you asked in plain words, the **description** is almost always the culprit: rewrite it to say clearly *when* the skill applies, then ask again. If it used the skill but the output was wrong on the messy input, that's the **body**: add or sharpen a step so the recipe handles the ugly case too.
+
+</Fragment>
+</ExerciseReveal>
+
+## Check yourself
+
+<KnowledgeCheck
+  question="What does Claude use to decide when a skill applies?"
+  options={[
+    "The file size",
+    "The skill's description",
+    "The folder's color or icon",
+    "Nothing; skills fire at random",
+  ]}
+  answer={1}
+  explanation="Claude reads each skill's description to decide whether it fits your request. That's why a clear 'use when…' description is the single most important line: if a skill never fires, the description is almost always what to fix."
+/>
+
+<TrueFalse statement="A skill guarantees Claude produces identical output every time it runs." answer={false}>
+<Fragment slot="why">
+
+A skill gives the same *instructions* every time, not the same *output*. It's a reliable recipe, not a photocopier. You still test it on several inputs (including a messy one) and review what comes back.
+
+</Fragment>
+</TrueFalse>
+
+<Matching
+  pairs={[
+    { term: "name", match: "Defaults to the folder name if you leave it out" },
+    { term: "description", match: "The one line Claude reads to decide when the skill applies" },
+    { term: "Project skill path", match: ".claude/skills/skill-name/SKILL.md" },
+    { term: "Personal skill path", match: "~/.claude/skills/skill-name/SKILL.md" },
+  ]}
+/>
+
+<ExerciseReveal prompt="Write the one-line description for a skill you would create. Make it clear enough that Claude would fire it at the right moment." commit="Write your description, then reveal:">
+<Fragment slot="answer">
+
+A strong description says *what* the skill does and *when* to use it: the "use when…" half is what lets Claude match a real request to it. "Formats my meeting notes" is weak; "Turns my raw meeting notes into action items and decisions. Use when I paste meeting notes" is one Claude can actually trigger on.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the starter skill, drop in your own steps, and use it on your next repeated task.
+
+<ArtifactCard label="Starter SKILL.md" file="starter-SKILL.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Skill", definition: "A folder with a SKILL.md file (a short header of name and description, plus instructions) that Claude loads automatically when the description matches your request, or that you run directly by typing /skill-name." },
+    { term: "SKILL.md", definition: "The file that defines a skill. The --- line must be the very first line of the file; the header carries the name and description, and the body carries the steps." },
+    { term: "description", definition: "The one line Claude uses to decide when a skill applies. It's the field that matters most: if a skill isn't being used, the description is almost always the problem." },
+    { term: "Project vs personal skill", definition: "Project skills live in .claude/skills/ inside a repo and are shared with that project; personal skills live in ~/.claude/skills/ and follow you across every project." },
+    { term: "Reserved names", definition: "Skill names to avoid (anthropic-skills and synced) because Claude Code reserves them and a folder with either name won't behave." },
+  ]}
+/>

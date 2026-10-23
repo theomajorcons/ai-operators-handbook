@@ -1,0 +1,37 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ModelLineup from '../components/ModelLineup.astro';
+---
+
+<BaseLayout title="Model lineup" description="The Claude models at a glance: what each one is good at and when to reach for it, so you can match the model to the task.">
+  <section class="m-head" aria-labelledby="m-title">
+    <p class="eyebrow">Reference spine</p>
+    <h1 id="m-title" class="m-title">Model lineup</h1>
+    <p class="m-lede">
+      The current Claude tiers, kept in one place. Model names and version
+      numbers shift often, so the vendor is the source of truth; this page is
+      the single spot the handbook updates when they do. Lessons link here
+      rather than hardcoding a table that goes stale.
+    </p>
+  </section>
+
+  <ModelLineup />
+</BaseLayout>
+
+<style>
+  .m-head { max-width: 60ch; margin-bottom: var(--space-6); }
+  .m-title {
+    margin: 0;
+    font-size: var(--fs-display);
+    background: linear-gradient(120deg, var(--text) 30%, var(--accent-strong));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .m-lede {
+    margin: var(--space-6) 0 0;
+    font-size: var(--fs-md);
+    color: var(--muted);
+    max-width: 58ch;
+  }
+</style>

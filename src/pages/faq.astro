@@ -1,0 +1,348 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { withBase } from '../lib/base';
+
+// FAQ + Troubleshooting - all content is the handbook's own (operating AI /
+// Claude / Claude Code), drawn from the lessons it links back to. No external
+// facts: every answer either restates a lesson's teaching or points at it.
+//
+// FAQs use native <details> (keyboard + screen-reader operable with zero JS).
+// Troubleshooting mirrors L12's "cause → how to check → the one fix" taxonomy
+// as a symptom-first table.
+
+type Faq = { q: string; a: string; lesson?: { id: string; label: string } };
+
+const faqs: Faq[] = [
+  {
+    q: 'Which model should I pick, and how much "effort" does a task need?',
+    a: 'Match the model to the job: a quick setting for light, well-shaped work; a stronger model (or more thinking effort) for tangled, multi-step problems. A hard task on a quick setting comes back neat on the surface but thin underneath. When an answer feels shallow, raising the model or effort is one of the first things to try.',
+    lesson: { id: 'level-1/01-pick-the-right-model', label: 'Pick the right model' },
+  },
+  {
+    q: 'Why do long chats start ignoring what I said at the beginning?',
+    a: "A chat has a budget. In a very long conversation the rule or number you set up top gets crowded out by everything since, so Claude drifts. The fix isn't to repeat yourself louder: ask for a handoff summary and start a fresh chat with it pasted in.",
+    lesson: { id: 'level-1/02-why-you-hit-your-limit', label: 'Why you hit your limit' },
+  },
+  {
+    q: 'What is "context" and why does giving it change the answer so much?',
+    a: "Context is everything Claude can see when it answers: your prompt, attached files, the chat so far. Claude can't read your mind or your drive; if it needs a file or a constraint you never supplied, it fills the gap with a confident guess. Most bad answers are really missing context. Attach the thing, state the constraint.",
+    lesson: { id: 'level-1/03-give-claude-the-right-context', label: 'Give Claude the right context' },
+  },
+  {
+    q: 'How do I write a prompt that gets what I actually want?',
+    a: 'Write it like a spec, not a wish. "Make it better" names no target, so Claude aims somewhere, often not where you meant. Say what better means (shorter, warmer, more formal), who it is for, and what shape the output should take. A clear ask is the cheapest quality upgrade there is.',
+    lesson: { id: 'level-1/04-write-a-prompt-like-a-spec', label: 'Write a prompt like a spec' },
+  },
+  {
+    q: 'What is a Project, and when is it worth setting one up?',
+    a: 'A Project bundles standing instructions and source files so you stop re-explaining the same background every chat. Set one up when you do a workflow repeatedly against the same material: the instructions and sources carry across chats so each one starts warm instead of cold.',
+    lesson: { id: 'level-2/06-projects-files-and-instructions', label: 'Projects, files, and instructions' },
+  },
+  {
+    q: 'What does "memory" remember, and what should I never rely on it for?',
+    a: "Standing instructions and memory let Claude carry preferences and facts forward so you aren't restating them. Treat it as convenience, not a vault: put durable, stable preferences there, but don't lean on it for anything you can't afford to have drift or go stale, and never store secrets in it.",
+    lesson: { id: 'level-2/08-memory-and-standing-instructions', label: 'Memory and standing instructions' },
+  },
+  {
+    q: 'When should I turn on web search or research, and can I trust what comes back?',
+    a: "Turn on research when the answer depends on something time-sensitive or outside what Claude could already know. But a search result is a lead, not gospel: check that the tool actually ran, that the source is current rather than a stale copy, and spot-check the claim before you act on it. Research widens what Claude can reach; it doesn't remove your job of verifying.",
+    lesson: { id: 'level-2/10-research-and-web-search', label: 'Research and web search' },
+  },
+  {
+    q: 'What are connectors, and what is safe to connect?',
+    a: 'Connectors let a regular chat reach a tool or account (email, a drive, a system). They are powerful because they act on your behalf, so connect the least that the task needs, confirm what a connector can see and do before you turn it on, and never wire up access you would not hand a new hire on day one.',
+    lesson: { id: 'level-2/11-connectors-in-regular-chat', label: 'Connectors in regular chat' },
+  },
+  {
+    q: 'How do I run a safe first session in Claude Code?',
+    a: "Start read-only and scoped: point it at one project folder, let it read and propose before it writes, and keep a human gate on anything destructive. You review the diff; Claude doesn't get the keys to the whole machine. Safety here is about scope and gates, not trust.",
+    lesson: { id: 'level-3/13-claude-code-your-first-safe-session', label: 'Claude Code: your first safe session' },
+  },
+  {
+    q: 'A tool or script read something from outside: how do I stay safe (prompt injection, least privilege)?',
+    a: 'Treat anything Claude reads from the outside (a web page, a document, a tool\'s output) as untrusted. Hidden instructions buried in a source can try to hijack the answer (prompt injection): if an answer takes a sudden strange turn right after reading something external, suspect the source. Defend with least privilege: give each tool and script the narrowest access that does the job, and keep a human gate on actions that matter.',
+    lesson: { id: 'level-3/15-tools-scripts-mcp-and-untrusted-input', label: 'Tools, scripts, MCP, and untrusted input' },
+  },
+  {
+    q: 'How do I know the output is actually right (verification and evals)?',
+    a: "Don't confuse confident prose with correct work. Verify: spot-check numbers and parsed values by hand, re-read the output against what you asked, and for anything you repeat, build a small eval, a fixed set of cases you re-run so you catch regressions instead of eyeballing each time. Trust is earned per task, by checking.",
+    lesson: { id: 'level-3/17-verification-and-evals', label: 'Verification and evals' },
+  },
+  {
+    q: 'When should I never paste something as a "source"?',
+    a: "Never paste credentials (passwords, API keys, tokens, ID numbers) as a source. Share other sensitive data only when you're authorized, in an approved environment, and trimmed to the minimum the question needs. A source is for giving Claude what it needs to read, not for handing over secrets.",
+    lesson: { id: 'level-2/12-when-things-go-wrong', label: 'When things go wrong' },
+  },
+];
+
+// Troubleshooting taxonomy - lifted from L12's "bad answers have causes, not bad
+// luck". Symptom → likely cause → how to check / the one fix. One source link
+// for the whole section (it's all one lesson's framework).
+const l12 = withBase('/lessons/level-2/12-when-things-go-wrong');
+
+type Row = { symptom: string; cause: string; fix: string };
+const rows: Row[] = [
+  {
+    symptom: 'Confident summary of a file you never attached',
+    cause: 'Missing context',
+    fix: 'Check the file actually attached. Supply it, then re-ask; don\'t retry unchanged.',
+  },
+  {
+    symptom: 'Rewrite aimed at the wrong target ("make it better" → not better)',
+    cause: 'A vague request',
+    fix: 'Name what better means (shorter, warmer, more formal) and ask again.',
+  },
+  {
+    symptom: 'Claude ignores a rule or budget you set early in a long chat',
+    cause: 'Chat grown too long',
+    fix: 'Ask for a handoff summary and restart fresh in a new chat.',
+  },
+  {
+    symptom: 'Answer is neat on the surface but shallow underneath',
+    cause: 'Wrong model or too little effort',
+    fix: 'Raise the model or thinking effort for the hard, tangled task.',
+  },
+  {
+    symptom: 'Wrong on something time-sensitive or private',
+    cause: "A fact Claude couldn't know",
+    fix: 'Give a current source or turn on search; rephrasing alone will not fix it.',
+  },
+  {
+    symptom: 'Answer built around a hole where a step should be',
+    cause: 'Permissions / a tool was unavailable',
+    fix: 'Check tool activity: did the search, file, or connector actually run, or was it blocked?',
+  },
+  {
+    symptom: 'Correct, but for last month',
+    cause: 'A stale source',
+    fix: 'Check inputs and sources: is Claude reading the current copy or an old one?',
+  },
+  {
+    symptom: 'One requirement silently dropped',
+    cause: 'Conflicting instructions',
+    fix: 'Compare the prompt to what you meant: you may have asked for two things that can\'t both be true.',
+  },
+  {
+    symptom: 'Numbers or a table look off',
+    cause: 'A parsing or math error',
+    fix: 'Spot-check one value by hand; math and parsing errors hide inside confident prose.',
+  },
+  {
+    symptom: 'Answer takes a sudden strange turn right after reading an external source',
+    cause: 'Prompt injection',
+    fix: 'Suspect hidden instructions in the source. Check what it actually contained.',
+  },
+  {
+    symptom: 'Claude declines or hedges on a reasonable request',
+    cause: 'A safety refusal',
+    fix: 'Add context or rephrase; don\'t just retry the same wording unchanged.',
+  },
+  {
+    symptom: 'Nothing is wrong with the prompt and it still failed',
+    cause: 'A transient glitch',
+    fix: 'The one case a plain retry is right, but only after the checks above rule out a real cause.',
+  },
+];
+---
+
+<BaseLayout title="FAQ & Troubleshooting" description="Answers to the common questions and fixes for the usual snags, so you can unstick yourself and get back to the lesson quickly." width="wide">
+  <section class="f-head" aria-labelledby="f-title">
+    <p class="eyebrow">Reference spine</p>
+    <h1 id="f-title" class="f-title">FAQ &amp; Troubleshooting</h1>
+    <p class="f-lede">
+      The questions operators ask most, answered from the handbook itself, plus a
+      diagnose-first table for when an answer comes back wrong. Every answer links
+      to the lesson that teaches it in full.
+    </p>
+  </section>
+
+  <section class="f-faq" aria-labelledby="f-faq-title">
+    <h2 id="f-faq-title" class="f-section-title">Frequently asked</h2>
+    <div class="f-list">
+      {faqs.map((f) => (
+        <details class="f-item">
+          <summary class="f-q">
+            <span class="f-q__text">{f.q}</span>
+            <span class="f-q__chev" aria-hidden="true">▾</span>
+          </summary>
+          <div class="f-a">
+            <p>{f.a}</p>
+            {f.lesson && (
+              <a class="f-source" href={withBase(`/lessons/${f.lesson.id}`)}>{f.lesson.label}</a>
+            )}
+          </div>
+        </details>
+      ))}
+    </div>
+  </section>
+
+  <section class="f-trouble" aria-labelledby="f-trouble-title">
+    <h2 id="f-trouble-title" class="f-section-title">Troubleshooting a bad answer</h2>
+    <p class="f-trouble-lede">
+      A wrong answer is rarely bad luck; it has a cause. Find the symptom, name the
+      cause, make the one change the cause points at, then rerun. Change exactly one
+      thing so you know what fixed it.
+    </p>
+    <div class="f-table-wrap">
+      <table class="f-table">
+        <thead>
+          <tr>
+            <th scope="col">Symptom</th>
+            <th scope="col">Likely cause</th>
+            <th scope="col">How to check / the one fix</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr>
+              <td>{r.symptom}</td>
+              <td><span class="f-cause">{r.cause}</span></td>
+              <td>{r.fix}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="f-trouble-foot">
+      The full ladder (get a lead by asking what Claude assumed, then confirm it
+      against the evidence) lives in <a class="f-source" href={l12}>When things go wrong</a>.
+    </p>
+  </section>
+</BaseLayout>
+
+<style>
+  /* ── Head ──────────────────────────────────────────────────────── */
+  .f-head { max-width: 60ch; margin-bottom: var(--space-10); }
+  .f-title {
+    margin: 0;
+    font-size: var(--fs-display);
+    background: linear-gradient(120deg, var(--text) 30%, var(--accent-strong));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .f-lede {
+    margin: var(--space-6) 0 0;
+    font-size: var(--fs-md);
+    color: var(--muted);
+    max-width: 58ch;
+  }
+
+  .f-section-title {
+    margin: 0 0 var(--space-6);
+    font-family: var(--font-mono);
+    font-size: var(--fs-lg);
+    color: var(--accent);
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: var(--space-2);
+  }
+  .f-faq { margin-bottom: var(--space-12); }
+
+  /* ── FAQ - native <details> accordion ──────────────────────────── */
+  .f-list { display: flex; flex-direction: column; gap: var(--space-3); }
+  .f-item {
+    background: var(--gradient-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-panel);
+    overflow: hidden;
+  }
+  .f-item[open] { border-color: var(--accent); box-shadow: var(--glow); }
+  .f-q {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-6);
+    cursor: pointer;
+    list-style: none;
+    font-weight: 650;
+    color: var(--text);
+  }
+  .f-q::-webkit-details-marker { display: none; }
+  .f-q:hover { background: var(--accent-dim); }
+  .f-item summary:focus-visible {
+    outline: 2px solid var(--accent-strong);
+    outline-offset: -2px;
+  }
+  .f-q__text { flex: 1 1 auto; min-width: 0; }
+  .f-q__chev {
+    flex: none;
+    color: var(--muted);
+    transition: transform 0.2s ease;
+  }
+  .f-item[open] .f-q__chev { transform: rotate(180deg); }
+  .f-a {
+    padding: 0 var(--space-6) var(--space-5);
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+  }
+  .f-a p { margin: 0 0 var(--space-3); }
+
+  .f-source {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--accent-strong);
+    background: var(--accent-dim);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    border-radius: var(--radius-pill);
+    padding: 2px var(--space-3);
+  }
+  .f-source::before { content: '→ '; }
+  .f-source:hover { text-decoration: none; background: var(--surface-2); }
+
+  /* ── Troubleshooting table ─────────────────────────────────────── */
+  .f-trouble-lede, .f-trouble-foot {
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    line-height: 1.6;
+    max-width: 70ch;
+  }
+  .f-trouble-lede { margin: 0 0 var(--space-6); }
+  .f-trouble-foot { margin: var(--space-6) 0 0; }
+
+  .f-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-panel);
+  }
+  .f-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-sm);
+  }
+  .f-table th, .f-table td {
+    text-align: left;
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+    vertical-align: top;
+  }
+  .f-table thead th {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+  .f-table tbody tr:last-child td { border-bottom: none; }
+  .f-table tbody tr:hover { background: var(--surface-2); }
+  .f-table td:first-child { color: var(--text); font-weight: 600; }
+  .f-cause {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--key);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 48rem) {
+    .f-table { min-width: 42rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .f-q__chev, .f-source { transition: none; }
+  }
+</style>

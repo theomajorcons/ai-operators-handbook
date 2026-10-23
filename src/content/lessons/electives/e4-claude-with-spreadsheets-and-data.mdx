@@ -1,0 +1,175 @@
+---
+title: "Claude with spreadsheets and data"
+level: 5
+lesson: "e4"
+track: "Electives"
+last_verified: 2026-10-22
+download: "spreadsheet-check-sheet.md"
+summary: "Claude is useful on a spreadsheet only when you give it the column meanings and sample rows, check every formula and number it produces, try on a small slice first, and keep sensitive data out."
+kind: concept
+beforeYouLeave:
+  - "Explain why a bare table misleads Claude: without column meanings and sample rows it guesses what the columns are, and a confident wrong formula looks exactly like a right one."
+  - "Give Claude the context a data task needs: what each column means, a few real sample rows, and what the output should look like."
+  - "Check what Claude computed, not just that it answered: recompute one row by hand and reconcile a total before you trust the formula or the number."
+  - "Try a formula or transformation on a small slice first, so a mistake costs a few rows and not the whole sheet."
+  - "Keep sensitive data out: strip or mask what your data rules do not allow before anything is pasted or uploaded."
+---
+
+import Callout from '../../../components/Callout.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can use Claude on a spreadsheet or dataset by giving it the column meanings and sample rows it needs, checking every formula and number it produces, trying on a small slice first, and keeping sensitive data out.
+
+</Callout>
+
+## Why this matters
+
+A spreadsheet looks like the perfect job for Claude. You have a table, you want a formula, a pivot, a cleanup pass, or a plain-English read of what the numbers say, and Claude writes all of that fluently. That fluency is exactly the trap. On prose a wrong sentence often reads a little off. On data a wrong formula returns a number, and a number carries authority: it lands in a report, a decision, a client email, and nobody can tell by looking that the SUM skipped a column or the average quietly dropped the blank rows.
+
+So the problem with data work is not getting Claude to produce something. It produces something every time. The problem is that the output is a computation you have to trust, and Claude cannot see your actual sheet the way you can. It works from what you paste and what you tell it, and it fills the gaps with confident guesses. This lesson is the discipline that makes that safe: feed it the context a data task really needs, then check what it computed before the number leaves your hands.
+
+## Where a bare table goes wrong
+
+Start with a concrete pair. Two people hand Claude the same messy sales export and ask for a formula to total revenue per region.
+
+**Fiona** pastes the raw table with no explanation and asks "give me a formula for total revenue by region." The columns are headed `amt`, `reg`, `dt`, `st`. Claude guesses: it reads `amt` as the revenue column and writes a clean SUMIF. The formula is syntactically perfect. But `amt` was the quoted amount, not the closed amount; the real revenue lived in a column Claude never saw described. The total is wrong, it looks right, and it ships.
+
+**Dev** works differently. Before asking for anything he tells Claude what the table is: "`amt` is the quoted amount, `closed` is the amount that actually closed, `reg` is region, `st` is deal status where only `won` counts as revenue." He pastes five sample rows so Claude can see the shape, including one blank `closed` and one `lost` deal. Then he asks for the formula. Now Claude has what it needs: it sums `closed` where `st` is `won`, and handles the blank. Dev still does not trust it on sight. He picks one region, adds those rows on a calculator, and reconciles the two numbers. They match, so the formula ships.
+
+The difference is not that Dev used a bigger model or knows more Excel. It is that Dev gave Claude the **context** the task needed (column meanings, sample rows, what counts) and then **checked the computation** instead of the prose. Fiona trusted a formula that looked right; Dev trusted a number he reconciled.
+
+<Callout variant="mistake" label="Common mistake">
+
+Trusting a formula because it is well-formed and returns a number. A clean SUMIF can sum the wrong column, silently drop the blank rows, or double-count a join, and a wrong number carries the same authority as a right one straight into a report. Fiona's total parsed perfectly and was wrong. Recompute one row by hand and reconcile a total against a figure you already trust before the number leaves your hands.
+
+</Callout>
+
+## The two moves that make data work safe
+
+Dev's process is two disciplines, and it is worth seeing why each exists before you memorize the steps.
+
+**Give Claude the context a data task needs.** A table of bare headers is not enough, because Claude cannot open your sheet and cannot know that `amt` is quoted and `closed` is real. It will guess, and a confident guess on data produces a wrong number that looks exactly like a right one. So before you ask for a formula, a pivot, or a cleanup, tell Claude three things: what each column means (especially any header that is abbreviated or ambiguous), a few real sample rows so it can see the actual shape and spot the blanks and odd values, and what the output should look like (a single formula, a new column, a summary table). The sample rows do double duty: they show Claude the edge cases (a blank, a `lost` row, a stray text value in a number column) that decide whether a formula is correct or just plausible.
+
+**Check what it computed, not just that it answered.** This is the move people skip, because a formula that parses and a table that renders both feel finished. They are not. A formula can be well-formed and still sum the wrong column, drop blanks you wanted counted, or double-count a join. The only safe check is independent: recompute one row by hand (or on a calculator) and see if Claude's formula gives the same answer, and reconcile a total against a number you already trust (last month's figure, a control count, a known subtotal). This is the same answer-checking discipline from [checking the answer before you act on it](/lessons/level-1/04b-check-the-answer/), and when a data workflow runs more than once it graduates into a small [eval](/lessons/level-3/17-verification-and-evals/): a couple of rows with known-correct answers you can re-run to confirm the formula still holds after a change.
+
+Two habits ride along with those moves. **Try it on a small slice first:** run the formula or transformation on ten rows before ten thousand, so a mistake costs a few rows you can eyeball, not a whole sheet you have to untangle. And **keep sensitive data out:** a spreadsheet is where personal and confidential data hides (salaries, client names, health or deal details), so strip, mask, or aggregate anything your data rules do not allow before you paste or upload, the same rule the public and rollout electives lean on, applied to tables. Claude cannot un-see what you give it.
+
+## The rule
+
+<Callout variant="framework" label="Context In, Check the Numbers Out">
+
+1. **Give context:** what each column means, a few real sample rows, and what the output should look like.
+2. **Keep sensitive data out:** strip or mask anything your data rules do not allow before you paste or upload.
+3. **Ask for one clear thing:** a formula, a new column, a pivot, or a plain-English read.
+4. **Try a small slice first:** run it on ten rows before the whole sheet.
+5. **Check the computation:** recompute one row by hand and reconcile a total against a number you already trust.
+6. **Re-runnable work gets an eval:** keep a couple of known-answer rows to re-check the formula after any change.
+
+</Callout>
+
+## Try it
+
+You asked Claude for help on a sales sheet. For **each** result below, decide:
+does it clear, yes or no, and if no, name the exact fix. Judge whether Claude
+had the **context** it needed and whether the **computation was checked**, not
+whether the formula merely looks valid. **Write your four calls in the box below
+before you reveal.**
+
+1. You pasted headers `amt`, `reg`, `st` with no explanation and got a SUMIF on `amt`. You ship it as "total revenue."
+2. You explained every column and pasted five sample rows, then recomputed one region by hand and it matched the formula.
+3. You ran the new cleanup formula on all 40,000 rows first, to save time, then spot-checked afterward.
+4. The sheet has a salary column your data rules forbid sharing. You pasted the whole sheet so Claude "has the full picture."
+
+<ExerciseReveal prompt="Reveal the answers" commit="Write your yes/no and the fix for all four, then reveal:">
+<Fragment slot="answer">
+
+1. No. **Context fails:** bare abbreviated headers let Claude guess what `amt` is, and "quoted" versus "closed" is exactly the guess that goes wrong. Fix: tell Claude what each column means and which status counts as revenue, then check the total.
+2. Yes. Claude had column meanings and sample rows, and you reconciled the number independently. The formula clears (keep a known-answer row if you will re-run it).
+3. No, not in that order. **Small slice first:** running on all 40,000 rows before checking means a wrong formula corrupts the whole sheet. Fix: run on ten rows, verify, then scale.
+4. No. **Sensitive data:** a forbidden salary column does not belong in the paste. Fix: strip or mask the salary column before uploading; "full picture" never overrides your data rules.
+
+</Fragment>
+</ExerciseReveal>
+
+## Check yourself
+
+<KnowledgeCheck
+  question="Before asking Claude for a formula on a table, what should you give it?"
+  options={[
+    "Nothing, just the headers",
+    "Column meanings, a few sample rows, and the output you want",
+    "A bigger model",
+    "The whole company database",
+  ]}
+  answer={1}
+  explanation="Claude cannot open your sheet, so a bare header lets it guess what each column is. Column meanings plus real sample rows plus the output shape give it what it needs; a bigger model still guesses on missing context, and dumping the whole database adds risk, not clarity."
+/>
+
+<KnowledgeCheck
+  question="Claude returns a well-formed formula that totals revenue. What do you do before you trust the number?"
+  options={[
+    "Ship it, the formula parses",
+    "Recompute one row by hand and reconcile a total you already trust",
+    "Ask a bigger model to confirm it",
+    "Run it on the whole sheet and move on",
+  ]}
+  answer={1}
+  explanation="A formula can parse and still sum the wrong column or drop blanks. The only safe check is independent: recompute a row and reconcile against a known number. 'It parses' is exactly how Fiona's wrong total shipped, and another model just produces more confident output, not a check."
+/>
+
+<TrueFalse statement="A spreadsheet formula that runs without an error is correct." answer={false}>
+<Fragment slot="why">
+
+Running without an error only means the formula is well-formed, not that it computes the right thing. It can sum the quoted column instead of the closed one, silently drop blank rows, or double-count a join, and return a clean number every time. Correctness is a separate question you answer by recomputing a row and reconciling a total, not by the absence of an error.
+
+</Fragment>
+</TrueFalse>
+
+<Matching
+  pairs={[
+    { term: "Give context", match: "Column meanings, sample rows, and the output you want" },
+    { term: "Small slice first", match: "Run on ten rows before the whole sheet" },
+    { term: "Check the computation", match: "Recompute a row by hand and reconcile a total" },
+    { term: "Keep sensitive data out", match: "Strip or mask what your data rules forbid before uploading" },
+  ]}
+/>
+
+Now run it on your own work. Take one real data task you would hand Claude and
+carry it through the two moves: (1) write the **context** you would give (what
+each column means, a couple of sample rows, the output you want); (2) name the
+**check** you would run on the result (which row you would recompute, which total
+you would reconcile against a number you already trust). **Write the task,
+the context, and the check in the box, then reveal.**
+
+<ExerciseReveal prompt="Reveal a worked example" commit="Write your task, the context you would give, and the check you would run, then reveal:">
+<Fragment slot="answer">
+
+Worked example. Task: total won revenue per region from a sales export. (1) Context: "`closed` is the amount that actually closed, `st` is status where only `won` counts, `reg` is region," plus five sample rows including one blank `closed` and one `lost` deal, and "output: one SUMIFS formula." (2) Check: recompute the East region on a calculator from the raw rows and confirm it matches the formula; reconcile the grand total against last quarter's known figure. If either check misses, the formula does not ship until it is fixed. If you will re-run this monthly, keep two known-answer rows as a small eval.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the spreadsheet check sheet and use it on your next real data task.
+
+<ArtifactCard label="Spreadsheet check sheet" file="spreadsheet-check-sheet.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Column context", definition: "Telling Claude what each column means (especially abbreviated or ambiguous headers), since it cannot open your sheet and will otherwise guess, and a confident wrong guess on data looks exactly like a right one." },
+    { term: "Sample rows", definition: "A few real rows pasted so Claude sees the actual shape and the edge cases (blanks, odd values, status rows) that decide whether a formula is correct or merely plausible." },
+    { term: "Check the computation", definition: "Verifying what Claude computed, not just that it answered: recompute one row by hand and reconcile a total against a number you already trust, because a well-formed formula can still sum the wrong thing." },
+    { term: "Small slice first", definition: "Running a new formula or transformation on a handful of rows before the whole sheet, so a mistake costs a few rows you can eyeball rather than corrupting everything." },
+    { term: "Data rules on a sheet", definition: "The limits on what information may go into the tool, applied to spreadsheets where sensitive data hides in columns; strip, mask, or aggregate anything forbidden before you paste or upload." },
+  ]}
+/>

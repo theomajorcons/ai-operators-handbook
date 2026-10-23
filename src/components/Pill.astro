@@ -1,0 +1,43 @@
+---
+// Small metadata badge. `tone` picks the accent hue (via a CSS var mapped in
+// global tokens); `solid` fills it softly, otherwise it's an outlined chip.
+interface Props {
+  tone?: 'accent' | 'note' | 'warn' | 'tip' | 'objective' | 'muted';
+  solid?: boolean;
+}
+const { tone = 'muted', solid = false } = Astro.props;
+---
+
+<span class:list={['pill', `pill--${tone}`, { 'pill--solid': solid }]}>
+  <slot />
+</span>
+
+<style>
+  .pill {
+    --pill-hue: var(--muted);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: 0.2em 0.7em;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    line-height: 1.4;
+    letter-spacing: 0.04em;
+    color: var(--pill-hue);
+    background: transparent;
+    border: 1px solid color-mix(in srgb, var(--pill-hue) 45%, transparent);
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+  }
+  .pill--solid {
+    background: color-mix(in srgb, var(--pill-hue) var(--tint), var(--bg));
+    border-color: color-mix(in srgb, var(--pill-hue) 55%, transparent);
+  }
+
+  .pill--accent { --pill-hue: var(--accent-strong); }
+  .pill--note { --pill-hue: var(--note); }
+  .pill--warn { --pill-hue: var(--warn); }
+  .pill--tip { --pill-hue: var(--tip); }
+  .pill--objective { --pill-hue: var(--objective); }
+  .pill--muted { --pill-hue: var(--muted); }
+</style>

@@ -1,0 +1,161 @@
+---
+title: "Outputs: documents, tables, and pages"
+level: 2
+lesson: "9"
+track: "Working with Claude"
+last_verified: 2026-10-12
+download: "output-shape-guide.md"
+summary: "Asking for the right shape of output matters as much as the content, so name whether you need a chat reply, a table, a document, or a page."
+kind: exercise
+beforeYouLeave:
+  - "Ask for a chat reply when you only need to read something once."
+  - "Ask for a table or spreadsheet when you need to compare or calculate."
+  - "Ask for a document when you want to keep, edit, or share the result."
+  - "Ask for a page or small tool when others will use it."
+  - "Check the contents before you send or save any output."
+---
+
+import Callout from '../../../components/Callout.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can ask for the right **shape** of output for a task (chat reply, table, document, or page) and reshape one result into several formats as your audience changes.
+
+</Callout>
+
+## Why this matters
+
+By default, Claude answers in prose: paragraphs in the chat window. Prose is great for explaining something to *you*, right now. But most work doesn't stop at the chat window: you paste numbers into a spreadsheet, hand a one-pager to a teammate, or build something other people will click on. When the output's shape doesn't match what you'll do with it next, you end up doing the reshaping by hand.
+
+The good news: you can often ask for the output in a specific shape rather than accepting the default. You just have to name it, and that's a small habit worth building, because it saves the copy-paste-reformat step most of the time. (Some shapes suit some content better than others, and a complex conversion may involve trade-offs: a Markdown table in chat is not the same artifact as a downloaded spreadsheet file, and reshaping can occasionally lose structure or nuance. Check the result.)
+
+## The four shapes, and what each is for
+
+Claude can produce its answer in several forms. The trick isn't learning fancy formatting; it's matching the form to the *next thing you'll do with the answer*. Four shapes cover almost everything:
+
+- **A chat reply (prose).** Plain paragraphs in the conversation. Best when you just need to read it once and move on: an explanation, a quick idea, a yes/no with reasoning. It's the default because it's the most flexible, but it's the worst shape for numbers you'll compare.
+- **A table or spreadsheet.** Rows and columns. The right call the moment you're comparing several items across the same attributes, or you need totals. A table lines everything up so differences jump out, and it often pastes into a spreadsheet without much friction. Note the distinction: a **Markdown table** rendered in chat is not the same thing as a downloadable **.csv file** or a full spreadsheet workbook; ask for the specific form you need. Asking for prose when you wanted a table is the most common mismatch there is.
+- **A document.** A longer, structured piece you'll keep, edit, or share: a report, a memo, a handout. Reach for this when the output has a life beyond the chat: you'll revisit it, revise it, or hand it to someone.
+- **A page or small tool.** Something interactive that *other people* will use: a simple calculator, a form, a small web page. This is the step up from "a thing I read" to "a thing others operate." (Exactly what's available here depends on your plan and the features you've turned on.)
+
+### The mismatch in the wild
+
+Here's the cost of not naming the shape. **Eli** asks Claude for a weekly budget and gets four tidy paragraphs of prose. The numbers are fine, but to actually *use* them he retypes each one into a spreadsheet by hand. His roommate **Mina** asks the same question as "give me a table with a column for each category and a totals row," and pastes the result straight into her spreadsheet in one move. Same content, same model; the only difference is that Mina named the shape she'd use next. Eli's answer wasn't wrong; it was just the wrong shape for the job.
+
+<Callout variant="mistake" label="Common mistake">
+
+Accepting the default prose answer and then reformatting it by hand. Eli retyped four paragraphs of budget into a spreadsheet cell by cell, work he never needed to do. If the next thing you will do with an answer is compare, calculate, keep, or share it, name that shape up front and let Claude hand you the form you actually want.
+
+</Callout>
+
+### Shape and correctness are two different things
+
+One trap to flag before the rule: a beautifully formatted table or a polished document can still be *wrong*. A clean table with a wrong total is still a wrong total: the formatting doesn't check the math. So naming the shape gets you a usable form; it doesn't get you a correct answer. That's still your job: glance at the contents before you send or save.
+
+## The rule
+
+<Callout variant="framework" label="Name the Shape">
+
+1. **Read once?** A reply in the chat.
+2. **Compare or calculate?** A table or spreadsheet.
+3. **Keep, edit, or share?** A document.
+4. **Others will use it?** A page or small tool.
+5. **Check the contents** before you send or save it.
+
+Available output types depend on your plan and the features you have turned on.
+
+</Callout>
+
+## Try it
+
+Reshape one result four ways and watch the content stay put while the shape changes.
+
+1. Ask Claude: "List five pros and cons of working from home."
+2. Ask it to turn that into a two-column table.
+3. Ask it to turn the table into a one-page handout for a team meeting.
+4. Ask it to turn the handout into three sentences for a text message.
+5. Compare the four versions. Which fits which audience?
+
+<ExerciseReveal prompt="Reveal the answers" commit="Before you run it, write which of the four shapes you'd actually use at work this week, and for what task, then reveal:">
+<Fragment slot="answer">
+
+The same content served four audiences: prose to learn, a table to compare, a handout to share, three sentences to send. Notice you never re-asked the *question*; you only re-named the *shape*. That's the whole skill: decide what you'll do with the answer next, then ask for that form from the start instead of reformatting by hand. Some conversions work better than others: dense structured data reshapes cleanly, but highly formatted documents can lose detail when squeezed into three sentences. Check the result each time.
+
+</Fragment>
+</ExerciseReveal>
+
+## Check yourself
+
+<KnowledgeCheck
+  question="When is a table the right output?"
+  options={[
+    "When you want a story",
+    "When you compare items across the same attributes",
+    "When it is one sentence",
+    "Never",
+  ]}
+  answer={1}
+  explanation="A table lines items up across the same columns so differences and totals jump out, exactly Mina's budget case. Prose is for reading once; a table is for comparing or calculating."
+/>
+
+<KnowledgeCheck
+  question="You've drafted a vendor comparison you'll revisit, edit next week, and then hand to your manager. Which shape fits?"
+  options={[
+    "A reply in the chat",
+    "A document",
+    "A table or spreadsheet",
+    "A page or small tool",
+  ]}
+  answer={1}
+  explanation="It has a life beyond the chat (you'll revisit, revise, and share it) which is exactly what a document is for. A table would be right if you only needed to compare the numbers; a page or tool is for something other people operate, not a doc you edit and pass along."
+/>
+
+<TrueFalse statement="A nicely formatted document or table can still contain wrong information, so you should check the contents before sending or saving it." answer={true}>
+<Fragment slot="why">
+
+Shape and correctness are separate. The last step of *Name the Shape* is to check the contents: a clean table with a wrong total is still wrong.
+
+</Fragment>
+</TrueFalse>
+
+<Matching
+  pairs={[
+    { term: "A reply in the chat", match: "You just need to read it once" },
+    { term: "A table or spreadsheet", match: "You need to compare or calculate across items" },
+    { term: "A document", match: "You will keep, edit, or share it" },
+    { term: "A page or small tool", match: "Other people will use it" },
+  ]}
+/>
+
+<ExerciseReveal prompt="Name a task from your week and the output shape you would ask for. Then name one thing you would check in the result." commit="Write your task, your shape, and your check, then reveal:">
+<Fragment slot="answer">
+
+A real task, a named shape, and a concrete check, for example, "a vendor comparison → a table → confirm the totals row adds up." The check matters because the shape never guarantees the content.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the guide and use it on your next real task: name the shape before you ask, and check the contents before you save.
+
+<ArtifactCard label="Output shape guide" file="output-shape-guide.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Name the Shape", definition: "Decide the form of the output you need (chat reply, table, document, or page) before you ask, based on what you will do with it next." },
+    { term: "Chat reply (prose)", definition: "Plain paragraphs in the conversation, the default shape, best when you only need to read the answer once." },
+    { term: "Table", definition: "A rows-and-columns output, best when you need to compare items across the same attributes or calculate totals. A Markdown table rendered in chat, a CSV file, and a spreadsheet workbook are different artifacts; ask for the specific one you need." },
+    { term: "Document", definition: "A keepable, editable, shareable output for something you will revisit or hand to others." },
+    { term: "Page or tool", definition: "An interactive output other people will operate: a small calculator, form, or web page; availability depends on your plan and features." },
+    { term: "Check the contents", definition: "Confirm the output is correct before you send or save it: a well-formatted file can still hold wrong numbers or claims." },
+  ]}
+/>

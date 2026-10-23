@@ -1,0 +1,30 @@
+# Single source for the current Claude lineup shown in Lesson 1.
+# Data from lesson-1-pilot.md. Verified on 2026-10-16 — lineups change often, so
+# the official Anthropic model docs (https://docs.claude.com/en/docs/about-claude/models/overview)
+# and your own picker always win over these values if they disagree. Do not
+# memorize; check the picker. Only the three CURRENT models live here (one per
+# tier); earlier versions are listed in a callout in the lesson.
+models:
+  - model: Claude Haiku 5.5
+    tier: Fast tier
+    best_for: Quick, high-volume tasks like sorting and extracting
+    speed: Fastest
+  - model: Claude Sonnet 5.5
+    tier: Everyday tier
+    best_for: Everyday work, best mix of speed and intelligence
+    speed: Fast
+  - model: Claude Opus 5.5
+    tier: Top tier
+    best_for: Hard, long, or high-stakes work
+    speed: Moderate
+
+# Earlier versions your picker may still list alongside the current three.
+# They fill the same tier role, a generation back — prefer the current one
+# unless you have a reason not to. Same verification caveat as above applies.
+earlier:
+  - model: Claude Opus 5
+    tier: Top tier
+    note: Prior top-tier model, one generation back from Opus 5.5
+  - model: Claude Sonnet 5
+    tier: Everyday tier
+    note: Prior everyday-tier model, one generation back from Sonnet 5.5

@@ -1,0 +1,178 @@
+---
+title: "Write a prompt like a spec"
+level: 1
+lesson: "4"
+track: "Knowing your Claude"
+last_verified: 2026-10-12
+download: "prompt-spec-template.md"
+summary: "Write a prompt as a specification of the finished result, not just a topic, so you get a usable answer on the first try instead of the fourth."
+kind: concept
+beforeYouLeave:
+  - "Tell a spec from a topic: a spec describes the finished result, a topic only names the area."
+  - "Name the five parts of a spec: Task, Audience, Details, Format, Check."
+  - "Write a Check that names a verifiable test for done, like a word count or a required fact, not just 'looks good'."
+  - "Turn a vague request into a clear one covering at least three of the five parts."
+  - "Scale the effort: one line for a throwaway ask, all five parts when you will send, reuse, or depend on the result."
+---
+
+import Callout from '../../../components/Callout.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can turn a vague request into a clear one, describing the finished result rather than just the topic, so you get a usable answer on the first try instead of the fourth.
+
+</Callout>
+
+## Why the first answer so often disappoints
+
+Most weak Claude answers are not Claude being weak. They are answers to a vaguer question than you meant to ask. You held a clear picture of what you wanted in your head, and typed only the topic. Claude filled the rest of the picture with reasonable guesses, and the guesses were not yours.
+
+The fix is a shift in how you think about a prompt. Stop thinking "subject I want to talk about" and start thinking "specification of the thing I want back."
+
+## A prompt is a spec, not a topic
+
+A **spec** (short for specification) describes the *finished result*: what it is, who it is for, what it must contain, and how you will know it is right. A topic just names the area.
+
+Compare:
+
+- **Topic:** "Write something about our event." → This names a subject and stops. Claude has to invent the kind of writing, the length, the audience, the facts, and the standard for "good."
+- **Spec:** "Write a 100-word flyer blurb for a school bake sale, Saturday 9am to noon at the gym, for parents, friendly not pushy, mention that all proceeds fund new library books, end by asking them to bring a friend." → This describes the thing you want back. Almost nothing is left to guess.
+
+The spec is barely more typing. But it removes the guessing, and guessing is exactly where the back-and-forth comes from.
+
+### What the topic forced Claude to invent
+
+Watch it fail in slow motion. **Sam** runs a bake sale and types "Write something about our event." He gets three generic paragraphs, tries again differently, again, and after four tries writes it himself.
+
+Each guess Claude made was *reasonable*, and none were *his*: it did not know the writing was a short flyer blurb (not an essay), that the audience was parents (not students), that length mattered, that the library-books detail was the whole point, or what would make Sam call it done. The spec above answers every one of those in a single message. Same effort to type; far less back-and-forth.
+
+<Callout variant="mistake" label="Common mistake">
+
+Blaming a weak answer on the model and retrying with the same vague prompt. Sam typed a topic four times and got four generic drafts; the model was never the problem. When the first answer disappoints, the fix is almost always to add what you left Claude to guess, not to run the same thin request again.
+
+</Callout>
+
+## The five things a spec covers
+
+Break "describe the finished result" into five concrete parts, so you never have to wonder what you left out.
+
+<Callout variant="framework" label="Say the Finish Line">
+
+1. **Task.** What are you asking for?
+2. **Audience.** Who will read or use it?
+3. **Details.** The facts it must include.
+4. **Format.** Length, structure, tone.
+5. **Check.** How will you know it is good?
+
+</Callout>
+
+The fifth part, **Check**, is the one people skip and the one that pays off most. Naming how you will judge the result (a word count, a fact that must appear, a read-through against a source) does two things: it tells Claude the target, and it gives *you* a concrete test instead of a vague "looks fine."
+
+<Callout variant="note" label="You don't always need all five">
+
+For a quick, throwaway question, one line is completely fine; do not turn a ten-second ask into paperwork. Reach for all five when it is something you will **send, reuse, or depend on**. The more the result matters, the more of the finish line you should spell out.
+
+</Callout>
+
+## Check yourself
+
+<KnowledgeCheck
+  question={'What is the biggest problem with "Write something about our event"?'}
+  options={[
+    "It is too polite",
+    "Claude has to guess the audience, format, and details",
+    "It is too short to be processed",
+    "It should be in all capitals",
+  ]}
+  answer={1}
+  explanation="It names a topic and stops. With no audience, format, or required facts, Claude fills the gaps with reasonable guesses, and reasonable guesses are rarely the specific thing you had in mind."
+/>
+
+<KnowledgeCheck
+  question="Which part of the spec answers 'how will you know the result is good'?"
+  options={[
+    "Task",
+    "Audience",
+    "Check",
+    "Format",
+  ]}
+  answer={2}
+  explanation="Check names your test for 'done': a word count, a required fact, a read-through against a source. It is the part people skip most and the one that saves the most rework."
+/>
+
+<TrueFalse
+  statement="You must cover all five parts of the spec (Task, Audience, Details, Format, Check) on every single prompt."
+  answer={false}
+>
+<Fragment slot="why">
+
+False. You do not need all five every time. For a quick question, one line is fine. Say all five when it is something you will send, reuse, or depend on; the stakes decide how much of the finish line to spell out.
+
+</Fragment>
+</TrueFalse>
+
+<Matching
+  pairs={[
+    { term: "Task", match: "What you are asking for" },
+    { term: "Audience", match: "Who will read or use the result" },
+    { term: "Details", match: "The facts the result must include" },
+    { term: "Format", match: "Length, structure, and tone" },
+    { term: "Check", match: "How you will know the result is good" },
+  ]}
+/>
+
+## Try it: fix the prompt
+
+Rewrite each vague prompt in one or two sentences, covering at least three of the five parts. **Write all three rewrites before you reveal the samples.**
+
+1. "Help me with my resume."
+2. "Plan my week."
+3. "Explain taxes."
+
+<ExerciseReveal prompt="Reveal sample rewrites" commit="Write your three rewrites, then reveal:">
+<Fragment slot="answer">
+
+1. "Tighten the work-experience section of my resume for a project-coordinator role. Keep each job to three bullets. Start bullets with action verbs. Flag anything vague." *(Task, Audience, Format, Check)*
+2. "Plan my week. I work Monday to Thursday 9 to 5, have a dentist appointment Wednesday at 2, and want three gym sessions. Give me a table with times." *(Task, Details, Format)*
+3. "Explain how a first-year employee's paycheck is taxed in the US, in plain language, under 200 words, for someone who has never done it." *(Task, Audience, Format)*
+
+Yours will differ; the test is whether a stranger could do the task from your words alone.
+
+</Fragment>
+</ExerciseReveal>
+
+<ExerciseReveal prompt="Write the Check for a task of your own: how will you know the result is good before you use it?" commit="Write your Check, then reveal:">
+<Fragment slot="answer">
+
+Something you can actually verify: a word count, facts that must appear, a read-through against a source. Not just "it looks good." If you cannot state the test, you cannot tell Claude the target either.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the template and fill it in for your next real task; it lays out the five parts so you can see at a glance which ones your prompt is missing.
+
+<ArtifactCard label="Prompt spec template" file="prompt-spec-template.md" />
+
+## Level 1 challenge
+
+This is the last lesson in Level 1, so put the whole level to work on one real task: run the should-AI check, pick a tier and effort, mind the limits, give Claude the context, and write the prompt as a spec. Save the spec, the output, and a one-page "my choices and why" as your first portfolio artifact.
+
+<ArtifactCard label="Level 1 challenge" file="level-1-challenge.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Spec", definition: "A prompt that describes the finished result (what it is, who it is for, what it must contain, and how you will know it is right) rather than just naming the topic. It leaves Claude nothing critical to guess." },
+    { term: "Say the Finish Line", definition: "The five-part frame for a reusable prompt: Task, Audience, Details, Format, Check. Use one line for a quick question; say all five for something you will send, reuse, or depend on." },
+    { term: "Check", definition: "The part of the spec that names how you will know the result is good: something verifiable like a word count or a required fact, not just 'it looks good.' The most-skipped part and the one that saves the most rework." },
+  ]}
+/>

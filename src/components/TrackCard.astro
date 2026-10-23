@@ -1,0 +1,72 @@
+---
+interface Props {
+  eyebrow: string;
+  title: string;
+  description: string;
+  href?: string | null;
+  meta?: string;
+  cta?: string;
+}
+
+const { eyebrow, title, description, href, meta, cta } = Astro.props;
+const disabled = !href;
+const Tag = disabled ? 'div' : 'a';
+---
+
+<Tag
+  class:list={['card', { 'card--disabled': disabled }]}
+  {...(disabled ? { 'aria-disabled': 'true' } : { href })}
+>
+  <p class="card-eyebrow">{eyebrow}</p>
+  <h2 class="card-title">{title}</h2>
+  <p class="card-desc">{description}</p>
+  <p class="card-foot">
+    {meta && <span class="card-meta">{meta}</span>}
+    {!disabled && <span class="card-cta">{cta ?? 'Open'} <span aria-hidden="true">→</span></span>}
+  </p>
+</Tag>
+
+<style>
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-6);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 2px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+    border-radius: var(--radius-lg);
+    color: var(--text);
+    text-decoration: none;
+    transition: border-color 0.2s ease, transform 0.2s ease, background 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  a.card:hover {
+    border-color: var(--accent);
+    border-top-color: var(--accent);
+    background: var(--surface-2);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px -12px color-mix(in srgb, var(--accent) 40%, transparent);
+    text-decoration: none;
+  }
+  .card--disabled { opacity: 0.6; }
+  .card-eyebrow {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+  }
+  .card-title { margin: 0; font-size: var(--fs-lg); }
+  .card-desc { margin: 0; color: var(--muted); }
+  .card-foot {
+    margin: var(--space-2) 0 0;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+  .card-meta { color: var(--muted); font-size: var(--fs-sm); }
+  .card-cta { color: var(--accent-strong); font-weight: 600; margin-left: auto; }
+</style>

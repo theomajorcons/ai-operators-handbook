@@ -1,0 +1,167 @@
+---
+title: "Second brain: notes Claude can use"
+level: 4
+lesson: "20"
+track: "Running Claude as a system"
+practice_time: 10
+last_verified: 2026-10-12
+download: "vault-starter.md"
+summary: "A vault of small linked notes turns scattered knowledge into something Claude or anyone can find, because the links do the finding for you."
+kind: concept
+beforeYouLeave:
+  - "Explain why many small notes beat one giant document when you need to find something later."
+  - "Write a note with a short descriptive title and a clear purpose."
+  - "Link notes to each other so related ideas are one hop apart."
+  - "Point Claude at the vault and have it find the right note from the links, not from memory."
+  - "Name one habit that keeps a vault usable instead of letting it rot into clutter."
+---
+
+import Callout from '../../../components/Callout.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can keep linked notes in a vault so Claude, or anyone, can find what they need.
+
+</Callout>
+
+## Why this matters
+
+You have spent this course getting Claude to do good work. Most new chats start with little to go on: unless you've set up a Project, standing instructions, or memory, a fresh conversation doesn't know what you decided last week or where you wrote it down. Those features carry *some* context across chats, but they don't hold the growing body of work you accumulate over months. The fix isn't a bigger model; it's giving Claude the same thing that helps *you* find things later: notes that are organized so a trail leads to them.
+
+The catch is that most people's notes are organized for the moment they were written, not for finding them again. One giant note called `ideas` feels efficient when you're dumping into it and becomes a swamp a month later, for you *and* for any tool trying to read it. This lesson covers the small structure that keeps a pile of notes findable.
+
+## Small notes beat big ones
+
+The first move is counterintuitive: write *more, smaller* notes instead of fewer big ones. One idea per note, with a clear title that says what's inside. The reason is retrieval. A note called `Acme contract terms` can be found, by you or by Claude, because its title is a signal. The same information buried in paragraph nine of a note called `ideas` is invisible; nothing about the title tells anyone it's in there.
+
+Contrast the two openers. One person saves everything in a single long `ideas` note and, months later, neither she nor Claude can find anything in it. Another keeps small notes with clear titles. Same information, opposite findability, and the only difference is how it's chopped up and labeled.
+
+<Callout variant="mistake" label="Common mistake">
+
+Dumping everything into one long catch-all note like `ideas`. It feels efficient while you are writing, and becomes a swamp a month later: the fact you need is buried in paragraph nine, where neither you nor Claude can find it, because nothing in the title signals it is there. Write one idea per note with a title that says what is inside.
+
+</Callout>
+
+## Links turn a pile into a map
+
+Small notes alone are just a tidier pile. What makes them navigable is **links**: inside one note you write `[[note name]]` to point at a related note. Now the notes form a map: from the Acme contract you can jump to the Acme contact, to the renewal date, to the pricing you agreed. A reader following links lands where they need to be without knowing the exact title in advance.
+
+Links run one way as you write them, but good note apps show them both ways. A **backlink** is the reverse view: open a note and the app lists every other note that points *to* it. So from the Acme contact you can see, without searching, every note that mentioned them. That two-way trail is exactly what lets someone, or Claude, explore from any starting point instead of needing the right title up front.
+
+## An index note gives a place to start
+
+A map still needs a "you are here." That's the **index note**: a single top-level note that lists the main hubs of your vault, the handful of notes everything else hangs off. When you, or Claude, don't know where to begin, you begin at the index and follow links out. Without one, a reader dropped into a web of notes has no obvious entry point; with one, the first note read is always the right one.
+
+## The tools, and the test that matters
+
+An app like **Obsidian** turns a folder of plain markdown notes into a browsable vault: it renders the `[[links]]`, shows backlinks, and lets you click through the trail. The notes stay ordinary files, which is what lets another tool read them too.
+
+But here's the part not to assume: **a tool that can read your files can only follow the trail if it actually parses the links.** Many tools read the text of a note but don't understand `[[note name]]` as a pointer to follow, so they never make the jump. You can't tell which kind you have by reading a spec sheet. So the last step of the rule is a **retrieval test**: ask Claude a real question about your notes and watch which notes it actually opens. If it misses the obvious one, a clear title or a missing link is the usual culprit, but not the only one: the tool might lack access to that folder, the vault might not be indexed, permissions might block it, or the tool's parser might not follow `[[links]]` at all. Start with titles and links, then check the tool's access and setup. Either way, the fix is rarely a bigger model. One caveat on reading the result: a miss only tells you a human would struggle too when the cause is *discoverability* (a vague title, a missing link). When the cause is *access, indexing, or whether the tool parses `[[links]]`*, the conclusion doesn't hold: the note can be perfectly findable for a person and still invisible to the tool. So separate the two: a discoverability miss implicates your titles and links; an access, index, or parsing miss implicates the tool's setup, not your notes.
+
+One special case worth naming: if you use **Claude Code** (the command-line tool) on a project, it automatically loads a file called **`CLAUDE.md`** from the project root at the start of every session. That file is not a generic README; it's project instructions written specifically for Claude: conventions to follow, commands to know, constraints to respect. Because Claude Code reads it automatically, you don't have to paste those instructions into every chat; they're always in context. A regular `README.md` is not auto-loaded the same way.
+
+One thing archiving notes does *not* do is make them inaccessible. Moving a note into an archive folder is a filing decision; if Claude is pointed at that path, it can still read the note. Archiving reorganizes; it does not hide.
+
+## The rule
+
+<Callout variant="framework" label="Small Notes, Links, an Index">
+
+1. **One idea per note,** with a clear title.
+2. **Link related notes** with `[[note name]]`.
+3. **Use backlinks** to see what points here.
+4. **Keep an index note** that lists the main hubs.
+5. **Test retrieval:** ask Claude a question and see whether it finds the right notes. If not, fix titles and links.
+
+</Callout>
+
+## Try it
+
+Build a tiny vault, ten minutes.
+
+1. Create a new folder and copy the three notes from `vault-starter.md` into it as `index.md`, `projects.md`, and `people.md`.
+2. Open the folder in a note app that supports links, such as Obsidian, or just a text editor.
+3. Add one real note about a project of yours and link it from the index.
+4. Run the retrieval test from the download: ask Claude a question about your notes and see which notes it reads.
+5. If it missed a note, fix the title or add a link and test again.
+
+<ExerciseReveal prompt="Reveal what to expect" commit="Build the vault, add one real note, run the retrieval test, then reveal:">
+<Fragment slot="answer">
+
+A vault is only as good as your titles and links. If Claude cannot find a note because the title is vague or a link is missing, a person likely could not either. But if the miss is an access, indexing, or `[[link]]`-parsing problem, that is the tool's setup, not your notes, and a person might find the note fine.
+
+</Fragment>
+</ExerciseReveal>
+
+## Check yourself
+
+<KnowledgeCheck
+  question="What does a backlink show?"
+  options={[
+    "Notes that point to this note",
+    "Deleted notes",
+    "Your password",
+    "The latest edit",
+  ]}
+  answer={0}
+  explanation="A backlink is the reverse view of a link: open a note and the app lists every other note that points to it. That's what lets you, or a tool, follow the trail in both directions instead of only the way you wrote it."
+/>
+
+<KnowledgeCheck
+  question="You ask Claude a question about your vault and it misses the right note. What does the rule say to fix first?"
+  options={[
+    "Merge everything back into one long note",
+    "Fix the note's title or add a link, then test retrieval again",
+    "Switch to a bigger model",
+    "Delete the note and start over",
+  ]}
+  answer={1}
+  explanation="A missed note is usually a findability problem, not a capability one: the title didn't signal what's inside, or no link led there. Fix those first and rerun the retrieval test (if it still misses, check the tool's access, indexing, and whether it parses links). Merging back into one note is the swamp this lesson warns against."
+/>
+
+<TrueFalse statement="Any tool that can read your note files will automatically follow the [[links]] inside them." answer={false}>
+<Fragment slot="why">
+
+Reading a file is not the same as parsing its links. Many tools read the text of a note but never treat `[[note name]]` as a pointer to follow, so they miss the connected note. That is exactly why the rule ends with a retrieval test: ask Claude a question and watch which notes it actually opens.
+
+</Fragment>
+</TrueFalse>
+
+<Matching
+  pairs={[
+    { term: "One idea per note", match: "A small note with a clear title" },
+    { term: "`[[note name]]`", match: "A link from one note to a related one" },
+    { term: "Backlink", match: "The notes that point to the current note" },
+    { term: "Index note", match: "The top note that lists the main hubs" },
+  ]}
+/>
+
+<ExerciseReveal prompt="Name three notes you would create and how they would link." commit="Write your three note titles and the links among them, then reveal:">
+<Fragment slot="answer">
+
+Clear titles and at least two links among them.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the vault starter and use it on your next real task.
+
+<ArtifactCard label="Vault starter" file="vault-starter.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Vault", definition: "A folder of small markdown notes linked to each other. An app like Obsidian turns the folder into a browsable vault and shows backlinks." },
+    { term: "Backlink", definition: "The set of notes that point to a given note. Backlinks let you, and a tool that reads your files, follow the trail in both directions, not just the way you wrote the link." },
+    { term: "Index note", definition: "A top-level note that lists the main hubs of the vault, so a reader or Claude has a place to start instead of needing the right title up front." },
+    { term: "Retrieval test", definition: "Asking Claude a question about your notes and checking whether it finds the right ones. A discoverability miss (vague title, missing link) is one a person would hit too, so fix titles and links; an access, indexing, or link-parsing miss is the tool's setup, not your notes, and a person could still find the note." },
+  ]}
+/>

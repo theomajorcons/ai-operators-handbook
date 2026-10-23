@@ -1,0 +1,38 @@
+---
+import { getCollection, render } from 'astro:content';
+import LessonLayout from '../../layouts/LessonLayout.astro';
+import { byLessonOrder } from '../../lib/lesson-order';
+import { lessonNumbers, lessonBadge, displayNumber } from '../../lib/lesson-number';
+import { readingTimeMinutes } from '../../lib/reading-time';
+
+export async function getStaticPaths() {
+  const all = await getCollection('lessons');
+
+  // Natural order: level, then numeric-aware lesson order (2 < 12 < 12b).
+  const sorted = all.sort(byLessonOrder);
+  const nums = lessonNumbers(sorted);
+
+  return sorted.map((lesson, i) => {
+    const prev = sorted[i - 1];
+    const next = sorted[i + 1];
+    return {
+      params: { slug: lesson.id },
+      props: {
+        lesson,
+        displayNo: displayNumber(lesson, nums, sorted),
+        badge: lessonBadge(lesson),
+        prev: prev && { id: prev.id, title: prev.data.title },
+        next: next && { id: next.id, title: next.data.title },
+      },
+    };
+  });
+}
+
+const { lesson, prev, next, displayNo, badge } = Astro.props;
+const { Content, headings } = await render(lesson);
+const minutesRead = readingTimeMinutes(lesson.body ?? '');
+---
+
+<LessonLayout lesson={lesson} prev={prev} next={next} displayNo={displayNo} badge={badge} headings={headings} minutesRead={minutesRead}>
+  <Content />
+</LessonLayout>

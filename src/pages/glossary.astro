@@ -1,0 +1,279 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { withBase } from '../lib/base';
+import { allGlossaryEntries, mergeTerms, type MergedTerm } from '../data/glossary';
+
+const entries = await allGlossaryEntries();
+const terms = mergeTerms(entries).sort((a, b) => a.term.localeCompare(b.term));
+
+// Alphabet buckets. A term's first letter (uppercased); non-letters bucket as "#".
+const letterOf = (t: string) => {
+  const c = t.trim().charAt(0).toUpperCase();
+  return /[A-Z]/.test(c) ? c : '#';
+};
+const byLetter = new Map<string, MergedTerm[]>();
+for (const t of terms) {
+  const k = letterOf(t.term);
+  (byLetter.get(k) ?? byLetter.set(k, []).get(k)!).push(t);
+}
+const groups = [...byLetter.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+
+// Filter chips, data-driven from the level/track keys actually present. Label is
+// the track name (e.g. "Knowing your Claude"); "electives" shows as "Electives".
+// A term that appears in multiple lessons carries all their keys, so filtering
+// is union-based (the row shows if ANY of its sources match the active chip).
+const keyLabel = new Map<string, string>();
+for (const e of entries) {
+  if (!keyLabel.has(e.levelKey)) keyLabel.set(e.levelKey, e.levelKey === 'electives' ? 'Electives' : e.track);
+}
+const chips = [...keyLabel.entries()]
+  .sort((a, b) => (a[0] === 'electives' ? 1 : b[0] === 'electives' ? -1 : a[0].localeCompare(b[0])))
+  .map(([key, label]) => ({ key, label }));
+
+// Pre-compute the space-joined source keys per term for the data-keys attr the
+// client filter reads.
+const keysFor = (t: MergedTerm) => [...new Set(t.sources.map((s) => s.levelKey))].join(' ');
+
+const totalTerms = terms.length;
+---
+
+<BaseLayout title="Glossary" description="Plain definitions for the terms this course uses, from model and context to agent and skill, with a line on why each one matters." width="wide">
+  <section class="g-head" aria-labelledby="g-title">
+    <p class="eyebrow">Reference spine</p>
+    <h1 id="g-title" class="g-title">Glossary</h1>
+    <p class="g-lede">
+      Every key term the handbook defines, pulled straight from the end-of-lesson
+      glossaries and gathered in one place. Filter by level or jump to a letter,
+      then click through to the lesson where a term is taught.
+    </p>
+    <p class="g-overview">
+      <span>{totalTerms} term{totalTerms === 1 ? '' : 's'}</span>
+      <span class="dot" aria-hidden="true">·</span>
+      <span>{groups.length} letter{groups.length === 1 ? '' : 's'}</span>
+    </p>
+  </section>
+
+  <div class="g-controls" role="group" aria-label="Filter terms by level">
+    <button type="button" class="chip chip--on" data-filter="all" aria-pressed="true">All</button>
+    {chips.map((c) => (
+      <button type="button" class="chip" data-filter={c.key} aria-pressed="false">{c.label}</button>
+    ))}
+  </div>
+
+  <nav class="g-jump" aria-label="Jump to letter">
+    {groups.map(([letter]) => (
+      <a class="g-jump__link" href={`#letter-${letter}`}>{letter}</a>
+    ))}
+  </nav>
+
+  <section class="g-body" aria-label="Terms">
+    {groups.map(([letter, rows]) => (
+      <div class="g-group" data-letter-group>
+        <h2 class="g-letter" id={`letter-${letter}`}>{letter}</h2>
+        <dl class="g-list">
+          {rows.map((t) => (
+            <div class="g-row" data-term data-keys={keysFor(t)}>
+              <dt class="g-term">{t.term}</dt>
+              <dd class="g-def">
+                <span class="g-def__text">{t.definition}</span>
+                <span class="g-sources">
+                  {t.sources.map((s) => (
+                    <a class="g-source" href={withBase(`/lessons/${s.lessonId}`)}>{s.lessonTitle}</a>
+                  ))}
+                </span>
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    ))}
+  </section>
+
+  <p class="g-empty" data-empty hidden>No terms in that level.</p>
+</BaseLayout>
+
+<style>
+  /* ── Head ──────────────────────────────────────────────────────── */
+  .g-head { max-width: 60ch; margin-bottom: var(--space-8); }
+  .g-title {
+    margin: 0;
+    font-size: var(--fs-display);
+    background: linear-gradient(120deg, var(--text) 30%, var(--accent-strong));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .g-lede {
+    margin: var(--space-6) 0 0;
+    font-size: var(--fs-md);
+    color: var(--muted);
+    max-width: 58ch;
+  }
+  .g-overview {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin: var(--space-6) 0 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .g-overview .dot { color: var(--accent); }
+
+  /* ── Filter chips (mirrors the course-map unit treatment) ──────── */
+  .g-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-6);
+  }
+  .chip {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-pill);
+    padding: var(--space-2) var(--space-4);
+    cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  }
+  .chip:hover { color: var(--text); background: var(--accent-dim); }
+  .chip:focus-visible {
+    outline: 2px solid var(--accent-strong);
+    outline-offset: 2px;
+  }
+  .chip--on {
+    color: var(--accent-strong);
+    background: var(--accent-dim);
+    border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+    box-shadow: var(--glow-sm);
+  }
+
+  /* ── Letter jump bar ───────────────────────────────────────────── */
+  .g-jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    margin-bottom: var(--space-8);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--glass-border);
+  }
+  .g-jump__link {
+    display: grid;
+    place-items: center;
+    min-width: 1.9rem;
+    height: 1.9rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    color: var(--accent-strong);
+    background: var(--accent-dim);
+    border-radius: var(--radius-sm);
+  }
+  .g-jump__link:hover { text-decoration: none; background: var(--surface-2); }
+
+  /* ── Body ──────────────────────────────────────────────────────── */
+  .g-group { margin-bottom: var(--space-10); scroll-margin-top: calc(var(--bar-h) + var(--space-4)); }
+  .g-letter {
+    margin: 0 0 var(--space-4);
+    font-family: var(--font-mono);
+    font-size: var(--fs-lg);
+    color: var(--accent);
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: var(--space-2);
+    scroll-margin-top: calc(var(--bar-h) + var(--space-4));
+  }
+  .g-list { margin: 0; }
+  .g-row {
+    display: grid;
+    grid-template-columns: minmax(10rem, 16rem) 1fr;
+    gap: var(--space-6);
+    padding: var(--space-4) 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  }
+  .g-row:last-child { border-bottom: none; }
+  .g-term {
+    margin: 0;
+    font-weight: 700;
+    color: var(--key);
+    line-height: var(--leading-tight);
+  }
+  .g-def {
+    margin: 0;
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    line-height: 1.55;
+  }
+  .g-def__text { display: block; }
+  .g-sources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+  }
+  .g-source {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--accent-strong);
+    background: var(--accent-dim);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    border-radius: var(--radius-pill);
+    padding: 2px var(--space-3);
+  }
+  .g-source::before { content: '→ '; }
+  .g-source:hover { text-decoration: none; background: var(--surface-2); }
+
+  .g-empty {
+    color: var(--muted);
+    font-style: italic;
+    margin-top: var(--space-6);
+  }
+
+  @media (max-width: 40rem) {
+    .g-row { grid-template-columns: 1fr; gap: var(--space-2); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .chip, .g-jump__link, .g-source { transition: none; }
+  }
+</style>
+
+<script>
+  // Client-side level filter. Hides term rows whose data-keys don't include the
+  // active chip, then hides any letter group left with no visible rows, and shows
+  // the empty-state line if nothing matches. Pure show/hide - no network, works
+  // without JS (all terms visible by default).
+  const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('.chip'));
+  const rows = Array.from(document.querySelectorAll<HTMLElement>('[data-term]'));
+  const groups = Array.from(document.querySelectorAll<HTMLElement>('[data-letter-group]'));
+  const empty = document.querySelector<HTMLElement>('[data-empty]');
+
+  function apply(filter: string) {
+    let anyVisible = false;
+    for (const row of rows) {
+      const keys = (row.dataset.keys || '').split(' ');
+      const show = filter === 'all' || keys.includes(filter);
+      row.hidden = !show;
+      if (show) anyVisible = true;
+    }
+    for (const g of groups) {
+      const visible = g.querySelectorAll<HTMLElement>('[data-term]:not([hidden])').length;
+      g.hidden = visible === 0;
+    }
+    if (empty) empty.hidden = anyVisible;
+  }
+
+  chips.forEach((chip) => {
+    chip.addEventListener('click', () => {
+      chips.forEach((c) => {
+        const on = c === chip;
+        c.classList.toggle('chip--on', on);
+        c.setAttribute('aria-pressed', String(on));
+      });
+      apply(chip.dataset.filter || 'all');
+    });
+  });
+</script>

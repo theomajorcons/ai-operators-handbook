@@ -1,0 +1,164 @@
+---
+title: "Subagents and orchestration"
+level: 4
+lesson: "19"
+track: "Running Claude as a system"
+practice_time: 15
+last_verified: 2026-10-12
+download: "helper-brief-template.md"
+summary: "Splitting work across helper agents buys you parallel effort and clean context, but it costs tokens and coordination, so split only when the job is big enough to earn it."
+kind: concept
+beforeYouLeave:
+  - "Explain what a subagent is and why it works in its own clean context window."
+  - "Name the two things splitting buys you: parallel effort and context that stays uncluttered."
+  - "Name the costs of splitting: extra tokens, slower setup, and coordination overhead."
+  - "Decide when a job is big or parallel enough to be worth splitting instead of doing it in one thread."
+  - "Write a clear helper brief so each subagent knows its job without the rest of the conversation."
+---
+
+import Callout from '../../../components/Callout.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can split work between helpers, and know when splitting is worth the cost.
+
+</Callout>
+
+## Why this matters
+
+When a job gets big (research ten competitors, write the comparison, build the slides) the instinct is to pile it all into one chat. That instinct fights you. A single chat has one pool of attention and one growing context, so the more you cram in, the more it slows down and the more it mixes up details from one part with another.
+
+There is a different shape for big jobs: hand each piece to its own helper, let them work separately, then combine the results. Done right, it is faster and cleaner. Done wrong, it costs more and introduces errors that one chat never would have made. This lesson is about telling the two apart.
+
+## What a subagent actually is
+
+A **subagent**, a "helper," is a separate Claude instance you hand one focused slice of a larger job. The key word is *separate*. In tools like Claude Code, each helper typically runs in its own isolated context; it isn't juggling the other nine competitors while it researches yours. It does one thing, returns a short result, and the main chat, the **orchestrator**, collects those results and assembles the final answer. (The exact behavior (what context a helper inherits, whether its transcript is visible to the orchestrator, and how isolated it really is) varies by tool and platform. These details are worth checking for whatever tool you're using.)
+
+Two things make this worth doing. First, **focus**: a helper looking at one competitor keeps a clean, uncluttered context and does sharper work than one chat tracking all ten. Second, **parallelism**: some tools can run several helpers at once, so ten pieces can finish much faster than one after another. It isn't a literal 10x or "ten jobs in one job's time," though: you still pay for writing the briefs and merging the returns, and that coordination eats into the speedup. What the main chat gets back is mostly each helper's summary, not every detail of its work, so it sees a far tidier picture than if it did all ten itself. (Whether true parallelism is available, how much it speeds things up, and how much of a helper's work the orchestrator can see all depend on the tool.)
+
+## Why it isn't free
+
+Every helper you spin up has a price. It costs more: you're paying for several Claude instances instead of one. It costs coordination: you have to write a brief for each, collect every return, and stitch them together. And it adds a brand-new failure point that a single chat never had: the merge.
+
+Picture the two openers side by side. One person asks a single chat to research ten competitors, write the comparison, *and* design the slides; it slows down and starts attributing one company's pricing to another. Another gives each competitor to its own helper and then combines the short results. The split wins here, but only because the ten research tasks genuinely don't need each other. Change the job so each step depends on the last, and the same split would just add cost and handoffs for nothing.
+
+## The merge is where mistakes hide
+
+Here is the part people miss. Each helper sees only its own slice, so none of them can catch an error that only shows up when the slices come together. A number gets attached to the wrong company. Two helpers use different formats and a column quietly misaligns. A detail one helper dropped is simply absent from the combined result, and nothing flags it.
+
+That's why the rule ends with **you verify the combined result**: not each helper's output, but the merged whole. After combining, check a couple of facts in the final table against the original sources, and look for anything the merge lost or scrambled. The merge is the one step no helper was watching, so it's the one you watch yourself.
+
+<Callout variant="mistake" label="Common mistake">
+
+Checking each helper's output but trusting the merged result unseen. Every helper only saw its own slice, so the errors that live in the combination (a number pinned to the wrong company, a column misaligned, a dropped detail) are invisible to all of them. No helper was watching the merge, so you have to. Spot-check a few facts in the combined table against the sources before you trust it.
+
+</Callout>
+
+## When *not* to split
+
+The flip side of the rule matters as much as the rule. If the pieces depend on each other, splitting actively hurts: each helper is missing the context it needs from the others, and you'll spend more effort reconciling them than you saved. And if the whole job fits comfortably in one short chat, splitting is pure overhead: more briefs, more cost, more merge risk, for a job one chat would have finished cleanly. Split for jobs that are both **independent** and **large**. Everything else stays in one chat.
+
+## The rule
+
+<Callout variant="framework" label="Split Only When Independent">
+
+1. **Independent pieces** that do not need each other.
+2. **Clear brief** for each helper.
+3. **Short return format** so results combine easily.
+4. **You verify** the combined result.
+5. **Do not split small jobs.**
+
+</Callout>
+
+## Try it
+
+Run a small split, merge, and verify. If your tool has no helpers, use separate chats as your helpers.
+
+1. Pick a job with at least three independent parts, such as comparing three apartments or three phone plans.
+2. Open `helper-brief-template.md` and fill one brief per part.
+3. Run each brief in its own helper, or its own fresh chat.
+4. Paste the three short results into a new chat and ask for a combined comparison table.
+5. Verify: check two facts in the table against the original sources, and note anything the merge lost or changed.
+6. Decide: was splitting worth it, or would one chat have been enough?
+
+<ExerciseReveal prompt="Reveal what to expect" commit="Run the split, merge, verify two facts, and decide if it was worth it, then reveal:">
+<Fragment slot="answer">
+
+If the parts depend on each other, splitting hurts. If the job fits in one short chat, do not split. The merge step is where mistakes appear, which is why you verify it.
+
+</Fragment>
+</ExerciseReveal>
+
+## Check yourself
+
+<KnowledgeCheck
+  question="When does splitting help most?"
+  options={[
+    "Small tasks",
+    "Independent, large pieces",
+    "Dependent steps",
+    "Never",
+  ]}
+  answer={1}
+  explanation="Splitting pays off only when the pieces are both independent (no helper needs another's work) and large (enough work to justify the extra briefs, cost, and merge). Small tasks and dependent steps both lose to a single chat."
+/>
+
+<KnowledgeCheck
+  question="A job has five steps where each step needs the result of the step before it. Why is splitting this across helpers a bad fit?"
+  options={[
+    "Helpers are always slower than one chat",
+    "The steps are dependent, so each helper would be missing the context it needs from the others",
+    "Splitting is only allowed for research tasks",
+    "One chat cannot handle five steps",
+  ]}
+  answer={1}
+  explanation="Splitting pays off only when pieces are independent. When each step needs the previous step's result, the pieces are dependent: every helper is missing context from the others, and you spend more effort reconciling them than you saved. Dependent work stays in one chat."
+/>
+
+<TrueFalse statement="The merge step, combining helpers' results, is where mistakes are most likely to appear, so you verify it." answer={true}>
+<Fragment slot="why">
+
+Each helper only sees its own slice, so details can drift or get lost when the short results are combined. That is why the rule ends with *you verify the combined result*: check a couple of facts against the original sources before you trust the merge.
+
+</Fragment>
+</TrueFalse>
+
+<Matching
+  pairs={[
+    { term: "Independent pieces", match: "Parts that do not need each other to finish" },
+    { term: "Clear brief", match: "What each helper is told to do" },
+    { term: "Short return format", match: "A consistent shape so results combine easily" },
+    { term: "You verify", match: "Checking the combined result against the sources" },
+  ]}
+/>
+
+<ExerciseReveal prompt="Describe a job you would split and what each helper would return." commit="Write the job, its independent pieces, and each helper's short return, then reveal:">
+<Fragment slot="answer">
+
+The pieces should be independent, with a short, consistent return format.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the helper brief template and use it on your next real task.
+
+<ArtifactCard label="Helper brief template" file="helper-brief-template.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Subagent (helper)", definition: "A separate Claude instance given one focused piece of a larger job. In many tools (such as Claude Code), each helper runs in its own isolated context; whether it inherits any context from the orchestrator, and whether its transcript is visible upstream, varies by tool and platform." },
+    { term: "Orchestration", definition: "Splitting a job across helpers, then combining their short results into one answer in the main chat. The chat doing the combining is the orchestrator." },
+    { term: "Independent pieces", definition: "Parts of a job that do not depend on each other. Splitting only pays off when the pieces are independent and large." },
+    { term: "Merge step", definition: "Combining the helpers' returns into the final result. It is the point where details drift or get lost (no single helper saw the whole), so you verify it against the sources." },
+  ]}
+/>

@@ -1,0 +1,172 @@
+---
+title: "Memory and standing instructions"
+level: 2
+lesson: "8"
+track: "Working with Claude"
+practice_time: 5
+last_verified: 2026-10-12
+download: "memory-hygiene-checklist.md"
+summary: "Standing instructions are rules you set for every chat and memory is context Claude learns on its own, and credentials belong in neither."
+kind: exercise
+beforeYouLeave:
+  - "Write rules you want every time into your standing instructions."
+  - "Open your memory settings and read what Claude has actually stored."
+  - "Keep credentials out of both, and never paste passwords, keys, tokens, or ID numbers into a chat."
+  - "Share other sensitive data only when gated: authorized, in an approved environment, and minimum necessary."
+  - "Delete anything in memory you would not want kept, then confirm the setting applied."
+---
+
+import Callout from '../../../components/Callout.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+import ContextMechanisms from '../../../components/diagrams/ContextMechanisms.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can tell memory apart from standing instructions, decide which one a given fact belongs in, and name what Claude should never hold at all.
+
+</Callout>
+
+## Why this matters
+
+[Lesson 8](/lessons/level-2/06-projects-files-and-instructions/) gave you a Project: context that persists inside one workspace. But two other things also carry across chats, and they're easy to confuse with each other and with Projects: **standing instructions** and **memory**. Mix them up and you get two annoyances at once: a rule that won't stick, and a saved detail you didn't mean to keep. Knowing which is which turns both into something you control.
+
+## Two ways Claude remembers, and they're not the same
+
+The confusion is understandable, because both outlive the chat. But they work in opposite directions:
+
+- **Standing instructions** are rules **you write on purpose**: tone, format, the role you want Claude to play. You type them into your settings, they say exactly what you meant, and they apply across your chats until you change them. Think of them as a note you pinned for Claude. (Exact names vary by plan, often something like "Instructions for Claude" or profile preferences.)
+- **Memory** is context **Claude saves on its own** as you chat: topics it notices and can draw on in later chats. You didn't write it; Claude wrote it down for you. That's useful when it catches something real, and a problem when it catches something you'd rather it hadn't. (Whether memory is available, and how it behaves, depends on your plan, account type, and settings; not all accounts have it, and it isn't always on by default.)
+
+The one-line test for where a fact goes: **if it's a stable rule you'd state out loud ("keep answers short," "write in British English") it belongs in instructions**, because you want it exact and permanent. Everything else, memory may pick up on its own, which is why you review it rather than write it.
+
+These two aren't the only ways context reaches Claude. Projects, connectors, and your own files each carry context differently. The context comparison map (download it at the end of this lesson) lays all six side by side, so you can see at a glance which ones persist across chats and which don't.
+
+<ContextMechanisms />
+
+A few specifics worth knowing, since they shape the habits below: Projects have their *own* separate memory from your main one. Sensitive topics such as health or politics aren't saved by default. And you can view, edit, or delete anything in memory from Settings, or pause it for a single chat before your first message. (These specifics apply when memory is available on your plan; check your own account settings to confirm what applies to you.)
+
+Here's the mix-up in the wild. **Kai** tells Claude his preferred writing style in one chat and expects it everywhere, but a style preference mentioned in passing isn't a standing instruction, so another chat ignores it. The fix: write it into instructions, where it sticks. Separately, Kai later finds Claude mentioned a personal detail he'd forgotten sharing; that one landed in memory on its own, which is exactly why memory is something you *review*, not something you trust blindly.
+
+### The line that matters most: two kinds of sensitive, two different rules
+
+Both features are about convenience, and neither is a vault: anything stored can be surfaced later. But "sensitive" is not one category, and the rule splits in two:
+
+- **Credentials and secrets, never paste anywhere.** Passwords, API keys, access tokens, and identity numbers (SSN, account numbers) do not belong in memory, in instructions, or even pasted into a single chat. A secret you type into a tool is a secret you no longer fully control. Use a password manager and keep these out of Claude entirely.
+- **Other sensitive data, only under three conditions.** Health details, financial figures, other people's private information, confidential work material: these can sometimes be legitimate to share with Claude, but only when all three hold: you are **authorized** to use them this way, you are in an **approved environment** (your workplace's sanctioned account or plan), and you share the **minimum necessary**, just the piece the task needs and nothing more. When any of the three is missing, keep it out.
+
+The short version: credentials never, other sensitive data only when authorized, in an approved place, and pared to the minimum.
+
+<Callout variant="warning" label="Warning">
+
+A password, API key, access token, or ID number typed into a chat is a secret you no longer fully control: it can be saved to memory, logged, or surfaced later, and you cannot reliably pull it back. Never paste credentials into Claude, not even in a single throwaway chat. Keep them in a password manager and hand the task a reference, not the secret itself.
+
+</Callout>
+
+## The rule
+
+<Callout variant="framework" label="Write Rules, Review Memory, Gate Sensitive Data">
+
+1. **Rules you want every time:** write them into your standing instructions.
+2. **Learned context:** open your memory settings and read what Claude has stored.
+3. **Credentials never:** passwords, API keys, access tokens, and ID numbers go in neither, and are never pasted into a chat either. Use a password manager.
+4. **Other sensitive data, only when gated:** health, financial, or other people's details only if you are authorized, in an approved environment, and sharing the minimum necessary.
+5. **Delete** anything in memory you wouldn't want kept.
+6. **Check the answer.** Don't assume a setting applied; confirm it did.
+
+Look up where these controls live in your own account, since they differ by plan.
+
+</Callout>
+
+## Try it
+
+Do a five-minute settings review. Don't store anything sensitive.
+
+1. Find your standing instructions and your memory settings in your account.
+2. Write one rule in your instructions, such as "Keep answers under 150 words unless I ask for more."
+3. Read the stored memory topics. Delete one you don't want kept.
+4. Open a new chat and run a short test. Did your rule apply?
+5. Record the result in the log in `memory-hygiene-checklist.md`.
+
+<ExerciseReveal prompt="Reveal what to expect" commit="Before you look, write the one rule you'll add and one thing you expect to find in memory, then reveal:">
+<Fragment slot="answer">
+
+If your rule didn't apply, make it more specific; vague rules are the usual reason settings seem ignored. If you find no memory at all, it may be off or empty, which is fine. The point of step 4 is the *Check the answer* habit: a setting you turned on isn't proof it took effect.
+
+</Fragment>
+</ExerciseReveal>
+
+## Check yourself
+
+<KnowledgeCheck
+  question="Where should a stable style rule go?"
+  options={[
+    "Memory only",
+    "Standing instructions you write yourself",
+    "A password manager",
+    "Nowhere",
+  ]}
+  answer={1}
+  explanation="A stable rule you'd state out loud (tone, format, length) is exactly what standing instructions are for: you write it on purpose so it's exact and sticks across chats. Memory is for context Claude picks up on its own, not for rules you want guaranteed."
+/>
+
+<KnowledgeCheck
+  question="Which belongs in neither memory nor standing instructions?"
+  options={[
+    "Your preferred tone for emails",
+    "A rule capping answers at 150 words",
+    "A password or an ID number",
+    "The role you want Claude to play",
+  ]}
+  answer={2}
+  explanation="A password or ID number is a credential: it belongs in neither memory nor instructions, and shouldn't be pasted into a chat at all. Use a password manager. (Other sensitive data like health or financial details can sometimes be shared, but only when you're authorized, in an approved environment, and sharing the minimum necessary.)"
+/>
+
+<TrueFalse statement="Mention a style preference in passing in one chat and it becomes a standing instruction that applies to all your future chats." answer={false}>
+<Fragment slot="why">
+
+This is Kai's mistake. A preference said once in a single chat lives only in that chat; it is not a standing instruction. Instructions are rules you write on purpose into your settings; that is what makes them stick across chats. Memory might pick a preference up on its own, but you review memory rather than rely on it. Want a style every time? Write it into your instructions.
+
+</Fragment>
+</TrueFalse>
+
+<Matching
+  pairs={[
+    { term: "Standing instructions", match: "Rules you write yourself (tone, format, role) applied every chat" },
+    { term: "Memory", match: "Context Claude saves as topics while you chat and can use later" },
+    { term: "Credentials (never share)", match: "Passwords, API keys, tokens, ID numbers: out of memory, instructions, and chats alike" },
+  ]}
+/>
+
+<ExerciseReveal prompt="List one rule for your instructions, one thing you would check in memory, and one credential you would keep out entirely." commit="Write all three, then reveal:">
+<Fragment slot="answer">
+
+A style rule you'd want every time (instructions), a stored topic worth reviewing or deleting (memory), and a credential (a password, an API key, an ID number) that goes in neither feature and isn't pasted into a chat at all. Health or financial details sit in a third bucket: shareable only when you're authorized, in an approved environment, and keeping it to the minimum.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the checklist and run the five-minute review on your own account: write one rule, read your memory, keep the secrets out.
+
+<ArtifactCard label="Memory hygiene checklist" file="memory-hygiene-checklist.md" />
+
+Keep the context comparison map nearby too: it shows how memory and standing instructions sit alongside Projects, connectors, and your own files, and which of the six carry across chats.
+
+<ArtifactCard label="Context comparison map" file="context-comparison-map.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Standing instructions", definition: "Rules you write yourself: tone, format, the role you want Claude to play. You state them on purpose, so they're exact and apply across chats. Stable style rules belong here. Exact names vary by plan." },
+    { term: "Memory", definition: "Context Claude saves on its own as topics while you chat and can reuse later. You review it rather than write it. View, edit, delete, or pause it in Settings; Projects have separate memory; sensitive topics aren't saved by default." },
+    { term: "Credentials (never share)", definition: "Passwords, API keys, access tokens, and ID numbers. They belong in neither memory nor instructions, and shouldn't be pasted into a chat at all. Keep them in a password manager." },
+    { term: "Gated sensitive data", definition: "Health, financial, or other people's details, and confidential work material. Shareable with Claude only when all three hold: you're authorized, in an approved environment, and sharing the minimum necessary." },
+  ]}
+/>

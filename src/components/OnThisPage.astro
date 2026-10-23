@@ -1,0 +1,53 @@
+---
+import type { MarkdownHeading } from 'astro';
+
+interface Props {
+  headings: MarkdownHeading[];
+}
+
+const { headings } = Astro.props;
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+---
+
+{toc.length >= 2 && (
+  <nav class="on-this-page" aria-label="On this page">
+    <details class="on-this-page__shell" open>
+      <summary class="on-this-page__summary">On this page</summary>
+      <ol class="on-this-page__list">
+        {toc.map((h) => (
+          <li class={`on-this-page__item on-this-page__item--d${h.depth}`}>
+            <a href={`#${h.slug}`} class="on-this-page__link">{h.text}</a>
+          </li>
+        ))}
+      </ol>
+    </details>
+  </nav>
+)}
+
+<style>
+  .on-this-page { font-size: var(--fs-sm); }
+  .on-this-page__summary {
+    font-weight: 650;
+    color: var(--text);
+    cursor: pointer;
+    list-style: none;
+    padding: var(--space-2) 0;
+  }
+  .on-this-page__summary::-webkit-details-marker { display: none; }
+  .on-this-page__list {
+    margin: var(--space-2) 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    border-left: 1px solid var(--border);
+  }
+  .on-this-page__link {
+    display: block;
+    padding: var(--space-1) var(--space-3);
+    color: var(--muted);
+  }
+  .on-this-page__link:hover { color: var(--text); text-decoration: none; }
+  .on-this-page__item--d3 .on-this-page__link { padding-left: var(--space-6); }
+</style>

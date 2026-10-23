@@ -1,0 +1,162 @@
+---
+title: "Give Claude things to read"
+level: 2
+lesson: "5"
+track: "Working with Claude"
+practice_time: 10
+last_verified: 2026-10-12
+download: "document-sharing-checklist.md"
+summary: "Sharing a document only helps if you ask narrow questions answered from the page, check where the answer came from, and strip anything private before you attach it."
+kind: exercise
+beforeYouLeave:
+  - "Ask a narrow question that points at the specific part you need, not a vague 'summarize this'."
+  - "Make Claude quote or cite where an answer came from, then open the source and confirm it matches."
+  - "Redact private details on a copy before attaching, including hidden text, comments, and metadata."
+  - "Reopen, search, and copy-test a redacted file to confirm the private data is actually gone."
+  - "Check your organization's sharing rules before sending work documents, since policies differ by account."
+---
+
+import Callout from '../../../components/Callout.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can share a document or image with Claude safely, and ask questions that are actually answered from it, not from a vague skim.
+
+</Callout>
+
+## Why this matters
+
+Up to now you have been typing everything Claude works from. But most real work already lives in a file: a report, a contract, a screenshot, a scanned form. The moment you can hand Claude a document and ask about *it*, the tool stops being a clever writer and starts being useful on your actual stuff.
+
+Two things make or break that handoff: **asking in a way that gets you a checkable answer**, and **not leaking private information in the process.** This lesson teaches both before it asks you to try them.
+
+## What Claude can and can't do with a document
+
+Claude can read **pasted text, PDFs, and images** (including photos and scans). When you attach one, its contents join the context from Lesson 4. Claude can now quote it, summarize it, and answer questions from it.
+
+But "can read" is not "has memorized every word." With a long document, two limits bite:
+
+- **A broad question gets a broad answer.** Ask "summarize this" and Claude produces a reasonable-sounding overview, which can quietly skip the one table or clause you actually cared about. It is not lying; it just guessed at what mattered, and guessed wrong.
+- **Reading a scan is not perfect.** A column in an image, a smudged number, a table split across a page: these get misread sometimes. So an answer pulled from a document still needs a glance at the source.
+
+Here is the first failure in the wild. **Noor** drops a 30-page PDF into Claude and types "Summarize." She gets a tidy page that sounds right, and later finds it skipped the pricing table she cared about. The fix isn't a better model; it's a narrower question. Had she asked "What does the pricing table on page 12 say? Quote it," she'd have gotten the exact thing she needed *and* a quote she could check against the page.
+
+### The part people forget: what you're handing over
+
+A document is not just information for Claude; it's information **you are sharing.** And documents carry passengers: a pay stub has your income and an account number, a lease has your address, a work export may have a colleague's details or something your employer treats as confidential.
+
+The second failure: **Ben** pastes a scan of his own pay stub to ask a tax question, without thinking about what else is on it. His question was about one number; he shared twenty. The habit to build is a short pause before every attach: *what's on this page that the question doesn't need?* Remove those bits first. That deliberate removal has a name (**redaction**), and it's the cheapest safety step you have. Work documents get a second check: your organization's own rules, which vary by account and plan.
+
+<Callout variant="warning" label="Warning">
+
+Attaching a document shares everything on it, not just the part your question is about. Ben's pay-stub question was about one number; the file also carried his income and account number. Before you attach anything with real personal, customer, or confidential data, pause and strip what the question does not need, on a copy. A file you cannot un-share is a one-way door.
+
+</Callout>
+
+Redaction done wrong is worse than none, because it looks safe while it isn't. Black out a line in a PDF and the original text can still sit underneath the box; "delete" a column and it may survive in the file's hidden data. So redact on a **copy**, never the original, and treat anything hidden as still present: tracked changes, comments, document properties and other **metadata**, cropped-off image regions. For stubborn cases, export to a flattened format (print to a fresh PDF, or export an image) so the removed content can't be recovered. Then the step everyone skips: **reopen the saved copy, search for what you removed, and try to copy the "redacted" area.** If the search finds nothing and the copy comes back empty, it's gone; if either turns up the text, your redaction didn't take.
+
+## The rule
+
+Put those two halves together and you get a three-step routine for every document you share.
+
+<Callout variant="framework" label="Ask Narrow, Check the Page, Share Less">
+
+1. **Ask narrow.** Point at the part you need: "What does the pricing table on page 12 say?", not "summarize this."
+2. **Check the page.** Ask Claude to quote or cite where the answer came from, then open the source and confirm it matches.
+3. **Share less, and redact safely.** Before attaching, remove anything private the question doesn't need: account numbers, IDs, addresses, other people's details. Do it on a **copy**; remove hidden text, comments, and metadata, not just what's visible; export or flatten if needed; then reopen, search, and copy-test to confirm it's actually gone.
+
+For work documents, also check your organization's rules before sharing: settings and policies differ by account.
+
+</Callout>
+
+## Try it
+
+Practice the redaction on a **synthetic or public** document, never a real sensitive one: make a throwaway file with a few fake names, numbers, and addresses, or use a public report. The point is to rehearse the process safely, so a real file isn't where you discover your redaction leaks.
+
+1. Open `document-sharing-checklist.md` and write down what you'll remove (the fake names, numbers, addresses you planted).
+2. Working on a **copy**, redact those items, including hidden text, comments, and document properties, then export or flatten if the format allows.
+3. **Reopen the copy, search for what you removed, and try to copy the redacted area.** Confirm it's actually gone before going further.
+4. Attach the cleaned copy, ask one narrow question, and request a quote: "What does page X say about Y? Quote it."
+5. Open the page yourself, compare the quote, and fill in one row of the log.
+
+<ExerciseReveal prompt="Reveal what to expect" commit="Write the one private item you'll remove and the one narrow question you'll ask, then reveal:">
+<Fragment slot="answer">
+
+If the quote doesn't match the page, you just found why *Check the page* matters: that mismatch is the whole point of the step. If you have no document handy, use a public one such as a product manual. The skill you're building is the pause before attaching and the glance after answering.
+
+</Fragment>
+</ExerciseReveal>
+
+## Check yourself
+
+<KnowledgeCheck
+  question="Which question is best for a long report?"
+  options={[
+    "Summarize everything",
+    "What does the table on page 12 say about delivery dates? Quote it.",
+    "Is this good?",
+    "Read it all again",
+  ]}
+  answer={1}
+  explanation="A narrow question aimed at a named part gets you a checkable answer, and asking for the quote gives you something to compare against the page. A broad 'summarize everything' is exactly Noor's mistake: a tidy answer that can skip the part you needed."
+/>
+
+<KnowledgeCheck
+  question="Claude gives you a clean summary of a 30-page PDF but leaves out the pricing table you cared about. What actually went wrong?"
+  options={[
+    "The model is too small, switch to the top tier",
+    "A broad question got a broad answer: Claude guessed at what mattered and skipped your table",
+    "Claude cannot read PDFs at all",
+    "The document was too long to fit in context",
+  ]}
+  answer={1}
+  explanation="This is Noor's failure. 'Summarize this' invites a reasonable-sounding overview that can quietly skip the one part you needed: not a model problem, a question problem. The fix is a narrow question aimed at the named part ('What does the pricing table on page 12 say? Quote it'), not a bigger model."
+/>
+
+<TrueFalse statement="Before sharing a document, you should remove private items you don't need Claude to see, such as account numbers or other people's details." answer={true}>
+<Fragment slot="why">
+
+This is the *Share Less* step: redaction. A document carries passengers your question never asked for: account numbers, IDs, other people's details. Remove them before attaching, and check your organization's rules before sharing work documents.
+
+</Fragment>
+</TrueFalse>
+
+<Matching
+  pairs={[
+    { term: "Ask narrow", match: "Point at the part: 'What does the pricing table on page 12 say?'" },
+    { term: "Check the page", match: "Ask Claude to quote or cite where an answer comes from, then look" },
+    { term: "Share less", match: "Remove private details you don't need Claude to see" },
+  ]}
+/>
+
+<ExerciseReveal prompt="Name one thing you would remove from a document before sharing it, and one thing you would check in the answer." commit="Name your redaction and your check, then reveal:">
+<Fragment slot="answer">
+
+A specific private item (an ID number, an address, a name) and a concrete check (the quoted passage against the page). Both are small, deliberate habits: the pause before, the glance after.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the checklist and use it on your next real document: redact first, ask narrow, check the page.
+
+<ArtifactCard label="Document sharing checklist" file="document-sharing-checklist.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Ask narrow", definition: "Point your question at the specific part you need, a named table, page, or section, instead of asking for a broad summary of the whole document. A narrow question gets a checkable answer." },
+    { term: "Check the page", definition: "Ask Claude to quote or cite where an answer came from, then open the source and confirm the quote matches. Catches both broad-answer misses and scan-reading errors." },
+    { term: "Share less", definition: "Remove or hide private material the question doesn't need before attaching: account numbers, IDs, addresses, other people's details." },
+    { term: "Redact", definition: "Deliberately remove sensitive items from a document before sharing. Do it safely: work on a copy, remove hidden text, comments, and metadata (not just what's visible), export or flatten if needed, then reopen and search/copy-test to confirm it's actually gone." },
+    { term: "Metadata", definition: "Hidden data a file carries beyond its visible content: tracked changes, comments, document properties, cropped-off image regions. It can leak what you thought you removed, so redaction must strip it too." },
+  ]}
+/>

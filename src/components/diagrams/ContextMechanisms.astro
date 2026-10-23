@@ -1,0 +1,125 @@
+---
+// Diagram: how a Project, standing instructions, and memory fit together.
+// Three persistent-context mechanisms all feed a single chat, but they differ
+// in who writes them: you write instructions on purpose, Claude saves memory
+// on its own, and a Project carries whatever files and rules you put in it.
+// Static SVG, token-driven colours; each mechanism is named and annotated so
+// meaning never rides on colour alone.
+---
+
+<figure class="diagram">
+  <svg
+    viewBox="0 0 460 230"
+    role="img"
+    aria-labelledby="mech-title mech-desc"
+    class="diagram__svg"
+  >
+    <title id="mech-title">Three ways persistent context reaches a chat</title>
+    <desc id="mech-desc">
+      Three mechanisms sit in a row and all feed into one chat below them. A
+      Project carries files and rules you put in its workspace. Standing
+      instructions are rules you write on purpose. Memory is context Claude
+      saves on its own. Each one feeds the same chat, but they differ in who
+      writes them.
+    </desc>
+
+    <defs>
+      <marker id="mech-arrow" viewBox="0 0 10 10" refX="8" refY="5"
+        markerWidth="7" markerHeight="7" orient="auto">
+        <path class="m-arrowhead" d="M0 0 L10 5 L0 10 z" />
+      </marker>
+    </defs>
+
+    {/* Three mechanism cards */}
+    <g>
+      <rect class="m-card" x="16" y="20" width="132" height="60" rx="8" />
+      <text class="m-name" x="82" y="44">Project</text>
+      <text class="m-who" x="82" y="64">files + rules you add</text>
+    </g>
+    <g>
+      <rect class="m-card" x="164" y="20" width="132" height="60" rx="8" />
+      <text class="m-name" x="230" y="44">Instructions</text>
+      <text class="m-who" x="230" y="64">rules you write</text>
+    </g>
+    <g>
+      <rect class="m-card m-card--auto" x="312" y="20" width="132" height="60" rx="8" />
+      <text class="m-name" x="378" y="44">Memory</text>
+      <text class="m-who" x="378" y="64">Claude saves</text>
+    </g>
+
+    {/* feed lines into the chat */}
+    <line class="m-feed" x1="82" y1="80" x2="190" y2="150" marker-end="url(#mech-arrow)" />
+    <line class="m-feed" x1="230" y1="80" x2="230" y2="150" marker-end="url(#mech-arrow)" />
+    <line class="m-feed" x1="378" y1="80" x2="270" y2="150" marker-end="url(#mech-arrow)" />
+
+    {/* the chat they all feed */}
+    <rect class="m-chat" x="150" y="156" width="160" height="50" rx="8" />
+    <text class="m-chatname" x="230" y="186">this chat</text>
+  </svg>
+  <figcaption class="diagram__cap">
+    All three carry context into a chat - the difference is who writes them: you
+    write instructions, Claude saves memory, a Project holds what you add.
+  </figcaption>
+</figure>
+
+<style>
+  .diagram {
+    margin: var(--space-6) 0;
+  }
+  .diagram__svg {
+    display: block;
+    width: 100%;
+    max-width: 32rem;
+    height: auto;
+    margin-inline: auto;
+  }
+  .diagram__cap {
+    margin-top: var(--space-2);
+    text-align: center;
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .m-card {
+    fill: color-mix(in srgb, var(--accent) 10%, var(--surface));
+    stroke: color-mix(in srgb, var(--accent) 45%, var(--border));
+    stroke-width: 1.5;
+  }
+  /* Memory differs: Claude writes it, not you - dashed edge marks the distinction. */
+  .m-card--auto {
+    fill: color-mix(in srgb, var(--objective) 12%, var(--surface));
+    stroke: color-mix(in srgb, var(--objective) 55%, var(--border));
+    stroke-dasharray: 5 4;
+  }
+  .m-name {
+    fill: var(--text);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 650;
+    text-anchor: middle;
+  }
+  .m-who {
+    fill: var(--muted);
+    font-family: var(--font-sans);
+    font-size: 11px;
+    text-anchor: middle;
+  }
+  .m-feed {
+    stroke: var(--border);
+    stroke-width: 2;
+  }
+  .m-arrowhead {
+    fill: var(--muted);
+  }
+  .m-chat {
+    fill: color-mix(in srgb, var(--accent) 16%, var(--surface));
+    stroke: color-mix(in srgb, var(--accent) 50%, var(--border));
+    stroke-width: 1.5;
+  }
+  .m-chatname {
+    fill: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    text-anchor: middle;
+  }
+</style>

@@ -1,0 +1,121 @@
+---
+// Diagram: where human gates sit in a workflow. Harmless steps (plan, draft)
+// run straight through; a risky step (send) is preceded by a gate where a
+// person approves before it runs. Static SVG, token-driven colours; the gate
+// is marked by shape (diamond) and the word "approve?", not colour alone.
+---
+
+<figure class="diagram">
+  <svg
+    viewBox="0 0 460 150"
+    role="img"
+    aria-labelledby="gates-title gates-desc"
+    class="diagram__svg"
+  >
+    <title id="gates-title">A human gate sits before each risky step</title>
+    <desc id="gates-desc">
+      A left-to-right workflow. The plan and draft steps run straight through.
+      Before the send step - which spends, sends, or deletes - the flow stops at
+      a human gate where a person approves. Only after approval does the risky
+      step run.
+    </desc>
+
+    <defs>
+      <marker id="gate-arrow" viewBox="0 0 10 10" refX="8" refY="5"
+        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path class="g-arrowhead" d="M0 0 L10 5 L0 10 z" />
+      </marker>
+    </defs>
+
+    {/* flow line */}
+    <line class="g-flow" x1="20" y1="60" x2="440" y2="60" marker-end="url(#gate-arrow)" />
+
+    {/* Step 1 - plan (harmless) */}
+    <rect class="g-step" x="24" y="44" width="72" height="32" rx="6" />
+    <text class="g-label" x="60" y="64">plan</text>
+
+    {/* Step 2 - draft (harmless) */}
+    <rect class="g-step" x="128" y="44" width="72" height="32" rx="6" />
+    <text class="g-label" x="164" y="64">draft</text>
+
+    {/* Gate - diamond checkpoint before the risky step */}
+    <path class="g-gate" d="M268 36 L300 60 L268 84 L236 60 z" />
+    <text class="g-gatelabel" x="268" y="64">approve?</text>
+    <text class="g-person" x="268" y="22">human</text>
+
+    {/* Step 3 - send (risky, gated) */}
+    <rect class="g-step g-step--risk" x="340" y="44" width="80" height="32" rx="6" />
+    <text class="g-label" x="380" y="64">send</text>
+    <text class="g-risk" x="380" y="104">sends · spends · deletes</text>
+  </svg>
+  <figcaption class="diagram__cap">
+    Harmless steps run free; a gate stops the flow for a person to approve
+    before any step that sends, spends, or deletes.
+  </figcaption>
+</figure>
+
+<style>
+  .diagram {
+    margin: var(--space-6) 0;
+  }
+  .diagram__svg {
+    display: block;
+    width: 100%;
+    max-width: 32rem;
+    height: auto;
+    margin-inline: auto;
+  }
+  .diagram__cap {
+    margin-top: var(--space-2);
+    text-align: center;
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .g-flow {
+    stroke: var(--border);
+    stroke-width: 2;
+  }
+  .g-arrowhead {
+    fill: var(--muted);
+  }
+  .g-step {
+    fill: color-mix(in srgb, var(--accent) 10%, var(--surface));
+    stroke: color-mix(in srgb, var(--accent) 45%, var(--border));
+    stroke-width: 1.5;
+  }
+  .g-step--risk {
+    fill: color-mix(in srgb, var(--warn) 14%, var(--surface));
+    stroke: color-mix(in srgb, var(--warn) 55%, var(--border));
+  }
+  .g-gate {
+    fill: color-mix(in srgb, var(--warn) 16%, var(--surface));
+    stroke: var(--warn);
+    stroke-width: 2;
+  }
+  .g-label {
+    fill: var(--text);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    text-anchor: middle;
+  }
+  .g-gatelabel {
+    fill: var(--warn);
+    font-family: var(--font-sans);
+    font-size: 11px;
+    font-weight: 700;
+    text-anchor: middle;
+  }
+  .g-person {
+    fill: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-anchor: middle;
+  }
+  .g-risk {
+    fill: var(--muted);
+    font-family: var(--font-sans);
+    font-size: 11px;
+    text-anchor: middle;
+  }
+</style>

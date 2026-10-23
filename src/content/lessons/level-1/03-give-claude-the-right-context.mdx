@@ -1,0 +1,182 @@
+---
+title: "Give Claude the right context"
+level: 1
+lesson: "3"
+track: "Knowing your Claude"
+last_verified: 2026-10-12
+download: "context-checklist.md"
+summary: "Claude only knows what is in front of it in the chat, so your job is to hand it exactly the context the task needs: relevant, not more."
+kind: concept
+beforeYouLeave:
+  - "List what Claude can see in a chat: your message, what you attached, the conversation so far, plus any setup you enabled."
+  - "Explain why training knowledge can be out of date and holds nothing specific to you, so personal or recent facts must be supplied."
+  - "Recognize both failure modes: too little context leaves Claude guessing, too much buries the detail that matters."
+  - "Run the four-part check before sending: Goal, Material, Audience, Limits."
+  - "Apply the gut test: if you could not do the task from only what you pasted, Claude probably cannot either."
+---
+
+import Callout from '../../../components/Callout.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+import ContextStack from '../../../components/diagrams/ContextStack.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can tell what Claude can and cannot see in a given chat, and give it exactly the context a task needs: no more, no less.
+
+</Callout>
+
+## The thing everyone gets wrong about Claude
+
+The single most common mistake with Claude is assuming it can see things it cannot. You know your situation, your files, and what you meant, so it feels like Claude should too. It cannot. Claude only knows what is actually *in front of it* in the chat. Get that one idea right and most of your frustrating, generic answers disappear.
+
+This lesson teaches you exactly what "in front of it" includes, and how to hand Claude the right slice of it.
+
+<Callout variant="mistake" label="Common mistake">
+
+Assuming Claude can see what you can see: the file open on your desktop, last week's meeting, the project you have been living in. It cannot. It only knows what is actually in the chat. When an answer comes back generic or wrong, the first thing to check is not the wording of your prompt but whether the fact it needed was ever in front of it.
+
+</Callout>
+
+## What Claude can actually see
+
+Claude works from its **context**: the information available to it for *this* chat. That context is built from a few sources, and it helps to know them by name:
+
+- **Your message.** The text you just typed. Always in context.
+- **What you attached.** Files, images, or pasted text in this chat. In context once you add them.
+- **The conversation so far.** Earlier turns in this same chat (the [running history from the last lesson](/lessons/level-1/02-why-you-hit-your-limit/)). In context.
+- **Your setup, if enabled.** Depending on your account and settings, context can *also* include saved memory, Project knowledge, connected apps, and enabled tools. These are optional: they are only there if you turned them on, so check what your account actually has active.
+
+If something is not in one of those buckets, Claude cannot see it, no matter how obvious it is to you.
+
+<ContextStack />
+
+### What it knows without you telling it, and the trap there
+
+Claude also carries **training knowledge**: broad, general knowledge it learned before this chat. That is why it can explain photosynthesis or draft a generic cover letter with nothing attached.
+
+But training knowledge has two hard edges, and both cause real mistakes:
+
+- **It can be out of date.** Training has a cutoff; recent events may not be in it.
+- **It contains nothing specific to you.** Your files, your prices, your landlord, last week's meeting: none of it is in training knowledge.
+
+So here is the rule that follows: **anything specific to you or recent has to be in the context, or reachable by a tool you enabled. If it is neither, Claude may guess**, and a confident guess is worse than a question, because it looks like an answer.
+
+## Too little and too much both break it
+
+Once you see that Claude only works from what is in front of it, the two failure modes become obvious, and they pull in opposite directions.
+
+**Too little context.** Picture **Omar** typing "Is this a fair price?" and hitting send. Claude has no item, no price, no comparison: nothing specific is in context, and training knowledge cannot fill the gap. So it either asks him what he means or guesses. Omar thought Claude already knew. It never did.
+
+**Too much context.** Now picture **Lena** replying to a landlord. She pastes the whole lease, six months of emails, a receipt screenshot, and a long story about a neighbor. Everything *is* in context now, but the one clause that actually matters is buried under all of it, so the reply comes back generic and misses the point.
+
+Same root cause, opposite symptom. Omar gave too little to work with; Lena gave so much that the signal drowned. The target is in the middle:
+
+> **More is not better. Relevant is better.**
+
+## The rule
+
+Before you send, run a four-part check on what you are about to hand over.
+
+<Callout variant="framework" label="Right Context, Not More Context">
+
+1. **Goal.** What do you want to end up with?
+2. **Material.** What does Claude need to *see* to do it? Include exactly that, and leave the rest out.
+3. **Audience.** Who is the result for?
+4. **Limits.** Length, tone, facts to avoid.
+
+Then check what is already there: is memory on, is a Project attached, is an app connected? And apply the gut test: **if you could not do the task yourself with only what you pasted, Claude probably cannot either.**
+
+</Callout>
+
+## Check yourself
+
+<KnowledgeCheck
+  question="If a fact is specific to you (your files or a recent event) and it is not in the context or reachable by an enabled tool, what happens?"
+  options={[
+    "Claude looks it up on the live web by default",
+    "Claude may guess, because it only has general training knowledge otherwise",
+    "Claude refuses to answer until you attach a file",
+    "Claude pulls it from another user's chat",
+  ]}
+  answer={1}
+  explanation="Training knowledge is general and has nothing specific to you. If your fact is not in context and no enabled tool can fetch it, Claude has only its general knowledge to fall back on, so it may produce a confident guess that looks like an answer."
+/>
+
+<KnowledgeCheck
+  question="Lena pastes her whole lease, six months of emails, a receipt screenshot, and a story about a neighbor, then asks Claude to reply to her landlord, and gets a generic answer that misses the point. What went wrong?"
+  options={[
+    "Too little context: she should have attached even more",
+    "Too much context: the one clause that mattered was buried under everything else",
+    "Claude cannot read attachments, only typed messages",
+    "The lease was too recent for Claude's training knowledge",
+  ]}
+  answer={1}
+  explanation="This is the too-much failure mode. Everything was in context, but the signal that mattered drowned in the noise. More is not better; relevant is. The fix is to paste only the clause that matters or point Claude to it, not to add more."
+/>
+
+<TrueFalse
+  statement="A longer message with everything you have is always better than a short, focused one."
+  answer={false}
+>
+<Fragment slot="why">
+
+False. Claude works from the context in front of it, but more is not better; relevant is. Burying the one clause that matters under six months of emails (Lena's mistake) makes the answer worse, not better. Give the goal, the material that actually matters, and cut the rest.
+
+</Fragment>
+</TrueFalse>
+
+<Matching
+  pairs={[
+    { term: "Goal", match: "What you want to end up with" },
+    { term: "Material", match: "What Claude needs to see, included, with the rest left out" },
+    { term: "Audience", match: "Who the result is for" },
+    { term: "Limits", match: "Length, tone, and facts to avoid" },
+  ]}
+/>
+
+## Try it
+
+For each request, decide what to **add**, what to **trim**, or both, and **write your call for all three before you reveal.**
+
+1. "Make this email better." (nothing attached)
+2. A 40-page report pasted whole, then "What is the deadline for the permit?"
+3. "Write a thank-you note to my team." (nothing else)
+
+<ExerciseReveal prompt="Reveal the answers" commit="Write add/trim for all three, then reveal:">
+<Fragment slot="answer">
+
+1. **Add.** Attach the email and say what "better" means. Omar's problem: the material is missing.
+2. **Trim, or point.** Paste only the relevant section, or tell Claude where to look. Lena's problem: the answer is in there but buried.
+3. **Add.** Who the team is, what they did, and the tone you want.
+
+</Fragment>
+</ExerciseReveal>
+
+<ExerciseReveal prompt="Pick a task from this week. Name what you would include and one thing you would leave out." commit="Name your include and your cut, then reveal:">
+<Fragment slot="answer">
+
+A clear goal, the one or two pieces of material that actually matter, and an honest cut of everything that does not. The cut is the hard part: most people add; the skill is subtracting.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the checklist and run it on your next real task (Goal, Material, Audience, Limits) before you hit send.
+
+<ArtifactCard label="Context checklist" file="context-checklist.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Context", definition: "Everything Claude can see for this chat: your message, what you attached, and the conversation so far, plus whatever your setup adds, like saved memory, Project knowledge, connected apps, or enabled tools. If a fact is not in context and no tool can reach it, Claude cannot see it." },
+    { term: "Training knowledge", definition: "Claude's broad, general knowledge from before this chat. It can be out of date, and it contains nothing specific to you, so personal or recent facts must be supplied in the context or fetched by a tool." },
+    { term: "Right Context, Not More Context", definition: "The four-part check before you send: Goal, Material, Audience, Limits. Relevant beats more; if you could not do the task from only what you pasted, Claude probably cannot either." },
+  ]}
+/>

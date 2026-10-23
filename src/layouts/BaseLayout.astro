@@ -1,0 +1,59 @@
+---
+import '../styles/global.css';
+import { withBase } from '../lib/base';
+import Nav from '../components/Nav.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  width?: 'reading' | 'wide';
+}
+
+const SITE = "The AI Operator's Handbook";
+const DEFAULT_DESCRIPTION =
+  'A hands-on course for using Claude well: pick the right model, write a clear spec, build with Claude Code, and run it as a dependable system.';
+
+const { title, description = DEFAULT_DESCRIPTION, width = 'reading' } = Astro.props;
+// Every page title ends in " · The AI Operator's Handbook". Pages pass their
+// own short title (e.g. "Electives"); the home page passes the site name
+// itself, so skip the suffix there to avoid doubling it.
+const fullTitle = title === SITE ? title : `${title} · ${SITE}`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <title>{fullTitle}</title>
+    {/* Theme + text-size applied before first paint to avoid FOUC. */}
+    <script is:inline>
+      try {
+        var t = localStorage.getItem('handbook-theme');
+        if (!t) t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        if (t === 'light') document.documentElement.dataset.theme = 'light';
+        var fs = parseFloat(localStorage.getItem('handbook-fs'));
+        if (!isNaN(fs)) {
+          fs = Math.min(1.4, Math.max(0.9, fs));
+          document.documentElement.style.setProperty('--fs-scale', fs);
+        }
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <a href="#main" class="skip-link">Skip to content</a>
+    <Nav width={width} />
+    {width === 'wide' ? (
+      <main id="main" class="wide">
+        <slot />
+      </main>
+    ) : (
+      <main id="main" class="reading">
+        <slot />
+      </main>
+    )}
+  </body>
+</html>

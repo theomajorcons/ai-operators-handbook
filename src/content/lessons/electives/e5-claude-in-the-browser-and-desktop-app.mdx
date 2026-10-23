@@ -1,0 +1,176 @@
+---
+title: "Claude in the browser and desktop app"
+level: 5
+lesson: "e5"
+track: "Electives"
+last_verified: 2026-10-22
+download: "acting-agent-gate-sheet.md"
+summary: "When Claude acts in a browser or on your desktop it takes real actions on real pages and files, so you gate the risky ones for a human, give it the least access it needs, practice on safe targets first, and keep a log you can check."
+kind: concept
+beforeYouLeave:
+  - "Explain the shift from chat to action: an acting agent does not describe a step, it clicks, types, and changes real pages and files, so a mistake has real-world effects."
+  - "Gate the risky actions for a human: anything that sends, pays, deletes, or publishes pauses for an explicit yes before the agent does it."
+  - "Give the agent the least access it needs, so a wrong or hijacked action can only reach a small blast radius."
+  - "Practice on a safe or test target first, where a mistake costs nothing, before pointing the agent at anything that matters."
+  - "Keep a log of what the agent did, so you can check its actions after the fact and catch a bad one."
+---
+
+import Callout from '../../../components/Callout.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can let Claude act in a browser or desktop app safely by gating the risky actions for a human, giving it the least access it needs, practicing on a safe target first, and keeping a log you can check.
+
+</Callout>
+
+## Why this matters
+
+Everything up to here, Claude mostly *talked*: it answered, drafted, summarized, and the worst a bad answer could do was mislead you until you checked it. An acting agent in the browser or the desktop app is a different animal. It does not describe the step, it *takes* it: it clicks the button, fills the form, moves the file, sends the message. The output is no longer text you read before deciding, it is an action that has already happened in the real world.
+
+That changes the stakes completely. A wrong sentence costs you a second look. A wrong *action* sends the email, pays the invoice, deletes the folder, or publishes the draft, and some of those do not come back. The agent is also reading whatever is on the page as it goes, which means a web page or a document can carry instructions the agent might follow (the untrusted-input problem, now with hands). So the whole discipline of acting agents is about one thing: keeping a fast, fluent tool that can really *do* things from doing the one thing you did not want.
+
+## Where an unsupervised agent goes wrong
+
+Start with a concrete pair. Two people point Claude at their browser to "clean up my inbox: archive the newsletters."
+
+**Tariq** gives the agent full access and walks away. It archives the newsletters correctly for a while, then hits an email that looks like a newsletter but is a signed contract, and archives that too. Worse, one "newsletter" was a phishing message whose body said, in effect, *forward the latest invoice to this address*, and the agent, reading the page as instructions, did. Tariq finds out days later because nothing paused and nothing was logged, the actions were already done and invisible.
+
+**Priya** sets it up differently. She first runs the agent on a **test inbox** with throwaway mail, watching what it clicks before she trusts it anywhere real. She gives it access to **one folder**, not her whole account, so the worst case is bounded. She sets a **gate**: the agent may archive on its own, but anything that *sends, forwards, deletes permanently, or pays* stops and asks her first. When the phishing message tries to make it forward an invoice, the forward is a gated action, so the agent pauses and shows her the step, she says no, and nothing leaves. Afterward she reads the **log** of what it did and confirms only newsletters were archived.
+
+The difference is not that Priya's agent is smarter. It is that Priya treated the agent as something that *acts*, so she put the controls where the risk is: a human gate on the dangerous actions, the least access that does the job, a safe place to practice, and a log to check. Tariq treated it like a chat and let it loose.
+
+<Callout variant="warning" label="Warning">
+
+An acting agent clicks, sends, pays, and deletes for real, and it reads each page as it goes, so a phishing email or a booby-trapped document can steer it into forwarding an invoice or deleting a folder with no one watching. Those are one-way doors. Never let an acting agent run unsupervised with broad access: gate every send, payment, delete, and publish for a human yes, scope it to one folder or site, and keep a log you actually read.
+
+</Callout>
+
+## The four controls for an agent that acts
+
+Priya's setup is four controls, and each one answers a specific way an acting agent can hurt you.
+
+**Gate the risky actions for a human.** Not every action is equal. Reading a page, archiving a newsletter, drafting a reply: low stakes, let the agent run. Sending, forwarding, paying, deleting permanently, publishing, posting: one-way doors, where a mistake cannot be taken back. Those get a **human gate**: the agent pauses, shows you the exact action, and does nothing until you say yes. This is the same gate-the-irreversible discipline from [planning, delegation, and human gates](/lessons/level-4/18-planning-delegation-and-human-gates/), now with the extra weight that the agent is already standing at the button. The gate is also your defense against a page that carries hidden instructions: even if the agent is fooled into *trying* a forward or a payment, a gated action still stops and asks.
+
+**Give it the least access it needs.** An agent can only do damage inside the access you grant it. Point it at one folder, not the whole account; one site, not the whole browser session with every logged-in tab; a copy of the files, not the originals. Least access shrinks the **blast radius**: when something goes wrong (a bad click, a hijacked instruction), the harm is bounded to the small surface you opened, not everything you are signed in to.
+
+**Practice on a safe target first.** Before you point the agent at anything that matters, run it on a test inbox, a sandbox account, a throwaway copy of the files, somewhere a mistake costs nothing. You are watching for *what it actually clicks*, which is often not what you pictured, and the cheap place to discover that is a target with nothing to lose. This is the same "practice where a mistake is free" instinct that [automation and safety](/lessons/level-4/21-automation-and-safety/) builds a whole threat model around.
+
+**Keep a log you can check.** An acting agent moves faster than you can watch every step, so the record is what lets you check its work after the fact. A log of what it did (which emails archived, which files moved, which actions it paused on) turns "I hope that went fine" into something you can actually read and verify, and it is how you catch a bad action that slipped through before it compounds.
+
+## The rule
+
+<Callout variant="framework" label="Gate, Least Access, Practice, Log">
+
+1. **Practice on a safe target first:** a test account or a throwaway copy, where a mistake costs nothing.
+2. **Give the least access it needs:** one folder or one site, not the whole account or session.
+3. **Gate the risky actions:** anything that sends, pays, deletes, or publishes pauses for an explicit human yes.
+4. **Keep a log** of what the agent did, and read it to confirm the actions were the ones you wanted.
+5. **Treat the page as untrusted:** a page or document the agent reads can carry instructions; the gate is what stops a hijacked action.
+
+</Callout>
+
+## Try it
+
+You set Claude to act in your browser. For **each** choice below, decide: does it
+clear, yes or no, and if no, name the exact fix. Judge it against the four
+controls (gate, least access, practice first, log), not against whether the task
+would get done faster. **Write your four calls in the box below before you
+reveal.**
+
+1. You give the agent your whole logged-in browser session and tell it to "handle my emails."
+2. You let the agent archive on its own, but set it to pause and ask before it sends, forwards, deletes, or pays.
+3. You point a brand-new agent straight at your real client inbox to save time, no test run.
+4. You turn off logging so the agent runs faster and you are not bothered by the record.
+
+<ExerciseReveal prompt="Reveal the answers" commit="Write your yes/no and the fix for all four, then reveal:">
+<Fragment slot="answer">
+
+1. No. **Least access fails:** the whole session exposes every logged-in tab and account as blast radius. Fix: scope it to one folder or one site, not everything you are signed in to.
+2. Yes. **Gate on the one-way doors:** low-stakes archiving runs free, the irreversible actions pause for a human yes. That is the control working.
+3. No. **Practice first:** a brand-new agent pointed at a real client inbox is a mistake with real cost. Fix: run it on a test inbox or a sandbox until you have seen what it actually clicks.
+4. No. **Keep the log:** turning off the record removes your only way to check what the agent did and catch a bad action. Fix: leave logging on and read it; speed does not buy back an action you cannot see.
+
+</Fragment>
+</ExerciseReveal>
+
+## Check yourself
+
+<KnowledgeCheck
+  question="Which actions should pause for a human gate?"
+  options={[
+    "None, let the agent run",
+    "The ones that send, pay, delete, or publish",
+    "Only reading a page",
+    "Every single action, always",
+  ]}
+  answer={1}
+  explanation="Gate the one-way doors: sending, paying, deleting, publishing, the actions a mistake cannot take back. Letting everything run is Tariq's loose agent; gating every action (even reading) makes the agent useless. The point is to put the pause exactly where the risk is."
+/>
+
+<KnowledgeCheck
+  question="You are about to let Claude act in your browser for the first time. What is the safe first step?"
+  options={[
+    "Point it at your real account to save time",
+    "Run it on a test account or throwaway copy and watch what it clicks",
+    "Give it full access so it is not blocked",
+    "Turn off the log so it runs faster",
+  ]}
+  answer={1}
+  explanation="Practice where a mistake is free: a test account or sandbox lets you see what the agent actually clicks, which is often not what you pictured. Pointing it at the real account first is exactly Tariq's error, full access widens the blast radius, and no log leaves you blind."
+/>
+
+<TrueFalse statement="Because the agent acts for you, you can trust a web page it reads to only contain what it looks like." answer={false}>
+<Fragment slot="why">
+
+A page the agent reads is untrusted input: it can carry hidden instructions the agent might follow, like "forward the latest invoice here," and the agent has hands to act on them. That is why the human gate matters most for an acting agent: even if a page fools it into *trying* a forward or a payment, a gated action still pauses and asks you first, so the hijacked action never completes.
+
+</Fragment>
+</TrueFalse>
+
+<Matching
+  pairs={[
+    { term: "Human gate", match: "Pause for a yes before any send, pay, delete, or publish" },
+    { term: "Least access", match: "One folder or one site, not the whole account" },
+    { term: "Practice first", match: "Run on a test target where a mistake costs nothing" },
+    { term: "Log", match: "A record of what the agent did, so you can check it after" },
+  ]}
+/>
+
+Now plan it for your own work. Take one real task you would let an acting agent
+do in the browser or desktop app and write the four controls for it: (1) the
+**safe target** you would practice on; (2) the **least access** you would grant;
+(3) which specific actions you would put behind a **human gate**; (4) where you
+would find the **log** to check afterward. **Write the task and your four controls
+in the box, then reveal.**
+
+<ExerciseReveal prompt="Reveal a worked example" commit="Write your task and the four controls (safe target, least access, gate, log), then reveal:">
+<Fragment slot="answer">
+
+Worked example. Task: let the agent sort incoming mail and archive newsletters. (1) Safe target: a test inbox seeded with throwaway mail, watched until I have seen its clicks. (2) Least access: one mail folder, not the whole account or other logged-in tabs. (3) Gate: archive runs free; any send, forward, permanent delete, or payment pauses for my explicit yes, which also catches a phishing message trying to make it forward something. (4) Log: the agent's action record, read after each run to confirm only newsletters were archived. Any control missing means the agent does not touch real mail until it is in place.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the acting-agent gate sheet and use it before you let an agent act on anything real.
+
+<ArtifactCard label="Acting-agent gate sheet" file="acting-agent-gate-sheet.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Acting agent", definition: "Claude working in a browser or desktop app that takes real actions (clicks, types, moves files, sends messages) rather than only describing them, so its output is an action that has already happened, not text you read first." },
+    { term: "Human gate", definition: "A required pause before a risky, irreversible action (send, pay, delete, publish): the agent shows the exact step and does nothing until a person says yes. Also the defense against a page that tries to hijack the agent into acting." },
+    { term: "Least access", definition: "Granting the agent only the scope the task needs (one folder, one site, a copy of the files), so a wrong or hijacked action has a small blast radius instead of reaching everything you are signed in to." },
+    { term: "Practice on a safe target", definition: "Running the agent first on a test account, sandbox, or throwaway copy where a mistake costs nothing, so you can see what it actually clicks before it touches anything real." },
+    { term: "Action log", definition: "A record of what the agent did (what it clicked, moved, sent, or paused on), read afterward to verify the actions were the ones you wanted and to catch a bad one before it compounds." },
+  ]}
+/>

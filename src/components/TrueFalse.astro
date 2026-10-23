@@ -1,0 +1,135 @@
+---
+interface Props {
+  statement: string;
+  answer: boolean;
+}
+const { statement, answer } = Astro.props;
+const tfId = 'tf-' + Math.random().toString(36).slice(2, 10);
+---
+
+<div class="tf" data-tf id={tfId}>
+  <p class="tf__type">True / False</p>
+  <p class="tf__statement">{statement}</p>
+
+  <div class="tf__choices" role="group" aria-label="True or false">
+    <button type="button" class="tf__btn" data-tf-choice="true">True</button>
+    <button type="button" class="tf__btn" data-tf-choice="false">False</button>
+  </div>
+
+  <p class="tf__feedback" aria-live="polite" aria-atomic="true"></p>
+
+  {/* The answer is never in the initial DOM: no data-answer attribute, and the
+      "Answer: …" line is written by JS only after a correct pick. The why-body
+      (explanatory prose) ships hidden and is revealed on the correct pick. */}
+  <div class="tf__why" data-tf-why hidden>
+    <p class="tf__answer" data-tf-answer></p>
+    <div class="tf__why-body"><slot name="why" /></div>
+  </div>
+</div>
+
+<script define:vars={{ tfId, correct: answer }}>
+  (() => {
+    const tf = document.getElementById(tfId);
+    if (!tf) return;
+    const feedback = tf.querySelector('.tf__feedback');
+    const why = tf.querySelector('[data-tf-why]');
+    const answerLine = tf.querySelector('[data-tf-answer]');
+    let solved = false;
+
+    tf.querySelectorAll('[data-tf-choice]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (solved) return;
+
+        const picked = btn.dataset.tfChoice === 'true';
+        const isCorrect = picked === correct;
+        btn.setAttribute('data-state', isCorrect ? 'correct' : 'wrong');
+        feedback.textContent = isCorrect
+          ? 'Correct!'
+          : 'Not quite. Try the other one.';
+
+        if (isCorrect) {
+          solved = true;
+          tf.querySelectorAll('[data-tf-choice]').forEach((b) => { b.disabled = true; });
+          answerLine.innerHTML = 'Answer: <strong>' + (correct ? 'True' : 'False') + '</strong>';
+          why.hidden = false;
+        } else {
+          btn.disabled = true; // stays wrong, other button still live
+        }
+      });
+    });
+  })();
+</script>
+
+<style>
+  .tf {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--note);
+    border-radius: var(--radius);
+    padding: var(--space-4) var(--space-6);
+    margin-block: var(--space-6);
+  }
+
+  .tf__type {
+    margin: 0 0 var(--space-2);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--note);
+    font-weight: 700;
+  }
+
+  .tf__statement {
+    margin: 0 0 var(--space-4);
+    font-size: var(--fs-base);
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .tf__choices {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  .tf__btn {
+    flex: 1;
+    padding: var(--space-2) var(--space-4);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-size: var(--fs-base);
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: border-color 0.1s ease, background 0.1s ease;
+  }
+  .tf__btn:hover:not(:disabled) {
+    border-color: var(--note);
+    background: var(--surface);
+  }
+  .tf__btn:disabled { cursor: default; }
+
+  .tf__btn[data-state='correct'] {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+    color: var(--accent-strong);
+  }
+  .tf__btn[data-state='wrong'] {
+    border-color: var(--warn);
+    background: color-mix(in srgb, var(--warn) 10%, transparent);
+  }
+
+  .tf__feedback {
+    margin: var(--space-4) 0 0;
+    font-size: var(--fs-sm);
+    color: var(--muted);
+    min-height: 1.2em; /* stable height so layout doesn't jump */
+  }
+
+  .tf__why {
+    margin-top: var(--space-2);
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .tf__answer { margin: var(--space-3) 0 0; }
+</style>

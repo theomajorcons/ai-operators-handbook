@@ -1,0 +1,56 @@
+---
+interface Props {
+  /** Visible step number. Author-supplied so the number can carry real meaning
+      (e.g. a "0. Install (once)" prelude) rather than a mechanical 1..n. */
+  n: number | string;
+  title: string;
+}
+const { n, title } = Astro.props;
+---
+
+{/* <li> inside <Steps>'s <ol> gives screen readers the ordered-sequence
+    semantics. The bubble is decorative (aria-hidden) - order comes from the
+    list, and the title is the real information. */}
+<li class="step">
+  <span class="step__bubble" aria-hidden="true">{n}</span>
+  <div class="step__content">
+    <p class="step__title">{title}</p>
+    <div class="step__body"><slot /></div>
+  </div>
+</li>
+
+<style>
+  .step {
+    display: flex;
+    gap: var(--space-4);
+    align-items: flex-start;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--space-4) var(--space-5);
+  }
+  .step__bubble {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.9em;
+    height: 1.9em;
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    color: var(--accent-strong);
+    font-weight: 700;
+    font-size: var(--fs-sm);
+    line-height: 1;
+  }
+  .step__content { min-width: 0; }
+  .step__title {
+    margin: 0 0 var(--space-1);
+    font-weight: 700;
+  }
+  .step__body { margin: 0; }
+  .step__body :global(> :first-child) { margin-top: 0; }
+  .step__body :global(> :last-child) { margin-bottom: 0; }
+  /* Empty body (title-only step) shouldn't leave a gap. */
+  .step__body:empty { display: none; }
+</style>

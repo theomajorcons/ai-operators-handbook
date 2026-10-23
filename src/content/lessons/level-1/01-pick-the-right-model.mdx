@@ -1,0 +1,194 @@
+---
+title: "Pick the right model"
+level: 1
+lesson: "1"
+track: "Knowing your Claude"
+last_verified: 2026-10-16
+download: "model-picker-cheatsheet.md"
+summary: "The whole picker is two independent dials, tier and effort, so start low and climb one step only when the result shows you it fell short."
+kind: concept
+beforeYouLeave:
+  - "Describe the three tiers (fast, everyday, top) by their job, not by today's model names."
+  - "Explain why tier and effort are separate dials: tier sets the ceiling, effort sets how hard it works within it."
+  - "Pick a tier and an effort level for a task in about ten seconds."
+  - "Name the three failure signals: a shallow answer, a missed contradiction, or a number that does not add up."
+  - "When a result falls short, raise effort one step first and climb a tier only if that is not enough."
+---
+
+import Callout from '../../../components/Callout.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+import TierEffortDials from '../../../components/diagrams/TierEffortDials.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can choose a **model tier** and an **effort level** for a task in about ten seconds, and name a signal that would make you climb a step.
+
+</Callout>
+
+## Why this comes first
+
+Every time you start something with Claude, there's a picker: a little menu of model names. Most people pick one at random, or always reach for the biggest, and never think about it again. That one habit quietly decides whether your work comes back in two seconds or two minutes, whether it's sharp or shallow, and how fast you burn through your usage.
+
+The good news: the whole decision is two dials, and you can learn to read them in an afternoon. This lesson teaches you what the dials are before it asks you to turn them.
+
+## What Claude actually is
+
+"Claude" isn't one thing. It's a **family of models** that share a brain but come in different sizes, plus a separate dial that controls how long any of them thinks. Two independent choices:
+
+### Dial 1: the tier (how big the model is)
+
+Models come in **tiers**, like engine sizes. As a rule of thumb, a bigger tier has more raw capability: it tends to reason through harder problems, hold more in its head, and make fewer mistakes on tangled work, usually at the cost of being slower and pricier per answer. A smaller tier is usually the opposite: fast and cheap, and fine for straightforward work. This speed/intelligence/cost pattern is a useful default, not a strict guarantee: tiers overlap, and a given model can surprise you in either direction, so treat the tier as a starting guess and let your picker's actual behavior on the task settle it.
+
+There are three tiers worth knowing:
+
+- **Fast tier.** The smallest. Built for high-volume, mechanical jobs: cleaning a list, sorting rows, pulling fields out of text. It answers almost instantly and barely touches your usage. Ask it to untangle a contradiction and it'll give you something quick and shallow.
+- **Everyday tier.** The middle, and your default for most real work. Strong enough for ordinary judgment (drafting an email, summarizing a doc, planning a week) while still fast. This is where most of your tasks should land.
+- **Top tier.** The biggest. This is what you reach for when the work is genuinely hard: contradictions to resolve, trade-offs to weigh, money or people on the line. It thinks deepest and misses least, and it's the slowest and priciest. Overkill for a sorting job; exactly right for a thorny one.
+
+The *specific names and numbers change* (Anthropic ships new versions often) so don't memorize the row values. Memorize the three tiers, and let your picker tell you which names fill them today. The handbook keeps the current names in one place: see the [Model lineup](/models) for today's three tiers and the earlier versions your picker may still list.
+
+<Callout variant="note" label="Names shift, tiers don't">
+
+The model names above (Haiku, Sonnet, Opus, and their version numbers) will drift over time: new ones ship, old ones retire. Your picker may even list earlier versions alongside the current three, say **Opus 5** next to **Opus 5.5** (top tier), or **Sonnet 5** next to **Sonnet 5.5** (everyday tier). They fill the same tier roles, just a generation back; prefer the current one unless you have a reason not to. What stays constant is the *shape*: a fast tier, an everyday tier, a top tier. When in doubt, open your picker and read today's lineup against those three roles.
+
+</Callout>
+
+### Dial 2: effort (how long it thinks)
+
+Tier is only half the picture. The second, independent dial is **effort**: how long the model thinks before it answers. Low effort means it replies quickly off the top of its head; high effort means it reasons longer, checks itself, and works through the problem before committing.
+
+This matters because effort is *separate* from tier. You can run the everyday tier at high effort and get careful reasoning without paying for the top tier. Or run the top tier at low effort for a quick draft. Two dials, turned independently:
+
+- **Tier** sets the ceiling: how capable the model *can* be.
+- **Effort** sets how hard it works *within* that ceiling on this particular task.
+
+<TierEffortDials />
+
+## How to choose: Start Low, Climb on Evidence
+
+Now the rule. The mistake almost everyone makes is deciding by habit instead of by task, and it goes both ways:
+
+- Reach for the **top tier on everything** and you pay deep-thinking time and usage for jobs with one obvious answer. Picture someone cleaning a 40-name list on the biggest model at max effort: the answer's perfect, but it took a minute and visibly dropped their usage meter. A fast model at low effort would've finished in seconds, just as correct.
+- Reach for the **fast tier on everything** and you starve the tasks where thinking *is* the point. Picture someone summarizing a tangled contractor email thread (three people disagreeing about who owes what) on the smallest model to save time. The summary comes back neat and shallow, and misses that two promises in the thread contradict each other. That one's worth a stronger tier or more effort.
+
+Same error, opposite directions: picking before asking what the task needs. The fix is one small routine.
+
+<Callout variant="mistake" label="Common mistake">
+
+Defaulting to the top tier on everything "to be safe." It feels careful, but it quietly burns usage and time on jobs a fast model would finish just as correctly in seconds. The opposite habit, fast tier on everything to save usage, is the same error pointed the other way: it starves the tangled tasks where thinking is the whole point. Pick for the task in front of you, not out of habit.
+
+</Callout>
+
+<Callout variant="framework" label="Start Low, Climb on Evidence">
+
+Ask three questions about the task:
+
+1. **One clear right answer?** Cleaning, sorting, extracting. → Fast tier, low effort.
+2. **Ordinary judgment?** A friendly email, a summary, a weekly plan. → Everyday tier, default effort.
+3. **Hard, high stakes, or tangled?** Contradictions, trade-offs, money or people involved. → **Try more effort first, then climb a tier.** Raising effort is usually the cheaper, faster thing to try before switching models, so it's a sensible first step; only step up a tier if effort alone isn't enough. (It won't always be the cheaper move on every task, but it's the right default to reach for first.)
+
+Then **read the result**. If it falls short, climb exactly **one** step (effort up first, or a tier up) and try again. Don't start at the top; let the work tell you when you need more.
+
+</Callout>
+
+### Reading the result: the failure signals
+
+"If it falls short" only works if you know what *short* looks like. You're not grading the whole answer; you're watching for one concrete signal that the current pick couldn't carry the task. The three to learn:
+
+- **A shallow answer.** It restates the obvious and stops where the real thinking should start.
+- **A missed contradiction.** Two facts in the source clash and the answer sails past both as if they agree.
+- **A number that doesn't add up.** A total, a date, or a count that doesn't survive a quick recheck.
+
+See one of these and you've got your evidence: climb one step, re-run, and verify the thing that failed. See none and you're done. Don't climb on a hunch.
+
+## Try it
+
+Pick a tier and an effort level for each, and **commit to your three picks in the box below before you reveal the answers.** Writing them down first is the whole exercise; peeking first isn't.
+
+1. Turn a pasted list of 60 product names into a table with a Category column.
+2. Write a friendly reply declining a meeting invitation.
+3. Read a 30-page contract and flag clauses that could cost you money.
+
+<ExerciseReveal prompt="Reveal the answers" commit="Write your tier + effort for all three, then reveal:">
+<Fragment slot="answer">
+
+1. **Fast tier, low effort.** One clear answer: mechanical reshaping.
+2. **Everyday tier, default effort.** Ordinary judgment about tone.
+3. **Everyday tier, high effort, and you check the flagged clauses yourself.** Start by raising *effort*, not the tier: an everyday model thinking hard catches most of it, and you verify the money clauses regardless. If it still reads shallow, *that's* your signal to climb to the top tier: a worked example of trying effort before tier.
+
+Chose differently? Fine, as long as you can say *why*. The skill is asking the three questions, not memorizing a lookup table.
+
+</Fragment>
+</ExerciseReveal>
+
+## Check yourself
+
+<KnowledgeCheck
+  question="A contractor email thread is tangled and the decision matters. Best first move?"
+  options={[
+    "Fast tier, low effort, to save usage",
+    "A stronger tier or higher effort",
+    "The oldest model available",
+    "Whatever the last person used",
+  ]}
+  answer={1}
+  explanation="Tangled + stakes is the signal to climb. Raise effort first (usually the cheaper, faster thing to try), then a tier if that's not enough, and verify anything money or people depend on. The fast tier would come back neat but shallow and miss the contradiction."
+/>
+
+<TrueFalse statement="Tier and effort are the same dial, so picking a bigger model automatically makes it think longer." answer={false}>
+<Fragment slot="why">
+
+They're **two independent dials**. Tier sets how capable the model can be; effort sets how long it thinks on this task. You can run the everyday tier at high effort, or the top tier at low effort. They move separately.
+
+</Fragment>
+</TrueFalse>
+
+<KnowledgeCheck
+  question="A result falls short on a task you expected the everyday tier to handle. Under Start Low, Climb on Evidence, what's the sensible next move to try first?"
+  options={[
+    "Jump straight to the top tier at maximum effort",
+    "Raise effort one step on the same tier, then climb a tier only if that's not enough",
+    "Switch back to the fast tier to save usage",
+    "Re-run the exact same pick and hope it's better",
+  ]}
+  answer={1}
+  explanation="Climb exactly one step, and raising effort is usually the cheaper, faster thing to try before switching models, so reach for it first and only step up a tier if effort alone isn't enough. Jumping to the top risks wasting speed and usage on work a smaller tier could have carried."
+/>
+
+<Matching
+  pairs={[
+    { term: "Fast tier", match: "Quick, high-volume sorting and extracting" },
+    { term: "Everyday tier", match: "Ordinary judgment, like a friendly email or summary" },
+    { term: "Top tier", match: "Hard, high-stakes, or tangled work" },
+  ]}
+/>
+
+<ExerciseReveal prompt="Name one failure signal that would make you climb a step, then say what you would verify." commit="Name your signal and your check, then reveal:">
+<Fragment slot="answer">
+
+A concrete signal: a shallow answer, a missed contradiction, or a number that doesn't add up. Then a concrete check: reread the source, recompute the figure, or confirm the clause yourself. Climb one step *because* you saw the signal, not just in case.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the cheatsheet and fill in your next three real tasks today. It opens with a `[date]` placeholder near the top; replace it with the date you checked the lineup against your picker, so a week from now you know how current it is. (It's a fill-in, not a bug.)
+
+<ArtifactCard label="Model picker cheatsheet" file="model-picker-cheatsheet.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Model tier", definition: "The size class of the model. Smaller tiers (the fast tier) are quick and cheap; larger tiers (the top tier) think harder and cost more. Three roles: fast, everyday, top." },
+    { term: "Effort", definition: "A separate dial from tier: how long Claude thinks before it answers. Higher effort buys more reasoning on the same model, independent of which tier you chose." },
+    { term: "Start Low, Climb on Evidence", definition: "The picking rule: start low, read the result, and only when it falls short climb exactly one step, raising effort first, then a tier if effort alone isn't enough." },
+    { term: "Failure signal", definition: "A concrete sign the current pick is too weak (a shallow answer, a missed contradiction, or a number that doesn't add up) and your cue to climb a step and verify." },
+  ]}
+/>

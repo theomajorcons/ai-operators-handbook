@@ -1,0 +1,421 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { withBase } from '../lib/base';
+import { byLessonOrder } from '../lib/lesson-order';
+import { lessonNumbers, lessonBadge, displayNumber } from '../lib/lesson-number';
+import { getLevelInfo } from '../data/levels';
+import { skillsByLevel } from '../data/skills';
+
+// Lesson lookup by id → title + href. Build-time guard: every skill lesson id
+// in skills.ts must resolve, or the build fails loudly (beats a silent dead
+// node). Sort only to keep the lookup construction order stable.
+const lessons = (await getCollection('lessons')).sort(byLessonOrder);
+const lessonById = new Map(lessons.map((l) => [l.id, l]));
+const nums = lessonNumbers(lessons);
+// Node label: computed number (or "Elective n"), a Bridge/Lab tag when it has
+// one, then the title. Never the raw frontmatter `lesson` string.
+const nodeLabel = (l: (typeof lessons)[number]) => {
+  const badge = lessonBadge(l);
+  return `${displayNumber(l, nums, lessons)}${badge ? ` · ${badge}` : ''} · ${l.data.title}`;
+};
+
+type Node = { id: string; label: string; x: number; y: number; href?: string };
+type Edge = { from: string; to: string };
+
+// ── Server-side layout ────────────────────────────────────────────────
+// Three columns (level → skill → lesson), each node on a fixed row. Positions
+// are computed here so the SVG is deterministic and the <table> fallback is
+// always complete. Rows are packed top-down; a level's block is as tall as its
+// widest column (usually the lessons).
+const COL = { level: 60, skill: 320, lesson: 620 } as const;
+const ROW_H = 54;
+const PAD_Y = 40;
+
+const levelNodes: (Node & { level: number; colorVar: string })[] = [];
+const skillNodes: Node[] = [];
+const lessonNodes: Node[] = [];
+const edges: Edge[] = [];
+// Table rows: one per (level, skill) with its lessons - the accessible view.
+const tableRows: { level: string; colorVar: string; skill: string; lessons: { title: string; href: string }[] }[] = [];
+
+let cursor = PAD_Y;
+for (const { level, skills } of skillsByLevel) {
+  const info = getLevelInfo(level);
+  const elective = level === 5;
+  const colorVar = elective ? 'var(--level-electives)' : `var(--level-${level})`;
+  const levelLabel = info?.label ?? `Level ${level}`;
+  const levelId = `lvl-${level}`;
+
+  const blockTop = cursor;
+  // Each skill owns a horizontal band tall enough for its lesson rows.
+  for (const [si, skill] of skills.entries()) {
+    const skillId = `${levelId}-s${si}`;
+    const bandTop = cursor;
+    const resolved = skill.lessons.map((lid) => {
+      const l = lessonById.get(lid);
+      if (!l) throw new Error(`skills.ts references unknown lesson id "${lid}" (level ${level}, skill "${skill.name}")`);
+      return l;
+    });
+    const lessonY: number[] = [];
+    for (const l of resolved) {
+      const lessonId = `lesson-${l.id}`;
+      const y = cursor;
+      lessonY.push(y);
+      lessonNodes.push({
+        id: lessonId,
+        label: nodeLabel(l),
+        x: COL.lesson,
+        y,
+        href: withBase(`/lessons/${l.id}`),
+      });
+      edges.push({ from: skillId, to: lessonId });
+      cursor += ROW_H;
+    }
+    // Skill node centered on its lessons' band.
+    const skillY = (bandTop + lessonY[lessonY.length - 1]) / 2;
+    skillNodes.push({ id: skillId, label: skill.name, x: COL.skill, y: skillY });
+    edges.push({ from: levelId, to: skillId });
+    tableRows.push({
+      level: levelLabel,
+      colorVar,
+      skill: skill.name,
+      lessons: resolved.map((l) => ({ title: nodeLabel(l), href: withBase(`/lessons/${l.id}`) })),
+    });
+  }
+  // Level node centered on its whole block.
+  const blockBottom = cursor - ROW_H;
+  levelNodes.push({
+    id: levelId,
+    label: levelLabel,
+    x: COL.level,
+    y: (blockTop + blockBottom) / 2,
+    level,
+    colorVar,
+  });
+  cursor += ROW_H; // gap between levels
+}
+
+const width = COL.lesson + 360;
+const height = cursor + PAD_Y;
+const allNodes = new Map<string, Node>([...levelNodes, ...skillNodes, ...lessonNodes].map((n) => [n.id, n]));
+// Which level each skill/lesson belongs to → drives branch colour on edges.
+const levelOf = new Map<string, number>();
+for (const ln of levelNodes) {
+  for (const sn of skillNodes.filter((s) => s.id.startsWith(ln.id + '-'))) {
+    levelOf.set(sn.id, ln.level);
+  }
+}
+// Colour for an edge = its source branch's level colour.
+const branchColor = (fromId: string): string => {
+  const lvl = fromId.startsWith('lvl-')
+    ? Number(fromId.slice(4))
+    : levelOf.get(fromId);
+  return lvl === 5 ? 'var(--level-electives)' : `var(--level-${lvl ?? 1})`;
+};
+
+// Node box dims per column (wider skill/lesson boxes for the longer labels).
+const BOX = { level: 110, skill: 230, lesson: 300 } as const;
+const BOX_H = 34;
+const boxW = (n: Node) => (n.x === COL.level ? BOX.level : n.x === COL.skill ? BOX.skill : BOX.lesson);
+---
+
+<BaseLayout title="Skill Map" description="Every skill the course builds, mapped across the levels, so you can see what you can already do and what comes next." width="wide">
+  <section class="sm-head" aria-labelledby="sm-title">
+    <p class="eyebrow">Reference spine</p>
+    <h1 id="sm-title" class="sm-title">Skill Map</h1>
+    <p class="sm-lede">
+      The handbook as a graph: each level branches into the skills it teaches,
+      and each skill connects to the lessons that build it. Drag to pan, scroll
+      to zoom, and double-click a lesson to open it. Prefer a list? Switch to
+      the table.
+    </p>
+    <div class="sm-controls">
+      <button type="button" class="sm-btn" data-view="map" aria-pressed="true">Diagram</button>
+      <button type="button" class="sm-btn" data-view="table" aria-pressed="false">View as table</button>
+      <span class="sm-hint" data-map-only hidden>Drag empty space to pan · scroll to zoom · double-click a lesson to open</span>
+    </div>
+  </section>
+
+  {/* ── Diagram (progressive enhancement) ──────────────────────────────
+     SSR renders the SVG; it's a visual layer. With JS off it's a static,
+     still-readable graph; the table below is the guaranteed accessible path.
+     aria-hidden so screen readers use the table, not this positional SVG. */}
+  <section class="sm-map" data-map hidden aria-hidden="true">
+    <div class="sm-stage" data-stage tabindex="-1">
+      <svg
+        class="sm-svg"
+        data-svg
+        viewBox={`0 0 ${width} ${height}`}
+        width={width}
+        height={height}
+        role="img"
+        aria-label="Skill map diagram. A table with the same information follows."
+      >
+        <g data-pan>
+          {edges.map((e) => {
+            const a = allNodes.get(e.from)!;
+            const b = allNodes.get(e.to)!;
+            const ax = a.x + boxW(a);
+            const bx = b.x;
+            const mx = (ax + bx) / 2;
+            return (
+              <path
+                class="sm-edge"
+                d={`M ${ax} ${a.y + BOX_H / 2} C ${mx} ${a.y + BOX_H / 2}, ${mx} ${b.y + BOX_H / 2}, ${bx} ${b.y + BOX_H / 2}`}
+                style={`stroke:${branchColor(e.from)}`}
+              />
+            );
+          })}
+
+          {levelNodes.map((n) => (
+            <g class="sm-node sm-node--level" transform={`translate(${n.x} ${n.y})`} style={`--c:${n.colorVar}`}>
+              <rect width={BOX.level} height={BOX_H} rx="8" />
+              <text x={BOX.level / 2} y={BOX_H / 2} dominant-baseline="central" text-anchor="middle">{n.label}</text>
+            </g>
+          ))}
+          {skillNodes.map((n) => (
+            <g class="sm-node sm-node--skill" transform={`translate(${n.x} ${n.y})`} style={`--c:${branchColor(n.id)}`}>
+              <rect width={BOX.skill} height={BOX_H} rx="8" />
+              <text x={BOX.skill / 2} y={BOX_H / 2} dominant-baseline="central" text-anchor="middle">{n.label}</text>
+            </g>
+          ))}
+          {lessonNodes.map((n) => (
+            <a
+              class="sm-node sm-node--lesson"
+              href={n.href}
+              transform={`translate(${n.x} ${n.y})`}
+              style={`--c:${branchColor(n.id.replace('lesson-', ''))}`}
+              data-lesson-href={n.href}
+              tabindex="0"
+              role="link"
+              aria-label={`Open lesson ${n.label}`}
+            >
+              <rect width={BOX.lesson} height={BOX_H} rx="8" />
+              <text x="12" y={BOX_H / 2} dominant-baseline="central">{n.label}</text>
+            </a>
+          ))}
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  {/* ── Table (accessible equivalent; the no-JS / screen-reader path) ── */}
+  <section class="sm-tablewrap" data-table aria-labelledby="sm-table-cap">
+    <table class="sm-table">
+      <caption id="sm-table-cap">Skill map - levels, the skills each teaches, and the lessons that build them.</caption>
+      <thead>
+        <tr><th scope="col">Level</th><th scope="col">Skill</th><th scope="col">Lessons</th></tr>
+      </thead>
+      <tbody>
+        {tableRows.map((r) => (
+          <tr style={`--c:${r.colorVar}`}>
+            <th scope="row"><span class="sm-dot" aria-hidden="true"></span>{r.level}</th>
+            <td>{r.skill}</td>
+            <td>
+              <ul class="sm-lessonlist">
+                {r.lessons.map((l) => (
+                  <li><a href={l.href}>{l.title}</a></li>
+                ))}
+              </ul>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </section>
+</BaseLayout>
+
+<style>
+  .sm-head { max-width: 70ch; margin-bottom: var(--space-8); }
+  .sm-title {
+    margin: 0;
+    font-size: var(--fs-display);
+    background: linear-gradient(120deg, var(--text) 30%, var(--accent-strong));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .sm-lede { margin: var(--space-6) 0 0; font-size: var(--fs-md); color: var(--muted); max-width: 60ch; }
+
+  .sm-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin: var(--space-6) 0 0;
+  }
+  .sm-btn {
+    padding: var(--space-2) var(--space-4);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  }
+  .sm-btn:hover { color: var(--text); background: var(--accent-dim); }
+  .sm-btn:focus-visible { outline: 2px solid var(--accent-strong); outline-offset: 2px; }
+  .sm-btn[aria-pressed='true'] {
+    color: var(--accent-strong);
+    border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+    box-shadow: var(--glow-sm);
+  }
+  .sm-hint { font-size: var(--fs-sm); color: var(--muted); }
+
+  /* ── Diagram ─────────────────────────────────────────────────────── */
+  .sm-map { margin: var(--space-6) 0 var(--space-12); }
+  .sm-stage {
+    overflow: hidden;
+    height: min(72vh, 44rem);
+    background: var(--gradient-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-panel);
+    cursor: grab;
+    touch-action: none;
+  }
+  .sm-stage[data-grabbing] { cursor: grabbing; }
+  .sm-stage:focus-visible { outline: 2px solid var(--accent-strong); outline-offset: 2px; }
+  .sm-svg { display: block; }
+
+  .sm-edge { fill: none; stroke-width: 1.5; opacity: 0.5; }
+
+  .sm-node text {
+    font-family: var(--font-sans, inherit);
+    font-size: 13px;
+    fill: var(--text);
+    pointer-events: none;
+  }
+  .sm-node rect {
+    fill: var(--surface);
+    stroke: var(--c);
+    stroke-width: 1.5;
+  }
+  .sm-node--level rect { fill: color-mix(in srgb, var(--c) 18%, var(--surface)); stroke-width: 2; }
+  .sm-node--level text { font-weight: 700; }
+  .sm-node--lesson { cursor: pointer; }
+  .sm-node--lesson rect { transition: fill 0.12s ease; }
+  .sm-node--lesson:hover rect,
+  .sm-node--lesson:focus-visible rect { fill: color-mix(in srgb, var(--c) 22%, var(--surface)); }
+  .sm-node--lesson:focus-visible rect { stroke-width: 2.5; }
+  .sm-node--lesson:focus-visible { outline: none; }
+
+  /* ── Table (accessible equivalent) ──────────────────────────────── */
+  .sm-tablewrap { overflow-x: auto; margin-bottom: var(--space-12); }
+  .sm-table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+  .sm-table caption {
+    text-align: left;
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    margin-bottom: var(--space-3);
+  }
+  .sm-table th, .sm-table td {
+    text-align: left;
+    vertical-align: top;
+    padding: var(--space-3);
+    border-bottom: 1px solid var(--glass-border);
+  }
+  .sm-table thead th {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+  }
+  .sm-table tbody th {
+    white-space: nowrap;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .sm-dot {
+    display: inline-block;
+    width: 0.55rem;
+    height: 0.55rem;
+    margin-right: var(--space-2);
+    border-radius: var(--radius-pill);
+    background: var(--c);
+    vertical-align: middle;
+  }
+  .sm-lessonlist { margin: 0; padding-left: var(--space-5); }
+  .sm-lessonlist li { margin: var(--space-1) 0; }
+  .sm-lessonlist li::marker { color: var(--c); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sm-btn, .sm-node--lesson rect { transition: none; }
+  }
+</style>
+
+<script>
+  // Progressive enhancement: reveal the diagram, wire the toggle, and add
+  // pan/zoom/drag. With JS off, the diagram stays hidden and the table is the
+  // view. The table is always the accessible path.
+  const map = document.querySelector<HTMLElement>('[data-map]');
+  const table = document.querySelector<HTMLElement>('[data-table]');
+  const stage = document.querySelector<HTMLElement>('[data-stage]');
+  const pan = document.querySelector<SVGGElement>('[data-pan]');
+  const hint = document.querySelector<HTMLElement>('[data-map-only]');
+  const btns = Array.from(document.querySelectorAll<HTMLButtonElement>('.sm-btn'));
+
+  if (map && table && stage && pan) {
+    // Diagram is available → show it by default, table becomes the alternate.
+    const show = (view: 'map' | 'table') => {
+      map.hidden = view !== 'map';
+      table.hidden = view !== 'table';
+      if (hint) hint.hidden = view !== 'map';
+      btns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === view)));
+    };
+    show('map');
+    btns.forEach((b) => b.addEventListener('click', () => show(b.dataset.view as 'map' | 'table')));
+
+    // ── Pan + zoom (vanilla; transform on the inner <g>) ──────────────
+    let scale = 1, tx = 0, ty = 0;
+    const apply = () => { pan.setAttribute('transform', `translate(${tx} ${ty}) scale(${scale})`); };
+
+    stage.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const rect = stage.getBoundingClientRect();
+      const cx = e.clientX - rect.left, cy = e.clientY - rect.top; // zoom around cursor
+      const factor = Math.exp(-e.deltaY * 0.0015);
+      const next = Math.min(3, Math.max(0.3, scale * factor));
+      const k = next / scale;
+      tx = cx - k * (cx - tx);
+      ty = cy - k * (cy - ty);
+      scale = next;
+      apply();
+    }, { passive: false });
+
+    // Drag empty space to pan. A drag that started on a lesson node still pans
+    // the canvas (nodes aren't individually draggable - the whole graph moves).
+    let dragging = false, px = 0, py = 0;
+    stage.addEventListener('pointerdown', (e) => {
+      dragging = true; px = e.clientX; py = e.clientY;
+      stage.setAttribute('data-grabbing', '');
+      stage.setPointerCapture(e.pointerId);
+    });
+    stage.addEventListener('pointermove', (e) => {
+      if (!dragging) return;
+      tx += e.clientX - px; ty += e.clientY - py;
+      px = e.clientX; py = e.clientY;
+      apply();
+    });
+    const endDrag = () => { dragging = false; stage.removeAttribute('data-grabbing'); };
+    stage.addEventListener('pointerup', endDrag);
+    stage.addEventListener('pointercancel', endDrag);
+
+    // Double-click a lesson node → open it. A plain click would fire mid-drag,
+    // so navigation is gated on dblclick; the <a href> still works for keyboard
+    // (Enter) since it's a real link.
+    pan.querySelectorAll<SVGAElement>('.sm-node--lesson').forEach((node) => {
+      const href = node.getAttribute('data-lesson-href');
+      if (!href) return;
+      node.addEventListener('dblclick', (e) => { e.preventDefault(); window.location.href = href; });
+      // Single click shouldn't navigate (it competes with pan); let dblclick win.
+      node.addEventListener('click', (e) => e.preventDefault());
+    });
+  }
+</script>

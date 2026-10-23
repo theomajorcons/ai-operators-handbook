@@ -1,0 +1,191 @@
+---
+title: "Research and web search"
+level: 2
+lesson: "10"
+track: "Working with Claude"
+last_verified: 2026-10-12
+download: "research-checklist.md"
+summary: "Web search lets Claude pull current sources, but a citation is only worth as much as the source behind it, so you open and judge it yourself."
+kind: exercise
+beforeYouLeave:
+  - "Ask for current information when the answer changes over time."
+  - "Ask for sources with links."
+  - "Open at least one source and confirm it says what Claude claims."
+  - "Judge each source by who wrote it, when, and what they gain."
+  - "Ask what Claude could not find, and treat time-sensitive facts as unverified when search is unavailable."
+---
+
+import Callout from '../../../components/Callout.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can use Claude to research a question with **current** sources, and judge whether those sources are worth trusting.
+
+</Callout>
+
+## Why this matters
+
+Claude learned most of what it knows from text gathered up to a certain point in time, its **training cutoff**. That's fine for things that don't change: grammar, history, how to write a polite email. But the moment your question touches something that moves (a price, a product lineup, a law, this week's news) the answer can be confidently out of date, and nothing in its tone warns you.
+
+There are two separate skills here, and most people skip both. First, getting Claude to pull *current* information instead of answering from memory. Second, deciding whether the sources it pulls are actually any good. This lesson teaches both before it asks you to try them.
+
+## How Claude answers a "current" question
+
+When you ask about something time-sensitive, one of two things happens, and it matters which:
+
+- **Claude answers from memory.** It reaches into what it absorbed before its training cutoff and gives you an answer. For stable facts, great. For anything that changed since (a product that got discontinued, a price that moved, a rule that was updated) the answer can be wrong *and* sound completely sure of itself.
+- **Claude searches the web first.** When search is available and triggered, Claude looks up current pages, then answers from what it found. This is what you want for anything that changes over time.
+
+The catch: **some setups search automatically and some don't**, and Claude won't always tell you which just happened. So when the answer depends on being current, don't assume: **ask for a search explicitly.** If search isn't available in your setup at all, treat every time-sensitive fact as unverified until you've checked it yourself.
+
+### A search isn't the finish line; it's the start of judging
+
+Getting Claude to search solves "is this current?" It does **not** solve "is this true?" A search can land on a biased page, an outdated review, or a random forum post. So once you have sources, you have a second job: **judge them.** Three questions decide how much weight a source earns:
+
+- **Who wrote it?** A manufacturer, an independent tester, an anonymous stranger: each has a different stake in what you believe.
+- **When?** A page from this week beats one from last year for anything that moves.
+- **What do they gain?** A seller wants you to buy; an independent reviewer who tested the thing has less reason to spin it.
+
+And alongside judging what Claude *found*, ask what it *couldn't*: the gaps. A confident answer hides its unknowns; asking "what couldn't you find?" drags them into the light where you can account for them.
+
+### The two failures in the wild
+
+**Rosa** asks Claude for the best laptop under her budget and gets a confident list. She buys one, and learns it was discontinued months ago. Her answer came from memory, past the point where that model was current, and the confident tone gave her no reason to doubt it.
+
+<Callout variant="mistake" label="Common mistake">
+
+Trusting a time-sensitive answer that never searched. For anything that moves (a price, a product, a law, this week's news) Claude may answer from training memory and sound just as sure as if it had looked. Do not assume a search ran. Ask for one explicitly, and if search is not available, treat the fact as unverified until you check it.
+
+</Callout>
+
+**Dan** asks the same question but tells Claude to *search, list its sources, and say what's uncertain.* He gets links, opens a couple, and sees one source is a seller's own page and another is a six-month-old review, so he weighs them accordingly instead of trusting the list whole. Dan didn't know more about laptops than Rosa. He just refused to trust a time-sensitive answer he hadn't made current and hadn't checked.
+
+## The rule
+
+<Callout variant="framework" label="Search, Cite, Open, Judge">
+
+1. **Search:** ask for current information when the answer changes over time.
+2. **Cite:** ask for sources with links.
+3. **Open one:** confirm it says what Claude claims.
+4. **Judge the source:** who wrote it, when, and what do they gain?
+5. **Flag gaps:** ask what Claude could not find.
+
+If search is not available in your setup, treat time-sensitive facts as unverified.
+
+</Callout>
+
+## Try it
+
+Judging sources is the half everyone skips, so practice it directly. Rank these three for the question "What is the best budget laptop right now?"
+
+A. A manufacturer's own product page, dated this month.
+B. An independent review site that tested the laptops, dated six months ago.
+C. An anonymous forum post, undated, saying "just buy this one".
+
+Then answer: which would you trust most for specs, which for real-world performance, and which would you ignore?
+
+<ExerciseReveal prompt="Reveal the answers" commit="Before you reveal, rank A, B, C yourself and write one reason for each, then reveal:">
+<Fragment slot="answer">
+
+**A** is reliable for specs and today's price, but it's a seller, so it's biased on quality. **B** is best for real-world performance because someone actually tested the machines; just check whether six months has made the lineup stale. **C** is the weakest: no author, no date, no evidence, nothing to weigh. Notice the ranking came entirely from *who wrote it, when, and what they gain*: the same three questions every time.
+
+</Fragment>
+</ExerciseReveal>
+
+### Now run the whole loop on a real claim
+
+Ranking sources on paper is the warm-up. The real skill is running the full loop on something you actually need to be true. Pick one factual claim from your week that you'd act on, something current and checkable: a price, a deadline, a policy, a product spec. Then work the steps below for real, in a Claude chat, and write down what you find at each one.
+
+<ExerciseReveal prompt="Reveal how the loop should go" commit="Before you reveal: run the six steps on your real claim and jot a note at each one, then reveal to compare:">
+<Fragment slot="answer">
+
+Here's what a clean run looks like, using "the current price of X" as the example claim:
+
+1. **Search.** "Search the web for the current price of X and give me your sources with links." You asked explicitly, so you're not relying on memory.
+2. **Open a primary source.** Open the one closest to the fact itself, the seller's or maker's own page for a price. It's authoritative on *what the number is*, even though it's biased on whether the thing is any good.
+3. **Open an independent source.** Open a second source with no stake, a review site or a news piece, that mentions the same number. One source is a claim; two independent sources agreeing is evidence.
+4. **Confirm the date.** Check when each page was published or last updated. A current-looking answer built on a year-old page is still stale.
+5. **Verify the actual claim.** Read the sentence that states the number, not just the headline or Claude's summary. Confirm it says what Claude said it says, for the thing you actually asked about.
+6. **Reconcile disagreements.** If the two sources give different numbers, don't average them and move on. Ask why: different date, different region, different model, one on sale? The explanation usually tells you which number is the one you want, or tells you to keep digging.
+
+If you finished with two independent, current sources that state the same claim and you've read the claim yourself, you can act on it. If they disagreed and you couldn't explain why, that's your signal the fact isn't settled yet, treat it as unverified.
+
+</Fragment>
+</ExerciseReveal>
+
+## Check yourself
+
+<KnowledgeCheck
+  question="What is the best check on a research answer?"
+  options={[
+    "Trust the confident tone",
+    "Open a cited source and judge it",
+    "Ask again in the same chat",
+    "Skim the first line",
+  ]}
+  answer={1}
+  explanation="A search makes an answer current; opening and judging a cited source is what makes it trustworthy. Confident tone is exactly what fooled Rosa: it tells you nothing about whether the facts are true or current."
+/>
+
+<KnowledgeCheck
+  question="You ask about this year's laptop prices and aren't sure whether your setup searches the web automatically. Safest move?"
+  options={[
+    "Trust the answer, the tone sounds confident",
+    "Ask Claude to search explicitly, since some setups don't search on their own",
+    "Assume it searched because the question is about prices",
+    "Rephrase the question until the answer changes",
+  ]}
+  answer={1}
+  explanation="Some setups search automatically and some don't, and Claude won't always tell you which just happened, so when the answer depends on being current, ask for a search explicitly rather than assuming. That's what kept Dan's answer current where Rosa's came stale from memory."
+/>
+
+<TrueFalse statement="Facts that change over time, such as prices, products, laws, and news, may be out of date unless Claude searches for current information." answer={true}>
+<Fragment slot="why">
+
+This is the *Search* step. Time-sensitive facts can be stale without a search, and some setups do not search automatically, so ask for one when the answer changes over time, or treat the fact as unverified.
+
+</Fragment>
+</TrueFalse>
+
+<Matching
+  pairs={[
+    { term: "Manufacturer's own product page, dated this month", match: "Reliable for specs and price today, but biased on quality" },
+    { term: "Independent review site that tested the products, six months old", match: "Best for real-world performance, though check the date" },
+    { term: "Anonymous, undated forum post saying 'just buy this one'", match: "Weakest: no author, no date, no evidence" },
+  ]}
+/>
+
+<ExerciseReveal prompt="Pick a question from your week. How would you phrase it to get current sources and a list of what is unknown?" commit="Write your question and the exact phrasing you'd use, then reveal:">
+<Fragment slot="answer">
+
+A phrasing that asks for all four moves at once, for example, "Search for current info, list your sources with links, and tell me what you couldn't find or are unsure about." The explicit *search* keeps it current; *sources with links* lets you open and judge; *what you couldn't find* surfaces the gaps.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the checklist and use it on your next real question: search for current info, open a source, judge it, and name the gaps.
+
+<ArtifactCard label="Research checklist" file="research-checklist.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Training cutoff", definition: "The point in time up to which Claude learned from text. Facts that changed after it can be wrong unless Claude searches for current information." },
+    { term: "Search", definition: "Asking Claude to look up current information when the answer changes over time; without it, time-sensitive facts may be out of date. Some setups search automatically, some do not." },
+    { term: "Cite", definition: "Asking for sources with links so you can confirm where a claim came from." },
+    { term: "Judge the source", definition: "Weighing who wrote it, when, and what they gain: the basis for trusting one source over another." },
+    { term: "Flag gaps", definition: "Asking Claude what it could not find, so unknowns are visible instead of hidden behind a confident tone." },
+    { term: "Primary source", definition: "The source closest to the fact itself, like a maker's own page for its price; authoritative on what the fact is, though often biased on quality." },
+    { term: "Independent source", definition: "A second source with no stake in the claim; two independent sources agreeing turns a single claim into evidence." },
+    { term: "Reconcile disagreements", definition: "When sources differ, finding why (date, region, model, a sale) rather than averaging; the reason tells you which to trust or to keep digging." },
+  ]}
+/>

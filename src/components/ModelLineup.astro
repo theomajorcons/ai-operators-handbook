@@ -1,0 +1,121 @@
+---
+// Renders the Claude lineup from the single YAML source of truth, split into
+// a Current / Earlier-versions tabbed view. No model table is hardcoded in
+// lesson prose - edit model-lineup.yaml instead.
+// Imported via Vite ?raw so the YAML is bundled as part of the module graph
+// (a bare fs read from import.meta.url isn't available at prerender time).
+import raw from '../data/model-lineup.yaml?raw';
+import { parse } from 'yaml';
+import Tabs from './Tabs.astro';
+
+interface Model {
+  model: string;
+  tier: string;
+  best_for: string;
+  speed: string;
+}
+interface Earlier {
+  model: string;
+  tier: string;
+  note: string;
+}
+
+const { models, earlier = [] } = parse(raw) as { models: Model[]; earlier?: Earlier[] };
+---
+
+<div class="lineup">
+  <Tabs tabs={['Current', 'Earlier versions']} label="Claude model lineup" idBase="lineup">
+    <div slot="panel-0">
+      <table class="lineup__table">
+        <thead>
+          <tr>
+            <th scope="col">Tier</th>
+            <th scope="col">Model today</th>
+            <th scope="col">Best for</th>
+            <th scope="col">Speed</th>
+          </tr>
+        </thead>
+        <tbody>
+          {models.map((m) => (
+            <tr>
+              <th scope="row">{m.tier}</th>
+              <td>{m.model}</td>
+              <td>{m.best_for}</td>
+              <td>{m.speed}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+
+    <div slot="panel-1">
+      <p class="lineup__intro">
+        Your picker may list these alongside the current three. They fill the
+        same tier role, just a generation back, so prefer the current one unless
+        you have a reason not to.
+      </p>
+      <table class="lineup__table">
+        <thead>
+          <tr>
+            <th scope="col">Tier</th>
+            <th scope="col">Earlier model</th>
+            <th scope="col">Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {earlier.map((m) => (
+            <tr>
+              <th scope="row">{m.tier}</th>
+              <td>{m.model}</td>
+              <td>{m.note}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </Tabs>
+
+  <p class="lineup__note">
+    Verified on 2026-10-16. Model names and tiers shift often, so the latest
+    always lives with the vendor: check the official
+    <a href="https://docs.claude.com/en/docs/about-claude/models/overview" rel="noopener">Anthropic model docs</a>
+    and your own picker, which win over this table if they disagree.
+  </p>
+</div>
+
+<style>
+  .lineup { margin-block: var(--space-6); }
+  .lineup__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-sm);
+  }
+  .lineup__table th,
+  .lineup__table td {
+    text-align: left;
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .lineup__table thead th {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .lineup__table tbody th {
+    font-weight: 650;
+    color: var(--text);
+  }
+  .lineup__intro {
+    margin: 0 0 var(--space-4);
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .lineup__note {
+    margin-top: var(--space-3);
+    font-size: var(--fs-xs);
+    color: var(--muted);
+  }
+</style>

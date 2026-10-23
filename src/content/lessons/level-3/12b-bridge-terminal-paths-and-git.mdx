@@ -1,0 +1,226 @@
+---
+title: "Bridge: the terminal, paths, and Git"
+level: 3
+lesson: "12.5 Bridge"
+track: "Building with Claude"
+last_verified: 2026-10-12
+download: "terminal-survival-card.md"
+summary: "The terminal is just how you tell your computer where you are and what to do, and Git gives you an undo you can trust before you ever open Claude Code."
+kind: exercise
+beforeYouLeave:
+  - "Use pwd, ls, and cd to see where you are and move between folders, quoting any name with spaces."
+  - "Make a throwaway practice folder with mkdir so you never experiment on real work."
+  - "Set up Git in a folder with git init and save a checkpoint with git add then git commit."
+  - "Check what changed with git diff --staged before you commit, and undo unstaged edits with git restore."
+  - "Read error messages instead of ignoring them, and keep secrets out of your commits."
+---
+
+import Callout from '../../../components/Callout.astro';
+import Steps from '../../../components/Steps.astro';
+import Step from '../../../components/Step.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can open a terminal on your computer, move around safely, make a practice folder, and use Git to undo a mistake.
+
+</Callout>
+
+## Why this bridge exists
+
+So far you've worked with Claude in a chat window. The rest of Level 3 moves into **Claude Code**, a tool that lives in your computer's terminal and works directly on your files. Before you get there, you need three basics that the chat window hid from you: knowing *where* you are on your computer, having a *safe place* to practice, and keeping an *undo*.
+
+This is a short bridge, not a full course. The goal is just enough terminal and Git to start the next lesson without getting lost, not to make you a command-line expert.
+
+## Before Level 3: are you ready?
+
+The next lessons assume a few things are already in place. Run down this list first. Each item has a quick self-check and what to do if it's missing. The setup card at the end of this section links the official place to get each piece, so you install from the real source, not a search result.
+
+- **Terminal access.** *Check:* open your terminal (Terminal on Mac, PowerShell or Windows Terminal on Windows, your terminal app on Linux) and type `pwd`. A folder path means you're set. *Missing:* every OS ships one; the setup card names yours.
+- **Git installed.** *Check:* run `git --version`. A version number means yes. *Missing:* install it from the official Git site in the setup card, accepting the defaults.
+- **Claude Code installed.** *Check:* follow the official setup guide (linked in the card) and run the version command it lists. *Missing:* Claude Code now recommends its **native installer** for your platform, so you usually do not need Node at all; the official setup guide gives the current command, which changes between releases, so follow it rather than guessing.
+- **Node.js (only for the optional npm install route).** *Check:* run `node --version`; a version number means yes. *Missing:* you only need this if you choose the npm install path instead of the native installer. If you do, install the LTS build from the official Node site in the setup card.
+- **Account and plan access.** *Check:* can you sign in, and does your plan cover Claude Code? *Missing or unsure:* check your plan page; on a workplace account, confirm with your admin that Claude Code is allowed before you start.
+
+If any item is missing, fix it with the card below before starting Lesson 16. The terminal and Git basics in the rest of this bridge are the only things that still need teaching; the installs are just "get them from the official source."
+
+<ArtifactCard label="Setup links (official sources)" file="setup-links.md" />
+
+## The terminal, and why it needs to know "where"
+
+A **terminal** is a text window where you type commands instead of clicking. When you type a command, the terminal runs it, but *where* it runs matters. Every terminal is always sitting "inside" one folder, called the **working folder**. A command like "list the files" lists the files *in that folder*, not your whole computer.
+
+That's the one idea that trips up beginners: the tool you install in the next lesson acts on the folder you're sitting in. If you're in the wrong folder, you act on the wrong files. So the first skill is always knowing where you are.
+
+Two commands answer that:
+
+```
+pwd           (shows the current folder: "where am I?")
+ls            (lists files in it; PowerShell also accepts dir)
+```
+
+And two commands move you around:
+
+```
+cd name       (go into a folder)
+cd ..         (go up one folder)
+```
+
+Think of `cd` as walking into and out of rooms. `pwd` is looking at the sign on the door. If a folder name has spaces, wrap it in quotes so the terminal reads it as one name: `cd "my notes"`.
+
+**Opening a terminal:** on Mac, open Terminal. On Windows, open PowerShell or Windows Terminal. On Linux, open your terminal app. The four commands above work the same in all three.
+
+<Callout variant="trythis" label="Try this now">
+
+Open your terminal and type `pwd`, then `ls`. The first line tells you which folder you are sitting in; the second shows what is in it. That is the whole "where am I?" question answered in two commands. Do it before reading on, so the idea is in your fingers, not just on the page.
+
+</Callout>
+
+## A safe place to practice
+
+Never learn a new tool on files you can't afford to lose. The fix is a throwaway folder made just for practice:
+
+```
+mkdir practice
+cd practice
+```
+
+`mkdir` makes a new folder; `cd` walks into it. Now anything you do happens inside `practice`, away from your real work.
+
+**When something goes wrong (and it will),** read the error. Errors usually name the problem: "not found" almost always means you're in the wrong folder or misspelled something. Run `pwd` to check where you are and `ls` to see what's actually there. If the message still doesn't make sense, copy it exactly and ask Claude what it means. That's a good use of Claude.
+
+## Git: an undo you can trust
+
+A practice folder protects your *other* files. **Git** protects the practice files from each other over time. It's a tool that saves snapshots of a folder so you can go back to any earlier one. Each snapshot is a **commit**: a saved point you can return to.
+
+The minimal loop is a few commands, run once to start tracking a folder:
+
+```
+git init                          (start tracking this folder)
+git add hello.md                  (stage that one file by name)
+git status                        (see what is staged and what is not)
+git diff --staged                 (read exactly what will be committed)
+git commit -m "first version"     (save a snapshot)
+```
+
+Name the files you want (`git add hello.md`) instead of `git add .`: staging by name keeps stray or unrelated files out of the snapshot. Run `git status` and `git diff --staged` before you commit so you always know what is going in.
+
+**First commit asks "who are you?"** The very first time you commit, Git may stop and ask you to set a name and email. Set them for this practice folder only (leave off `--global`, which would apply to every project on your computer):
+
+```
+git config user.name "Your Name"
+git config user.email "you@example.com"
+```
+
+Using `--global` writes your name and email into Git's history on every repo you touch, including ones you might share, so scope it to the folder while you practice.
+
+**Making a file to track.** `git` saves files, but you create them first. Make an empty file (`touch hello.md` on Mac/Linux, `New-Item hello.md` in PowerShell), open it in any editor, type a line, and save. Now `git status` will show it, and `git add hello.md` can stage it.
+
+After that, as you make changes:
+
+- `git status` shows *what* changed and lists any untracked files.
+- `git diff` shows *how* your unstaged changes look, line by line.
+- `git restore filename` throws away unstaged edits to one tracked file: your undo for edits you have not committed yet.
+
+The habit that matters: **commit before every big change.** A commit is a point you can return to if the change goes wrong, which is exactly what you want before letting an automated tool edit your files in the next lesson.
+
+One safety rule travels with Git everywhere: **secrets never go in files you commit or share.** Anything you commit becomes part of the saved history and can be shared along with the project, so passwords and API keys stay out of committed files entirely.
+
+<Callout variant="warning" label="Warning">
+
+A secret committed to Git does not go away when you delete the line later: it stays in the saved history and travels with the project the moment you share it. Keep passwords, API keys, and tokens out of committed files from the start, and run `git diff --staged` before every commit to confirm nothing sensitive is going in.
+
+</Callout>
+
+If Git isn't installed, get it from the official source in the setup card above, not from a search result.
+
+## The rule
+
+<Callout variant="framework" label="Know Where You Are, Practice Safely, Keep an Undo">
+
+- **Know where you are:** `pwd` shows your folder, `ls` lists it, `cd` moves between folders. Quote names with spaces: `cd "my notes"`.
+- **Practice safely:** `mkdir practice` then `cd practice`, a throwaway folder away from real work.
+- **Keep an undo:** `git init`, `git add hello.md` (name the file), `git diff --staged` to check, then `git commit -m "first version"`; then commit before every big change. `git restore filename` undoes unstaged edits to one tracked file.
+- **Read errors** and **keep secrets out of commits.**
+
+</Callout>
+
+## Try it
+
+Do this on your own computer. Do not skip it.
+
+<Steps>
+<Step n="1" title="Open a terminal and run `pwd`." />
+<Step n="2" title="Make a folder called `practice` and go into it." />
+<Step n="3" title="Create a file called `hello.md` with any text.">Then run `git init`, `git add hello.md`, `git diff --staged` (read it), and `git commit -m "first"`. If Git asks who you are, set `git config user.name` and `git config user.email` (no `--global`) and commit again.</Step>
+<Step n="4" title="Edit the file, then check and undo.">Run `git diff`, then run `git restore hello.md` and confirm your change is gone.</Step>
+</Steps>
+
+<ExerciseReveal prompt="Reveal the answers" commit="Run all four steps on your computer, then reveal:">
+<Fragment slot="answer">
+
+You now have a working terminal, a safe folder, and an undo: the three things everything in Level 3 assumes. If a step failed, copy the exact error message and ask Claude what it means. That is a good use of Claude.
+
+</Fragment>
+</ExerciseReveal>
+
+## Check yourself
+
+<KnowledgeCheck
+  question="What does `git restore filename` do?"
+  options={[
+    "Deletes the folder",
+    "Throws away unstaged edits to a tracked file",
+    "Uploads the file",
+    "Hides secrets",
+  ]}
+  answer={1}
+  explanation="git restore returns one tracked file to its last committed state: your undo for edits you haven't committed yet. It doesn't delete folders, upload anything, or manage secrets."
+/>
+
+<TrueFalse statement="Secrets such as passwords and API keys should never go in files you commit or share with Git." answer={true}>
+<Fragment slot="why">
+
+Anything you commit becomes part of the saved history and can be shared along with the project. Keep passwords and API keys out of committed files entirely.
+
+</Fragment>
+</TrueFalse>
+
+<Matching
+  pairs={[
+    { term: "pwd", match: "Shows the folder you are currently sitting in" },
+    { term: "cd practice", match: "Moves into a folder so commands run there" },
+    { term: "mkdir practice", match: "Makes a new throwaway folder to practice in" },
+    { term: "git commit -m \"...\"", match: "Saves a snapshot you can return to later" },
+  ]}
+/>
+
+<ExerciseReveal prompt="In your own words, why commit before letting a tool change your files?" commit="Write your answer, then reveal:">
+<Fragment slot="answer">
+
+Because a commit is a saved point you can return to if the change goes wrong. Commit first and a bad edit costs you one `git restore`, not your work.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the survival card and use it on your next real task.
+
+<ArtifactCard label="Terminal survival card" file="terminal-survival-card.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Terminal", definition: "A text window where you type commands to your computer: Terminal on Mac, PowerShell or Windows Terminal on Windows, your terminal app on Linux." },
+    { term: "Working folder", definition: "The folder the terminal is currently sitting in; commands act on it, so `pwd` shows it and `cd` moves between folders to make commands run where you expect." },
+    { term: "Commit", definition: "A saved snapshot in Git you can return to; make one before any big change so a bad edit can be undone." },
+    { term: "git restore", definition: "A Git command that throws away unstaged edits to a tracked file, returning it to the last committed version." },
+  ]}
+/>

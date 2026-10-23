@@ -1,0 +1,109 @@
+---
+// Diagram: tier and effort are two independent dials. Left dial = tier
+// (fast / everyday / top), right dial = effort (low / high). Static SVG,
+// token-driven colours so it re-themes with the page; labels carry the
+// meaning so it never relies on colour alone.
+---
+
+<figure class="diagram">
+  <svg
+    viewBox="0 0 440 240"
+    role="img"
+    aria-labelledby="dials-title dials-desc"
+    class="diagram__svg"
+  >
+    <title id="dials-title">Tier and effort are two independent dials</title>
+    <desc id="dials-desc">
+      Two separate dials side by side. The tier dial sets the model's ceiling
+      with three settings - fast, everyday, top. The effort dial sets how hard
+      it thinks within that ceiling, from low to high. You turn each one on its
+      own.
+    </desc>
+
+    {/* Tier dial - stepped, three positions */}
+    <g transform="translate(110 120)">
+      <circle class="d-face" r="70" />
+      {/* tick marks at the three tier positions */}
+      <line class="d-tick" x1="0" y1="-70" x2="0" y2="-56" transform="rotate(-55)" />
+      <line class="d-tick" x1="0" y1="-70" x2="0" y2="-56" />
+      <line class="d-tick" x1="0" y1="-70" x2="0" y2="-56" transform="rotate(55)" />
+      {/* pointer set to the middle (everyday) position */}
+      <line class="d-pointer" x1="0" y1="0" x2="0" y2="-52" />
+      <circle class="d-hub" r="7" />
+    </g>
+    <text class="d-cap" x="110" y="214">TIER</text>
+    <text class="d-sub d-sub--l" x="36" y="120">fast</text>
+    <text class="d-sub d-sub--t" x="110" y="34">everyday</text>
+    <text class="d-sub d-sub--r" x="184" y="120">top</text>
+
+    {/* Effort dial - sweep from low to high */}
+    <g transform="translate(330 120)">
+      <circle class="d-face" r="70" />
+      <line class="d-tick" x1="0" y1="-70" x2="0" y2="-56" transform="rotate(-60)" />
+      <line class="d-tick" x1="0" y1="-70" x2="0" y2="-56" transform="rotate(60)" />
+      {/* pointer leaning toward high */}
+      <line class="d-pointer" x1="0" y1="0" x2="0" y2="-52" transform="rotate(38)" />
+      <circle class="d-hub" r="7" />
+    </g>
+    <text class="d-cap" x="330" y="214">EFFORT</text>
+    <text class="d-sub d-sub--l" x="256" y="120">low</text>
+    <text class="d-sub d-sub--r" x="404" y="120">high</text>
+  </svg>
+  <figcaption class="diagram__cap">
+    Two dials, turned independently: tier sets the ceiling, effort sets how hard
+    it works within it.
+  </figcaption>
+</figure>
+
+<style>
+  .diagram {
+    margin: var(--space-6) 0;
+  }
+  .diagram__svg {
+    display: block;
+    width: 100%;
+    max-width: 30rem;
+    height: auto;
+    margin-inline: auto;
+  }
+  .diagram__cap {
+    margin-top: var(--space-2);
+    text-align: center;
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .d-face {
+    fill: color-mix(in srgb, var(--accent) 8%, var(--surface));
+    stroke: color-mix(in srgb, var(--accent) 40%, var(--border));
+    stroke-width: 2;
+  }
+  .d-tick {
+    stroke: var(--muted);
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+  .d-pointer {
+    stroke: var(--accent);
+    stroke-width: 4;
+    stroke-linecap: round;
+  }
+  .d-hub {
+    fill: var(--accent);
+  }
+  .d-cap {
+    fill: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-anchor: middle;
+  }
+  .d-sub {
+    fill: var(--muted);
+    font-family: var(--font-sans);
+    font-size: 12px;
+  }
+  .d-sub--l { text-anchor: end; }
+  .d-sub--r { text-anchor: start; }
+  .d-sub--t { text-anchor: middle; }
+</style>

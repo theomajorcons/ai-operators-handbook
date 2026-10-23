@@ -1,0 +1,378 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { withBase } from '../lib/base';
+import { byLessonOrder } from '../lib/lesson-order';
+import { lessonNumbers, lessonBadge, displayNumber } from '../lib/lesson-number';
+import { getLevelInfo } from '../data/levels';
+
+const lessons = (await getCollection('lessons')).sort(byLessonOrder);
+const nums = lessonNumbers(lessons);
+
+// Group lessons by level → one column per level. The column's title is the
+// track name its lessons carry; Electives (track "Electives", level 5) render
+// as the trailing column. Nothing hardcoded - new levels/tracks appear from
+// content automatically.
+const byLevel = new Map<number, typeof lessons>();
+for (const l of lessons) {
+  const g = byLevel.get(l.data.level) ?? [];
+  g.push(l);
+  byLevel.set(l.data.level, g);
+}
+const isElectives = (items: typeof lessons) => items[0]?.data.track === 'Electives';
+
+// Each column carries its lessons pre-decorated with number + based href so the
+// template is dumb. The accent CSS var (--level-n / --level-electives) and the
+// prose (description + a "what you can do after" note from outcomes) are looked
+// up per level so colour and copy stay data-driven, never hardcoded here.
+const columns = [...byLevel.entries()]
+  .sort((a, b) => a[0] - b[0])
+  .map(([level, items]) => {
+    const elective = isElectives(items);
+    const info = getLevelInfo(level);
+    // Lesson range as "x to y" (no dashes, per spec). Single-lesson level → "x".
+    // Numbered levels use the computed global display numbers; electives keep
+    // their own "E1..En" spread so the column never reads like a second copy of
+    // Level 1's "Lessons 1 to 5".
+    const span = elective
+      ? items.map((l) => displayNumber(l, nums, lessons).replace(/^Elective /, 'E'))
+      : items.map((l) => nums.get(l.id));
+    const first = span[0];
+    const last = span[span.length - 1];
+    const range = first === last ? `${first}` : `${first} to ${last}`;
+    return {
+      elective,
+      // `--level-n` for numbered levels, `--level-electives` for the elective
+      // column. Both are defined in global.css and re-taken per theme.
+      colorVar: elective ? 'var(--level-electives)' : `var(--level-${level})`,
+      eyebrow: elective ? `ELECTIVES · ${range}` : `LEVEL ${level} · Lessons ${range}`,
+      name: items[0]?.data.track ?? `Level ${level}`,
+      description: info?.description ?? 'Lessons grouped for a focused run.',
+      // Bottom note: first "after this level you can…" outcome, italic.
+      note: info?.outcomes?.[0] ?? '',
+      outcomes: info?.outcomes ?? [],
+      count: items.length,
+      slugs: items.map((l) => l.id),
+      lessons: items.map((l) => ({
+        num: elective ? displayNumber(l, nums, lessons) : String(nums.get(l.id)),
+        badge: lessonBadge(l),
+        title: l.data.title,
+        href: withBase(`/lessons/${l.id}`),
+      })),
+    };
+  })
+  // Electives carry a level above the numbered ones so they already sort last;
+  // guard it explicitly so a future renumber can't float them up.
+  .sort((a, b) => Number(a.elective) - Number(b.elective));
+
+const totalLessons = lessons.length;
+---
+
+<BaseLayout title="Course Map" description="The whole course on one page: every level and lesson in order, so you can see the path from first chat to running Claude as a system." width="wide">
+  <section class="map-head" aria-labelledby="map-title">
+    <p class="eyebrow">Reference spine</p>
+    <h1 id="map-title" class="map-title">Course Map</h1>
+    <p class="map-lede">
+      Every unit side by side. Each column is one level: its lessons, what it
+      covers, and what you can do once you finish it. This is the overview you
+      come back to when you want the shape of the whole thing.
+    </p>
+    <p class="map-overview">
+      <span>{columns.length} unit{columns.length === 1 ? '' : 's'}</span>
+      <span class="dot" aria-hidden="true">·</span>
+      <span>{totalLessons} lesson{totalLessons === 1 ? '' : 's'}</span>
+    </p>
+    <p class="map-hint">
+      Tip: press <kbd>1</kbd> to <kbd>{columns.length}</kbd> to jump to and open a unit's outcomes.
+    </p>
+  </section>
+
+  <section class="map" aria-label="Units and lessons">
+    <ol class="columns" role="list">
+      {columns.map((c, i) => (
+        <li
+          class:list={['col', 'fade-in', { 'col--elective': c.elective }]}
+          style={`--col:${c.colorVar};--fade-delay:${i * 60}ms`}
+        >
+          <p class="col__eyebrow">{c.eyebrow}</p>
+          <h2 class="col__name">{c.name}</h2>
+          <p class="col__desc">{c.description}</p>
+
+          <ol class="col__lessons" role="list">
+            {c.lessons.map((l) => (
+              <li>
+                <a class="row" href={l.href}>
+                  <span class="row__dot" aria-hidden="true"></span>
+                  <span class="row__num" aria-hidden="true">{l.num}</span>
+                  <span class="row__title">{l.title}</span>
+                  {l.badge && <span class="row__badge">{l.badge}</span>}
+                </a>
+              </li>
+            ))}
+          </ol>
+
+          {c.outcomes.length > 0 && (
+            <details class="col__more">
+              <summary class="col__summary">
+                <span class="col__summary-label">What you can do after</span>
+                <span class="col__chev" aria-hidden="true">▾</span>
+              </summary>
+              <ul class="col__outcomes">
+                {c.outcomes.map((o) => <li>{o}</li>)}
+              </ul>
+            </details>
+          )}
+
+          {c.note && <p class="col__note"><em>{c.note}</em></p>}
+        </li>
+      ))}
+    </ol>
+  </section>
+</BaseLayout>
+
+<style>
+  /* ── Head ──────────────────────────────────────────────────────── */
+  .map-head { max-width: 60ch; margin-bottom: var(--space-12); }
+  .map-title {
+    margin: 0;
+    font-size: var(--fs-display);
+    background: linear-gradient(120deg, var(--text) 30%, var(--accent-strong));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .map-lede {
+    margin: var(--space-6) 0 0;
+    font-size: var(--fs-md);
+    color: var(--muted);
+    max-width: 55ch;
+  }
+  .map-overview {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin: var(--space-6) 0 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .map-overview .dot { color: var(--accent); }
+  .map-hint {
+    margin: var(--space-3) 0 0;
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .map-hint kbd {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--accent-strong);
+    background: var(--accent-dim);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+    border-radius: var(--radius-sm);
+    padding: 1px var(--space-2);
+  }
+
+  /* ── Column grid ───────────────────────────────────────────────────
+     Side-by-side colored columns on wide screens; stacks on narrow with NO
+     horizontal scroll. auto-fit + minmax keeps columns readable and never
+     pushes the page past the viewport - below the min width they wrap to a
+     single stacked column. Each column themes itself off --col (a per-level
+     token set inline), so colour is data-driven and theme-neutral. */
+  .columns {
+    list-style: none;
+    margin: 0 0 var(--space-12);
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+    gap: var(--space-6);
+  }
+
+  /* Load-in fade/slide. Honors reduced-motion via the guard at the bottom. */
+  .fade-in {
+    animation: col-fade 0.45s ease both;
+    animation-delay: var(--fade-delay, 0ms);
+  }
+  @keyframes col-fade {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Each column = a glass card with a thick colored top edge + left rule in its
+     level colour. Colour is never the only signal - the eyebrow text names the
+     level and the lesson numbers carry text. */
+  .col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-5);
+    background: var(--gradient-card);
+    border: 1px solid var(--glass-border);
+    border-top: 3px solid var(--col);
+    border-left: 3px solid var(--col);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-panel);
+  }
+
+  .col__eyebrow {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--col);
+  }
+  .col__name {
+    margin: 0;
+    font-size: var(--fs-md);
+    font-weight: 700;
+    line-height: var(--leading-tight);
+    color: var(--text);
+  }
+  .col__desc {
+    margin: 0;
+    font-size: var(--fs-sm);
+    line-height: var(--leading-body);
+    color: var(--muted);
+  }
+
+  /* ── Lesson list ───────────────────────────────────────────────── */
+  .col__lessons {
+    list-style: none;
+    margin: var(--space-2) 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .row {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-2);
+    color: var(--text);
+    border-radius: var(--radius);
+    border: 1px solid transparent;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .row:hover {
+    text-decoration: none;
+    background: var(--surface-2);
+    border-color: color-mix(in srgb, var(--col) 35%, transparent);
+  }
+  /* Colored marker dot in the level colour (decorative; number carries text). */
+  .row__dot {
+    flex: none;
+    align-self: center;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--radius-pill);
+    background: var(--col);
+  }
+  .row__num {
+    flex: none;
+    min-width: 1.6rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    color: var(--col);
+  }
+  .row__title {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    line-height: var(--leading-tight);
+  }
+  /* Bridge/Lab tag - mono chip in the column's level colour. Non-color cue is
+     its text; sits beside the number + title, never the only signal. */
+  .row__badge {
+    flex: none;
+    align-self: center;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--col);
+    background: color-mix(in srgb, var(--col) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--col) 40%, transparent);
+    border-radius: var(--radius-pill);
+    padding: 1px var(--space-2);
+  }
+
+  /* ── Expandable "what you can do after" (outcomes) ─────────────────
+     Native <details> - keyboard-operable and announced by screen readers with
+     no extra ARIA. Number-key 1..N opens these. */
+  .col__more { margin-top: var(--space-2); }
+  .col__summary {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2);
+    cursor: pointer;
+    list-style: none;
+    border-radius: var(--radius);
+    border: 1px solid color-mix(in srgb, var(--col) 25%, transparent);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--col);
+  }
+  .col__summary::-webkit-details-marker { display: none; }
+  .col__summary:hover { background: color-mix(in srgb, var(--col) 10%, transparent); }
+  .col__summary-label { margin-right: auto; }
+  .col__chev { transition: transform 0.2s ease; }
+  .col__more[open] .col__chev { transform: rotate(180deg); }
+  .col__outcomes {
+    margin: var(--space-3) 0 0;
+    padding-left: var(--space-5);
+    font-size: var(--fs-sm);
+    line-height: var(--leading-body);
+    color: var(--muted);
+  }
+  .col__outcomes li { margin: var(--space-2) 0; }
+  .col__outcomes li::marker { color: var(--col); }
+
+  /* Bottom note - the one-line "after this level" read, italic + muted. Pushed
+     to the bottom so columns of unequal length still align their notes. */
+  .col__note {
+    margin: auto 0 0;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--glass-border);
+    font-size: var(--fs-sm);
+    line-height: var(--leading-body);
+    color: var(--muted);
+  }
+
+  /* reduced-motion: global.css kills animation/transition site-wide; this keeps
+     the chevron + hover affordances honoring it locally and the final resting
+     state correct regardless of rule order. */
+  @media (prefers-reduced-motion: reduce) {
+    .col__chev, .row { transition: none; }
+    .fade-in { animation: none; opacity: 1; transform: none; }
+  }
+</style>
+
+<script>
+  // Number-key jump: 1..N scrolls to the Nth column and opens its outcomes
+  // <details>. Don't hijack when the user is typing in a field. reduced-motion
+  // → instant scroll.
+  const cols = Array.from(document.querySelectorAll<HTMLElement>('.col'));
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const t = e.target as HTMLElement | null;
+    if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+
+    const n = Number(e.key);
+    if (!Number.isInteger(n) || n < 1 || n > cols.length) return;
+    const col = cols[n - 1];
+    e.preventDefault();
+    const more = col.querySelector<HTMLDetailsElement>('.col__more');
+    if (more) more.open = true;
+    col.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    (more?.querySelector<HTMLElement>('.col__summary') ?? col).focus?.();
+  });
+</script>

@@ -1,0 +1,251 @@
+---
+// Browser-run Python (Pyodide), lazy-loaded on first Run click only.
+//
+// Progressive enhancement: with JS off (or before any click) the code and its
+// expected output are both in the DOM, inside a <details>, so the lesson reads
+// fine with no runtime downloaded. Pyodide (~several MB from a CDN) is fetched
+// only when the learner actually clicks Run, and only once per page.
+//
+// a11y: the code block is a labelled region; the result and verdict live in an
+// aria-live region announced only after a run. If `expected` is given the run
+// is auto-graded, reusing KnowledgeCheck's "Correct!" / "Not quite" vocabulary.
+interface Props {
+  code: string;            // Python snippet to run (stdlib only)
+  expected?: string;       // optional expected stdout, for auto-grading
+  predictPrompt?: string;  // optional "predict the output" prompt
+  label: string;           // accessible name for the widget
+}
+const { code, expected, predictPrompt, label } = Astro.props;
+const rpId = 'rp-' + Math.random().toString(36).slice(2, 10);
+const expectedTrim = expected?.replace(/\s+$/, '');
+---
+
+<section class="rp" data-rp id={rpId} aria-label={label}>
+  <p class="rp__label">Run it in your browser</p>
+
+  <pre class="rp__code"><code>{code}</code></pre>
+
+  {predictPrompt && (
+    <label class="rp__predict">
+      <span class="rp__predict-q">{predictPrompt}</span>
+      <input type="text" class="rp__predict-in" data-rp-predict
+        autocomplete="off" spellcheck="false"
+        placeholder="Predict the output, then Run…" />
+    </label>
+  )}
+
+  <div class="rp__actions">
+    <button type="button" class="rp__run" data-rp-run>Run</button>
+    <span class="rp__status" data-rp-status aria-hidden="true"></span>
+  </div>
+
+  {/* The result + verdict are announced only after a run - nothing here at
+      load, so the expected answer is never in the pre-interaction a11y tree. */}
+  <div class="rp__result" data-rp-result aria-live="polite" aria-atomic="true"></div>
+
+  {/* No-JS (and load-failure) fallback: code already shown above; expected
+      output here so the page is complete without ever running the runtime. */}
+  {expectedTrim && (
+    <details class="rp__fallback">
+      <summary>Expected output</summary>
+      <pre class="rp__expected" data-rp-expected><code>{expectedTrim}</code></pre>
+    </details>
+  )}
+</section>
+
+<script define:vars={{ rpId, code, expected: expectedTrim }}>
+  (() => {
+    const rp = document.getElementById(rpId);
+    if (!rp) return;
+    const runBtn = rp.querySelector('[data-rp-run]');
+    const statusEl = rp.querySelector('[data-rp-status]');
+    const resultEl = rp.querySelector('[data-rp-result]');
+    const predictEl = rp.querySelector('[data-rp-predict]');
+    const PYODIDE = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js';
+
+    // Shared across every RunPython on the page: load the runtime at most once.
+    const setStatus = (msg) => { if (statusEl) statusEl.textContent = msg; };
+
+    function loadPyodide() {
+      if (window.__rpPyodide) return window.__rpPyodide;
+      window.__rpPyodide = new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = PYODIDE;
+        s.onload = () =>
+          window.loadPyodide({ indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/' })
+            .then(resolve, reject);
+        s.onerror = () => reject(new Error('Pyodide script failed to load'));
+        document.head.appendChild(s);
+      });
+      return window.__rpPyodide;
+    }
+
+    async function run() {
+      runBtn.disabled = true;
+      resultEl.textContent = '';
+      setStatus('Loading Python… (first run downloads the runtime)');
+      let py;
+      try {
+        py = await loadPyodide();
+      } catch (e) {
+        // Load failure: never a blank widget. The expected output in the
+        // <details> fallback remains the answer; say so plainly.
+        setStatus('');
+        resultEl.innerHTML =
+          '<p class="rp__msg">Could not load the Python runtime (offline or blocked). ' +
+          'The expected output is in the “Expected output” box below.</p>';
+        runBtn.disabled = false;
+        return;
+      }
+      setStatus('Running…');
+      let out = '';
+      try {
+        py.setStdout({ batched: (s) => { out += s + '\n'; } });
+        py.setStderr({ batched: (s) => { out += s + '\n'; } });
+        await py.runPythonAsync(code);
+      } catch (e) {
+        out += String(e && e.message ? e.message : e);
+      }
+      setStatus('');
+      renderResult(out.replace(/\s+$/, ''));
+      runBtn.disabled = false;
+    }
+
+    function renderResult(out) {
+      const pre = document.createElement('pre');
+      pre.className = 'rp__out';
+      pre.textContent = out || '(no output)';
+      resultEl.appendChild(pre);
+
+      if (typeof expected === 'string') {
+        const ok = out === expected;
+        const v = document.createElement('p');
+        v.className = 'rp__verdict';
+        v.dataset.state = ok ? 'correct' : 'wrong';
+        v.textContent = ok ? 'Correct! Output matches.' : 'Not quite: output differs from expected.';
+        resultEl.appendChild(v);
+      }
+      if (predictEl && predictEl.value.trim()) {
+        const p = document.createElement('p');
+        p.className = 'rp__predict-note';
+        p.textContent = `Your prediction: ${predictEl.value.trim()}`;
+        resultEl.insertBefore(p, resultEl.firstChild);
+      }
+    }
+
+    runBtn.addEventListener('click', run);
+  })();
+</script>
+
+<style>
+  .rp {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+    padding: var(--space-4) var(--space-6);
+    margin-block: var(--space-6);
+    box-shadow: var(--glow-sm);
+  }
+  .rp__label {
+    margin: 0 0 var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent-strong);
+    font-weight: 700;
+  }
+  .rp__code {
+    margin: 0 0 var(--space-4);
+  }
+  .rp__predict {
+    display: block;
+    margin: 0 0 var(--space-4);
+  }
+  .rp__predict-q {
+    display: block;
+    font-size: var(--fs-sm);
+    color: var(--text);
+    margin-bottom: var(--space-2);
+  }
+  .rp__predict-in {
+    width: 100%;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--text);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: var(--space-2) var(--space-3);
+  }
+  .rp__predict-in:focus-visible {
+    outline: 2px solid var(--accent-strong);
+    outline-offset: 1px;
+  }
+
+  .rp__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+  }
+  .rp__run {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--bg);
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-sm);
+    padding: var(--space-2) var(--space-6);
+    cursor: pointer;
+    transition: box-shadow 0.15s ease, background 0.15s ease;
+  }
+  .rp__run:hover:not(:disabled) { box-shadow: var(--glow-sm); }
+  .rp__run:disabled { opacity: 0.6; cursor: default; }
+  .rp__status {
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+
+  .rp__result:empty { display: none; }
+  .rp__result { margin-top: var(--space-4); }
+  .rp__out {
+    margin: 0;
+    font-size: var(--fs-sm);
+  }
+  .rp__verdict {
+    margin: var(--space-3) 0 0;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+  }
+  .rp__verdict[data-state="correct"] { color: var(--accent-strong); }
+  .rp__verdict[data-state="wrong"] { color: var(--warn); }
+  .rp__predict-note {
+    margin: 0 0 var(--space-3);
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .rp__msg {
+    margin: 0;
+    font-size: var(--fs-sm);
+    color: var(--warn);
+  }
+
+  .rp__fallback {
+    margin-top: var(--space-4);
+    font-size: var(--fs-sm);
+  }
+  .rp__fallback summary {
+    cursor: pointer;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .rp__expected { margin: var(--space-2) 0 0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rp__run { transition: none; }
+  }
+</style>

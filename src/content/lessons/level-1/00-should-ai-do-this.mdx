@@ -1,0 +1,169 @@
+---
+title: "Should AI do this?"
+level: 1
+lesson: "0"
+track: "Knowing your Claude"
+last_verified: 2026-10-15
+download: "should-ai-do-this-checklist.md"
+summary: "Before you pick a model, scan eight quick checks to decide whether AI should touch the task at all, where a single no is enough to stop you."
+kind: concept
+beforeYouLeave:
+  - "Name all eight checks: task suitability, when-not-to-use, authority, data sensitivity, stakes, reversibility, required expertise, required accounts and features."
+  - "Run a real task through the checks in under a minute and reach a go or stop verdict."
+  - "Treat any single no or not-sure as a stop sign, even when the task is a great fit for AI."
+  - "When a check snags, choose one fix: close the gap, hand it to a human, or escalate."
+  - "Reach for the scan whenever a task sends, publishes, deletes, spends, or touches data you did not create."
+---
+
+import Callout from '../../../components/Callout.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can look at a task and decide, in under a minute, whether to hand it to Claude at all, and name which check would stop you if the answer is no.
+
+</Callout>
+
+## Before the picker, a prior question
+
+The next lesson teaches you how to pick a model. This one asks something that comes first: *should you be using AI for this task at all?* Picking the perfect model for a task that AI should never have touched is a fast way to do the wrong thing well.
+
+Most of the time the answer is yes, go ahead. But a handful of tasks carry a hidden cost that a good answer cannot pay back: a secret pasted where it should not go, a message sent you had no standing to send, a confident wrong answer you had no way to catch. The skill here is spotting those before you start, not after.
+
+## The eight checks
+
+Run a task through these before you hand it over. They are not a test you pass once; they are a quick scan you do every time, and any single "no" is enough to stop you.
+
+### Task suitability
+
+Is this the kind of work a language model is actually good at: drafting, summarizing, extracting, reshaping, explaining, coding? Be precise about what "the model" means here. The model *on its own* is the wrong tool for exact arithmetic across a spreadsheet, a live database lookup, or a physical action in the world: asking it to just produce the number in prose invites a confident wrong one. But the same model is a fine tool when it reaches for the right instrument: writing a formula or a script to do the arithmetic, querying the database, calling a calculator. So the question isn't "arithmetic, so no AI." It's "will the model try to answer this from its head, or use a tool to get it right?" Set it up to use the tool, or pick a different one, instead of forcing a bare guess out of a chat box.
+
+### When not to use AI
+
+Some tasks are the wrong call on principle, not just the wrong fit. A legally binding decision made with no human owner, medical or legal advice handed over as authoritative, a final judgment that someone must be accountable for: in these, AI can draft or advise, but a human stays in the seat. The failure is letting the model have the last word where a person must.
+
+### Authority
+
+Are you allowed to do this at all? AI will happily write the message, publish the post, or edit the record. It does not check whether *you* had the standing to send, publish, or change that thing. The tool does not grant you permission you did not already have. If the action commits someone else (your team, your client, your employer), confirm you are cleared to do it before you do it.
+
+### Data sensitivity
+
+What are you about to paste in? Secrets, customer personal information, credentials, and confidential material have rules about where they can go. A capable model does not make an off-limits tool suddenly safe for that data. When you are unsure whether something is cleared, leave it out, redact it, or use an approved tool.
+
+### Stakes
+
+If the output is wrong, how bad is it? A typo in a personal note is nothing. A wrong number in a client invoice, a misquoted policy, a burned relationship: those are expensive. High stakes do not mean "never use AI." They mean raise your effort, add a human reviewer, and verify before anything leaves your hands.
+
+### Reversibility
+
+If this goes wrong, can you undo it? A draft you can rewrite is forgiving. A sent email, a deleted file with no backup, a published page: those are closer to one-way doors. The less reversible the action, the more you test on a copy first and keep a human finger on the trigger, rather than letting AI act unattended.
+
+<Callout variant="warning" label="Warning">
+
+The one-way doors are where a wrong AI answer stops being cheap: sending a message, deleting a file with no backup, publishing a page, spending money. For any task that ends in one of those, do not let AI pull the trigger unattended. Test on a copy, review the result yourself, and keep the final send, delete, or publish in a human hand.
+
+</Callout>
+
+### Required expertise
+
+Can *you* tell a good answer from a plausible wrong one here? This is the quiet one people skip. A model will produce a fluent, confident answer on a subject you know nothing about, and you will have no way to know it is wrong. If you cannot verify the output, you are not using a tool, you are trusting a stranger. Loop in someone who can check it, or learn enough first.
+
+### Required accounts and features
+
+Does this task need an account, tier, connector, or permission you actually have? Some work needs a specific model, a paid feature, or an integration wired up. Confirm you have the access before you start, so you do not get halfway and stall, or quietly fall back to doing it worse.
+
+## The rule
+
+<Callout variant="framework" label="Clear It Before You Start">
+
+Before you hand a task to Claude, scan the eight checks: task suitability, when-not-to-use, authority, data sensitivity, stakes, reversibility, required expertise, required accounts and features.
+
+- **All clear?** Go. This is most tasks, do not overthink the green ones.
+- **Any one "no" or "not sure"?** Stop. Either fix the gap (get permission, redact the data, find a reviewer), hand the task to a human, or escalate, then come back.
+
+The scan is cheap and the save is large: one unchecked box is how a good answer still becomes a bad outcome.
+
+</Callout>
+
+## Check yourself
+
+<KnowledgeCheck
+  question="A teammate asks you to use Claude to summarize a document full of customer credit-card numbers in a tool that is not cleared for that data. Which check stops you?"
+  options={[
+    "Required expertise: you may not understand the summary",
+    "Data sensitivity: the information is not cleared for this tool",
+    "Reversibility: a summary cannot be undone",
+    "Nothing stops you, summarizing is a good fit for AI",
+  ]}
+  answer={1}
+  explanation="The task fits AI fine (summarizing), but the data is off-limits for this tool. Data sensitivity is the stop sign: redact it, use an approved tool, or ask whoever owns the data before any of it goes in."
+/>
+
+<KnowledgeCheck
+  question="You are asked to have Claude write and send a legally binding contract acceptance on your company's behalf, on a topic you know little about. Which pair of checks is most clearly at risk?"
+  options={[
+    "Task suitability and required accounts",
+    "Authority (standing to commit the company) and required expertise (ability to verify)",
+    "Stakes and reversibility only, the rest are fine",
+    "None, AI can handle contracts end to end",
+  ]}
+  answer={1}
+  explanation="Two checks fail at once: authority, because binding the company is not yours to do alone, and required expertise, because you cannot catch a confident mistake on a subject you do not know. Both say keep a human owner in the seat."
+/>
+
+<TrueFalse statement="If a task is clearly a great fit for AI, you can skip the authority and data-sensitivity checks." answer={false}>
+<Fragment slot="why">
+
+No. Fit answers *can* a model do this well, which is only one of the eight checks. A task can be a perfect fit for AI and still fail on authority (you are not cleared to send it) or data sensitivity (the input is off-limits). A single "no" on any check is a stop sign, no matter how good the fit.
+
+</Fragment>
+</TrueFalse>
+
+<Matching
+  pairs={[
+    { term: "Authority", match: "Am I allowed to do this on someone's behalf?" },
+    { term: "Data sensitivity", match: "Is this information cleared for this tool?" },
+    { term: "Reversibility", match: "If it goes wrong, can I undo it?" },
+    { term: "Required expertise", match: "Can I tell a good answer from a plausible wrong one?" },
+  ]}
+/>
+
+## Try it
+
+Pick a real task you were about to hand to Claude today. Run it through the eight checks in your head, then **write your verdict in the box below before you reveal the discussion.**
+
+1. Which checks passed cleanly?
+2. Was there a single "no" or "not sure"? Which one?
+3. What would you do about it: fix the gap, hand it to a human, or escalate?
+
+<ExerciseReveal prompt="Reveal the discussion" commit="Write your verdict and the check that gave you pause, then reveal:">
+<Fragment slot="answer">
+
+Most tasks clear all eight, and that is fine: the scan should feel fast on green tasks. The point of the exercise is noticing the one check that gives you pause. If nothing did, try a riskier task (something that sends, deletes, publishes, or touches sensitive data) and feel where the scan catches. The win is not a clever verdict, it is building the reflex to scan before you start rather than after it goes wrong.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the checklist and keep it next to your keyboard. Run a task through it whenever the task sends, publishes, deletes, spends, or touches data you did not create. The green ones you will clear in seconds; the one that snags is exactly the one worth catching.
+
+<ArtifactCard label="Should-AI-do-this checklist" file="should-ai-do-this-checklist.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Task suitability", definition: "Whether the work is the kind a language model is good at (drafting, summarizing, extracting, reshaping, coding). For exact arithmetic or live data, the model on its own is wrong, but a model that uses a tool (a script, a calculator, a query) to compute the answer is fine." },
+    { term: "Authority", definition: "Whether you have the standing to do the action on someone's behalf. AI performs the action but does not grant you permission you did not already have." },
+    { term: "Data sensitivity", definition: "Whether the information you feed in is cleared for the tool. Secrets, personal data, and confidential material have rules a capable model does not override." },
+    { term: "Reversibility", definition: "Whether a wrong result can be undone. Drafts are forgiving; sends, deletions, and publishes are closer to one-way doors and need more care." },
+    { term: "Required expertise", definition: "Whether you can tell a good answer from a confident wrong one. If you cannot verify the output, you cannot safely rely on it." },
+    { term: "Clear It Before You Start", definition: "The rule: scan the eight checks before handing a task to AI. All clear means go; any single no or not-sure means stop, fix the gap, or hand it to a human." },
+  ]}
+/>

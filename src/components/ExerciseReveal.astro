@@ -1,0 +1,169 @@
+---
+interface Props {
+  prompt: string;
+  commit?: boolean | string; // show a "write your answer first" draft box; string overrides the label
+}
+const { prompt, commit } = Astro.props;
+const commitLabel =
+  typeof commit === 'string' ? commit : 'Write your answer first, then reveal:';
+---
+
+<div class="reveal-group" data-gated={commit ? 'true' : undefined}>
+{commit && (
+  <label class="reveal__commit">
+    <span class="reveal__commit-label">{commitLabel}</span>
+    <textarea
+      class="reveal__commit-box"
+      rows="3"
+      placeholder="Commit to a choice before you look…"
+    ></textarea>
+    <span class="reveal__hint" hidden>Write your answer to unlock</span>
+  </label>
+)}
+
+<details class="reveal">
+  <summary class="reveal__summary">
+    <span class="reveal__label">Exercise</span>
+    <span class="reveal__prompt">{prompt}</span>
+    <span class="reveal__caret" aria-hidden="true"></span>
+  </summary>
+  <div class="reveal__answer">
+    <slot name="answer" />
+  </div>
+</details>
+</div>
+
+<style>
+  .reveal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+    margin-block: var(--space-6);
+  }
+
+  /* Optional commit-first draft box - scratch only, nothing is persisted.
+     The following .reveal supplies its own top margin for the gap below. */
+  .reveal__commit {
+    display: block;
+    margin-top: var(--space-6);
+  }
+  .reveal__commit-label {
+    display: block;
+    margin-bottom: var(--space-2);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--text);
+  }
+  .reveal__commit-box {
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+    resize: vertical;
+  }
+  .reveal__commit-box:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+  .reveal__hint {
+    display: block;
+    margin-top: var(--space-2);
+    font-size: var(--fs-xs);
+    color: var(--muted);
+  }
+
+  /* Gated-but-empty: dim the summary so it reads as locked. aria-disabled
+     (set by JS) does the semantic + interaction blocking; this is only visual. */
+  .reveal__summary[aria-disabled='true'] {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .reveal__summary {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-6);
+    cursor: pointer;
+    list-style: none; /* remove default marker */
+    user-select: none;
+  }
+  /* Remove webkit disclosure triangle */
+  .reveal__summary::-webkit-details-marker { display: none; }
+
+  .reveal__label {
+    flex: none;
+    font-size: var(--fs-sm);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .reveal__prompt {
+    flex: 1;
+    color: var(--text);
+  }
+
+  /* CSS-only rotating caret - no JS required */
+  .reveal__caret {
+    flex: none;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-right: 2px solid var(--muted);
+    border-bottom: 2px solid var(--muted);
+    transform: rotate(45deg);
+    transition: transform 0.15s ease;
+    margin-bottom: 2px;
+  }
+  .reveal[open] .reveal__caret {
+    transform: rotate(-135deg);
+  }
+
+  .reveal__answer {
+    border-top: 1px solid var(--border);
+    padding: var(--space-4) var(--space-6);
+    background: var(--accent-dim);
+  }
+  .reveal__answer :global(> :first-child) { margin-top: 0; }
+  .reveal__answer :global(> :last-child) { margin-bottom: 0; }
+</style>
+
+<script>
+  // Progressive enhancement: on gated exercises (commit box present), keep the
+  // reveal locked until the box has non-whitespace text. JS off → nothing runs
+  // and the <details> toggles normally, so the answer is never trapped.
+  for (const group of document.querySelectorAll<HTMLElement>('.reveal-group[data-gated]')) {
+    const box = group.querySelector<HTMLTextAreaElement>('.reveal__commit-box');
+    const summary = group.querySelector<HTMLElement>('.reveal__summary');
+    const details = group.querySelector<HTMLDetailsElement>('.reveal');
+    const hint = group.querySelector<HTMLElement>('.reveal__hint');
+    if (!box || !summary || !details) continue;
+
+    const locked = () => box.value.trim() === '';
+    const sync = () => {
+      const l = locked();
+      summary.setAttribute('aria-disabled', String(l));
+      if (hint) hint.hidden = !l;
+    };
+
+    // Block opening while locked - covers click, Enter, and Space on <summary>.
+    const block = (e: Event) => {
+      if (locked() && !details.open) {
+        e.preventDefault();
+        box.focus();
+      }
+    };
+    summary.addEventListener('click', block);
+    summary.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') block(e);
+    });
+    box.addEventListener('input', sync);
+    sync();
+  }
+</script>

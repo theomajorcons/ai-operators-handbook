@@ -1,0 +1,177 @@
+---
+title: "Markdown and the .md file family"
+level: 2
+lesson: "7"
+track: "Working with Claude"
+last_verified: 2026-10-12
+download: "markdown-cheatsheet.md"
+summary: "Markdown is plain text with three light marks for headings, lists, and emphasis, which is why it moves between tools without falling apart."
+kind: concept
+beforeYouLeave:
+  - "Use '#' and '##' for headings."
+  - "Use '*' or '1.' for lists, and '| a | b |' rows for tables."
+  - "Use '**word**' for emphasis."
+  - "Name files by topic and keep one topic per file."
+  - "Recognize markdown in your notes, prompts, Project instructions, README files, and skill files."
+---
+
+import Callout from '../../../components/Callout.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can turn a messy note into clean markdown using three simple marks, and explain why plain text moves between tools without falling apart.
+
+</Callout>
+
+## Why this matters
+
+One format shows up everywhere in this course: your notes, your prompts, [Project instructions](/lessons/level-2/06-projects-files-and-instructions/), README files, and later skill files. That format is **markdown**, and it's worth ten minutes now because it's the one way of writing structure that survives being copied between tools. Learn it once and your notes stop breaking when you paste them.
+
+## What markdown is, and why plain text travels
+
+Start with the problem markdown solves. A word processor stores your heading as *hidden formatting*: a font, size, and color locked inside that program's file. Copy it into a different tool and that hidden part gets lost or garbled, because the other tool doesn't speak the private format. The look was never in the text; it was in the file around it.
+
+**Markdown takes the opposite approach.** It's **plain text**, just characters, with a few visible marks that *stand for* structure. A `#` at the start of a line means "heading." A `*` means "list item." Because the structure is ordinary characters, nothing is hidden, so nothing gets lost in the copy: any tool that reads text reads markdown. A file ending in **`.md`** is simply a markdown file.
+
+See it with a real note. **Jun** keeps notes in a word processor with fancy fonts; when he pastes to Claude, headings turn to noise and a table collapses. His friend **Ola** keeps the same notes in plain text with simple marks, and everything pastes cleanly. Here's a piece of Jun's note as it arrives:
+
+`Trip budget  FLIGHTS 420  HOTEL 310 (3 nights)  FOOD 150  TOTAL ? ... remember to check passport!!`
+
+Claude sees only spacing and capital letters there, no structure, because the structure lived in fonts that didn't survive the paste. The same content in markdown carries its structure in the characters themselves:
+
+```markdown
+# Trip budget
+
+| Item | Cost |
+| --- | --- |
+| Flights | 420 |
+| Hotel (3 nights) | 310 |
+| Food | 150 |
+| **Total** | **880** |
+
+**Remember to check passport.**
+```
+
+That's the whole idea: Ola's notes survive because the structure *is* the text.
+
+<Callout variant="mistake" label="Common mistake">
+
+Pasting from a word processor and assuming the headings, tables, and bold come along. They don't: that formatting lives in hidden fonts that Jun's paste left behind, so Claude sees only spacing and capitals. When structure matters, write it in visible marks (`#`, `*`, `**bold**`) rather than relying on how it looked in the other tool.
+
+</Callout>
+
+One more distinction: what you *type* versus what you *see*. The block above is **raw markdown**, the literal characters in the file. In a tool like Obsidian or a rendered preview, those same characters become a formatted heading and a visual table: the raw `#` and `|` disappear and you see bold text and grid lines instead. Claude reads the raw text, so structure written in visible marks survives either way. A word-processor file doesn't offer this choice: its formatting is always hidden, never raw text you can copy.
+
+## The three marks that cover most work
+
+You don't need all of markdown. Three marks handle most everyday notes:
+
+- **Headings:** `#` for a big heading, `##` for a smaller one under it. One line, starts with the hash.
+- **Lists and tables:** `*` or `1.` at the start of a line makes a list; `| a | b |` rows make a table (just text with pipes between columns).
+- **Emphasis:** wrap a word in `**double asterisks**` to make it bold.
+
+That's enough to give any note visible structure. The rest of markdown exists, but these three earn their keep first.
+
+## The rule
+
+<Callout variant="framework" label="Plain Text, Light Structure">
+
+1. `#` and `##` for headings
+2. `*` or `1.` for lists, and `| a | b |` rows for tables
+3. `**word**` for emphasis
+
+Name files by topic, like `style-guide.md`, and keep **one topic per file**. Markdown shows up everywhere ahead: your notes, your prompts, Project instructions, README files, and skill files.
+
+</Callout>
+
+## Try it
+
+Do these three steps.
+
+1. Paste Jun's messy note into Claude and ask: "Convert this to clean markdown. Do not change any numbers."
+2. Check the total yourself. Does 420 + 310 + 150 equal what Claude wrote?
+3. Now write your own three-line note with one heading and one list, and ask Claude to turn it into a table.
+
+<ExerciseReveal prompt="Reveal the answers" commit="Before you run it, write what the total should be, then reveal:">
+<Fragment slot="answer">
+
+1. You should get a heading and a table like the one above.
+2. 880. If Claude's total differs, that's a live reminder to check numbers yourself (more on that in Lesson 18): the mark-up survives the paste, but the arithmetic still deserves your eyes.
+3. Any list of items with values becomes a two-column table.
+
+</Fragment>
+</ExerciseReveal>
+
+## Check yourself
+
+<Matching
+  pairs={[
+    { term: "# or ##", match: "Makes a heading" },
+    { term: "* or 1.", match: "Makes a list" },
+    { term: "**word**", match: "Makes text bold" },
+    { term: "| a | b |", match: "Makes a table row" },
+    { term: ".md file", match: "A plain-text markdown file, one topic each" },
+  ]}
+/>
+
+<KnowledgeCheck
+  question="A file ends in .md. What is it?"
+  options={[
+    "A compressed archive",
+    "A plain-text markdown file",
+    "A spreadsheet with hidden formatting",
+    "An image file",
+  ]}
+  answer={1}
+  explanation="A .md file is plain text with markdown marks, no hidden fonts or layout. That's exactly why it travels cleanly between tools: there's nothing hidden to lose in the copy."
+/>
+
+<KnowledgeCheck
+  question="Jun's word-processor headings turn to noise when he pastes them into Claude, but Ola's markdown headings survive. Why?"
+  options={[
+    "Ola uses a newer word processor",
+    "Jun's structure lived in hidden fonts that didn't come along; Ola's structure is written in visible characters",
+    "Claude can only read one tool's files",
+    "Markdown files are smaller, so they copy faster",
+  ]}
+  answer={1}
+  explanation="A word processor stores a heading as hidden formatting locked inside its own file. Paste it elsewhere and that hidden part is lost. Markdown writes the structure in ordinary visible characters ('#', '*', '**bold**'), so there is nothing hidden to lose: any tool that reads text reads it intact."
+/>
+
+<TrueFalse statement="Ola's plain-text notes paste cleanly between tools because markdown is plain text, so any tool can read it and the structure survives copying." answer={true}>
+<Fragment slot="why">
+
+Markdown writes its structure in visible characters (`#`, `*`, `**bold**`), not in hidden fonts and colors. Because there's nothing hidden to lose, the structure survives the paste. Jun's fancy-formatted note had its structure locked in fonts that didn't come along, so Claude saw only spacing and capitals.
+
+</Fragment>
+</TrueFalse>
+
+<ExerciseReveal prompt="Rewrite one of your own notes with a heading, a list, and one bold phrase." commit="Draft your three lines, then reveal:">
+<Fragment slot="answer">
+
+A visible heading (`#`), a list (`*` or `1.`), and one bold phrase (`**...**`) for the key point. If you can see the structure in the plain characters, so can every tool you paste it into.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the cheatsheet and keep it next to you for your next real note: three marks is all you need to start.
+
+<ArtifactCard label="Markdown cheatsheet" file="markdown-cheatsheet.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Markdown", definition: "Plain text with a few visible marks that stand for structure: '#' for headings, '*' for lists, '**bold**' for emphasis, '| a | b |' rows for tables. The structure is in the characters, so any tool can read it and it survives copying." },
+    { term: ".md file", definition: "A file ending in .md is a markdown file: plain text, ideally one topic per file (for example style-guide.md)." },
+    { term: "Plain text", definition: "Text with no hidden fonts, colors, or layout, just characters. Because there's nothing hidden to lose, it moves cleanly between tools, unlike word-processor formatting that lives in the file around the text." },
+  ]}
+/>

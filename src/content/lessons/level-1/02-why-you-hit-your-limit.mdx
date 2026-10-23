@@ -1,0 +1,176 @@
+---
+title: "Why you hit your limit"
+level: 1
+lesson: "2"
+track: "Knowing your Claude"
+last_verified: 2026-10-12
+download: "fresh-start-template.md"
+summary: "A long chat quietly drags its whole history into every turn, so it costs more and gets forgetful, and the fix is a fresh chat with a focused handoff."
+kind: concept
+beforeYouLeave:
+  - "Tell the two limits apart: your plan's usage allowance versus a single chat growing too long."
+  - "Explain why a short question late in a long chat is an expensive turn: it carries all the history and attachments behind it."
+  - "Spot the restart signals: Claude missing earlier details, repeating itself, or hitting your limit sooner than usual."
+  - "Ask Claude to write a handoff, then check it before leaving the old chat."
+  - "Know that a fresh chat shrinks carried context but does not reset your session or weekly limit."
+---
+
+import Callout from '../../../components/Callout.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+import ContextStack from '../../../components/diagrams/ContextStack.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can name the two kinds of limit, explain why a long chat quietly spends more of your allowance, and restart a long chat with a focused handoff so you keep your progress.
+
+</Callout>
+
+## Why you run out sooner than you expect
+
+Plenty of people hit their usage limit on days they did not feel like they asked for much: a handful of short questions, and suddenly the meter is empty. It feels unfair, because it looks like you barely used anything. The cause is almost never the questions you *see*. It is the pile of material each question quietly drags along behind it.
+
+This lesson teaches you where that hidden cost comes from, so you can stop paying it.
+
+## The two kinds of limit
+
+First, clear up a confusion that trips almost everyone, because "limit" means two different things.
+
+- **Your usage limit** is your overall allowance *over time*, set by your plan or subscription. Think of it as a tank that refills on a schedule (a session window, a weekly cap). When the tank is empty you wait for it to refill. You do not control the size of the tank; your plan does. You only control how fast you drain it.
+- **A chat getting too long** is a *single conversation* growing so large that it becomes slow, expensive per turn, and forgetful. This one you control completely, and it is a major thing draining the tank faster than it should.
+
+Keep these two straight, because they are easy to blur. Your plan's usage cap is *how much you are allotted* before you have to wait. A chat's context filling up is a *different thing*: it's the running history getting so big that answers slow down, cost more, and lose track of earlier detail, a quality problem inside one conversation, not your overall allowance running out. Hitting a wall can be either one, and the fix differs: a full allowance means waiting for the refill (or a bigger plan), while a bloated chat means starting fresh.
+
+The rest of this lesson is about the second kind, because fixing it is the lever that keeps the first kind from biting.
+
+## What a chat actually carries
+
+Here is the piece most people never get told. When you send a message in a chat, Claude does not just read that message. It reads the **context** (the running history of the whole conversation, plus everything you have attached) and your new message rides on top of all of it. The [next lesson](/lessons/level-1/03-give-claude-the-right-context/) covers everything context includes; here it is enough to know it is cumulative.
+
+That history is cumulative. Turn one carries a little. Turn forty carries turn one, turn two, and the thirty-eight turns since, *plus* every file you uploaded along the way. The question you type at turn forty might be three words long, but Claude is working against the entire stack behind it.
+
+<ContextStack />
+
+Growing context isn't the only thing that can empty your allowance: a single oversized attachment, or simply doing a lot in a short window against a plan's usage caps, can do it too. But for the "I barely asked anything" surprise, a long, heavy chat is usually the main driver, and it's the one you control most directly, so it's what the rest of this lesson targets:
+
+- **Cost.** Each turn's price scales with how much context it has to carry. A short question on top of a huge conversation is an expensive turn, because the *conversation* is what is big, not your question. More context in view means more of your allowance spent per turn, even when the new question is tiny.
+- **Quality.** A large pile of old material also makes the *relevant* detail harder to surface. Claude can lose an earlier fact, repeat itself, or lean on an assumption you already corrected twenty turns ago, simply because the signal is buried in noise.
+
+### A worked example
+
+Picture **Priya** planning a trip. She uploads a flight confirmation, a hotel booking, a packing list, and two long articles, all into one chat. Then she asks a question. Then another. Then thirty more, over two days, in that same chat. By the afternoon she hits her limit, and Claude starts missing details she gave it on day one.
+
+Her questions were short. So what drained her? The chat itself. Every one of those thirty turns carried all five documents and the entire growing history forward. The two failures arrived together: the **cost** climbed with each turn, and the **quality** dropped as day-one details got buried. That is the long-chat problem in one picture.
+
+<Callout variant="mistake" label="Common mistake">
+
+Behind the scenes, Claude may cache, summarize, or retrieve only the parts of a long chat that look relevant, so it is not literally re-reading every word on every turn. That management helps, but it does not make a long chat free. A focused, shorter context still costs less and gives sharper answers. Do not count on the automatic handling to rescue a chat that has sprawled.
+
+</Callout>
+
+## The rule
+
+When a chat gets long, do not keep pushing on it. Start a fresh one and carry forward only what matters.
+
+<Callout variant="framework" label="Fresh Chat, Focused Handoff">
+
+1. **Notice the signs.** Claude starts missing earlier details, repeats itself, or relies on something you already corrected. Hitting limits sooner than usual is a second signal.
+2. **Ask Claude to write the handoff.** "Summarize what we decided, what is still open, the key facts and numbers I will need, and which files matter."
+3. **Check the handoff.** Read it and correct anything missing or wrong *before* you leave the original chat.
+4. **Open a new chat.** Paste the handoff and attach only the files you still need.
+
+A fresh chat reduces the context carried forward, so each turn gets cheaper and sharper. It does **not** reset your session or weekly usage limit; it just stops you from draining that limit faster than the task deserves.
+
+</Callout>
+
+## Check yourself
+
+Now that you know where the cost hides, work through these.
+
+<KnowledgeCheck
+  question="Why can a long chat use more of your allowance than a short one?"
+  options={[
+    "Claude gets tired",
+    "More history and attached material is carried into later turns",
+    "Long chats automatically switch to a bigger model",
+    "Files are deleted after each answer",
+  ]}
+  answer={1}
+  explanation="Each turn carries the whole running context (the conversation history plus every attachment) not just your newest message. A three-word question on top of a forty-turn chat is an expensive turn because the conversation behind it is large."
+/>
+
+<TrueFalse statement="What drains your allowance is how many questions you ask, so ten short questions in one chat and ten in separate chats cost the same." answer={false}>
+<Fragment slot="why">
+
+False. The main driver is **length, not question count.** Ten questions in one long chat each ride on top of the whole growing history and every attachment, so later turns are expensive. The same ten split across focused chats carry far less context each, so they cost less. (Other things spend your allowance too, like one huge attachment or plain high volume against your plan's caps, but length is the one this lesson fixes.) That is exactly why restarting a sprawling chat helps.
+
+</Fragment>
+</TrueFalse>
+
+<KnowledgeCheck
+  question="You start a fresh chat and paste a good handoff. What does that fresh chat do?"
+  options={[
+    "Resets your weekly usage limit back to full",
+    "Reduces the context carried forward, but does not reset your session or weekly limit",
+    "Switches you to a smaller, cheaper model automatically",
+    "Deletes the original chat and its files",
+  ]}
+  answer={1}
+  explanation="A fresh chat shrinks the context each turn has to carry, which makes turns cheaper and sharper. It does not touch your overall allowance; the tank refills on its own schedule regardless."
+/>
+
+<Matching
+  pairs={[
+    { term: "6-message chat to reword one paragraph", match: "Keep going; restarting costs more than it saves" },
+    { term: "60-message chat where Claude forgets your day-one budget", match: "Restart with a handoff" },
+    { term: "A brand-new topic, unrelated to the chat", match: "Restart, no handoff needed" },
+  ]}
+/>
+
+## Try it: keep or restart?
+
+For each situation, decide: keep going, or restart with a handoff? **Write your three answers down before you reveal.**
+
+1. A 6-message chat to reword one paragraph.
+2. A 60-message chat planning a trip, with five attached files, and Claude keeps forgetting the budget you set on day one.
+3. A new topic that has nothing to do with the earlier chat.
+
+<ExerciseReveal prompt="Reveal the answers" commit="Write keep-or-restart for all three, then reveal:">
+<Fragment slot="answer">
+
+1. **Keep going.** It is short: the context is tiny, so the cost is tiny. Restarting would cost more effort than it saves.
+2. **Restart with a handoff.** Long, heavy with attachments, and Claude is already losing day-one details. Both failure signals are firing.
+3. **Restart, no handoff needed.** A new topic gets a new chat. Dragging the old material in only adds weight for nothing.
+
+</Fragment>
+</ExerciseReveal>
+
+<ExerciseReveal prompt="Name one sign that tells you to start a fresh chat, then say how you would check the handoff." commit="Name your sign and your check, then reveal:">
+<Fragment slot="answer">
+
+A concrete sign: Claude missing earlier details, repeating itself, or leaning on a stale assumption. Then a concrete check: read the handoff and confirm it holds the decisions, the open questions, and the key facts *before* you leave the old chat, because once you are in the new one those details are gone unless the handoff carried them.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the template and keep it ready for the next time a chat gets long. It gives you the four buckets (decided, still open, key facts and numbers, which files matter) so writing a handoff takes a minute instead of a fresh think each time.
+
+<ArtifactCard label="Fresh start template" file="fresh-start-template.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Context", definition: "Everything Claude carries into a turn (the full conversation history and any attached material) alongside your new message. It is cumulative: it grows with every turn, and each turn pays for all of it." },
+    { term: "Usage limit", definition: "Your overall allowance over time, a tank that refills on a schedule. A bigger context pile drains it faster per turn, so long chats hit the limit sooner even when each new question is short." },
+    { term: "Long-chat problem", definition: "A single conversation grown so large it becomes expensive per turn and forgetful. Unlike the usage limit, this one is fully in your control, and fixing it is the main lever for spending less." },
+    { term: "Handoff", definition: "A short summary (what you decided, what is still open, the key facts and numbers you will need, and which files matter) that you carry into a fresh chat so you keep your progress without carrying the whole history." },
+    { term: "Fresh Chat, Focused Handoff", definition: "The restart rule: notice the signs, ask Claude to write the handoff, check it, then open a new chat with only the files that still matter." },
+  ]}
+/>

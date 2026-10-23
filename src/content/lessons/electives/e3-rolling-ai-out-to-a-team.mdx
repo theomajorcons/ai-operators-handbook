@@ -1,0 +1,154 @@
+---
+title: "Rolling AI out to a team"
+level: 5
+lesson: "e3"
+track: "Electives"
+last_verified: 2026-10-12
+download: "pilot-plan.md"
+summary: "A team rollout sticks when you start with a small volunteer pilot on one use case, set data rules and success, stop, and expand thresholds before day one, and decide on evidence by a fixed date."
+kind: concept
+beforeYouLeave:
+  - "Explain why a big-bang launch flatlines while a small pilot sticks: the pilot keeps problems cheap and visible and produces a repeatable win."
+  - "Name the six moves in order: pick one use case, run a small volunteer pilot, set the rules, set the thresholds, collect feedback weekly, measure, then decide."
+  - "Set data rules by your approved data classification and AI policy, not a gut rule like no client names, since a nameless note can still hold sensitive data."
+  - "Write down success, stop, and expand thresholds as numbers or clear lines before the pilot starts."
+  - "Decide expand, adjust, or stop against those thresholds by a date set in advance, so the pilot runs on evidence rather than momentum."
+---
+
+import Callout from '../../../components/Callout.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can introduce AI to a team with a small pilot, weekly feedback, data rules, and a pre-set date to decide whether to expand, adjust, or stop.
+
+</Callout>
+
+## Why this matters
+
+Everything so far has been about *you* using Claude well. Rolling it out to a team is a different problem, and the instinct that feels generous ("give everyone access, let them figure it out") is the one that reliably fails. A big-bang launch dumps an unfamiliar tool on dozens of people with no shared use case, no data rules, and no one to ask. Usage spikes on day one out of curiosity, then collapses by week two because nobody found a repeatable win before the novelty wore off.
+
+The alternative is boring and it works: start small, learn cheaply, and decide on evidence. A pilot with a handful of volunteers surfaces the real problems (the prompt that misses something, the data someone shouldn't have pasted) while they're still cheap to fix and affect five people, not five hundred. This lesson gives you the shape of that pilot.
+
+## Why the big launch fails and the pilot sticks
+
+Two rollouts, same tool, opposite outcomes.
+
+**Pam** announces a new AI tool to the whole company in a single email: here's the link, go. Usage spikes as people click in to see what it is, then collapses within two weeks. Nothing was *wrong* with the tool, but nobody was given a specific job to do with it, no one knew what data was off-limits, and when the first person hit a bad result there was no feedback loop to fix it. The failure was invisible until the usage graph flatlined, and by then the company's first impression was "we tried AI, it didn't stick."
+
+**Raj** rolls out the same tool to **five volunteers** for a **two-week pilot** on **one use case**: summarizing meeting notes. Because it's small, he can watch it closely. **Week one** feedback: the summaries miss action items. That's a fixable problem: he adds a rule to the prompt and a checklist, and it's fixed for everyone in the pilot by the next day. **Week two**: two of the five save real time, one finds it slower, two are unsure. He also set **data rules up front**, checking the notes against his company's approved data classification and its AI policy to decide what was allowed into the tool, rather than assuming "no client names means nothing sensitive." (A meeting note with no client name can still carry salary figures, health details, or an unannounced deal, so the absence of a name is not a safe proxy for the absence of sensitive data.) And he set his **thresholds before starting**: *success* was "at least half the pilot saves measurable time with no data-rule violation," *stop* was "any sensitive-data leak, or nobody saves time," *expand* was "success met and the fixes held for a full week." At the end he has measurements against a bar he set in advance, not impressions, and the numbers clear his expand bar, so he **expands to ten people, not fifty**.
+
+The pilot didn't just avoid Pam's crash. It *produced* things the big launch never could: a fixed prompt, real usage numbers, and a worked example other people can copy.
+
+<Callout variant="mistake" label="Common mistake">
+
+Launching to everyone at once because giving the whole team access feels generous. With no shared use case, no data rules, and nobody to ask, usage spikes on curiosity and collapses by week two, and the company's first impression becomes "we tried AI, it didn't stick." Start with a handful of volunteers on one task, where problems stay cheap, visible, and fixable for five people instead of five hundred.
+
+</Callout>
+
+## The six moves of a rollout that sticks
+
+Raj's pilot is a sequence, and the order matters more than it looks.
+
+- **Pick one use case** with a clear benefit. One task everyone understands beats a vague "use it for whatever": it gives you something specific to measure and improve.
+- **Run a small pilot** with volunteers. Small keeps problems cheap and visible; volunteers mean you're learning from people who want it to work, not fighting resistance.
+- **Set the rules first.** What data is allowed, who to ask when stuck, *before* anyone starts, because a pilot uses real work and real data from day one. Decide what's allowed by checking against your organization's approved data classification and AI policy, not by a gut rule like "no client names" (a note with no name can still hold salary, health, or deal-sensitive data). Waiting until the tool "proves useful" means weeks of unprotected data.
+- **Set the thresholds first, too.** Before the pilot starts, write down what *success*, *stop*, and *expand* each look like as a number or a clear line, so the decision at the end is a comparison, not an argument. A stop threshold (for example, any sensitive-data violation) lets you end a pilot that's going wrong without re-litigating it.
+- **Collect feedback weekly.** The weekly loop is what turns a complaint ("summaries miss action items") into a fix while the pilot is still small enough to change.
+- **Measure** the time saved and the quality, the way [Elective 2](/lessons/electives/e2-measuring-ais-impact/) teaches, so the decision rests on numbers, not on who's most enthusiastic.
+- **Decide by a date set in advance:** expand, adjust, or stop, against the thresholds you set. Setting the date and the bar up front is what stops a pilot from drifting forward on momentum instead of evidence.
+
+## The rule
+
+<Callout variant="framework" label="Pilot, Feedback, Expand">
+
+1. **Pick one use case** with a clear benefit.
+2. **Run a small pilot** with volunteers.
+3. **Set rules:** what data is allowed (by your approved data classification and AI policy, not a gut rule), who to ask.
+4. **Set thresholds:** what success, stop, and expand each mean, written down before you start.
+5. **Collect feedback** weekly.
+6. **Measure** as in [Elective 2](/lessons/electives/e2-measuring-ais-impact/).
+7. **Decide:** expand, adjust, or stop, against your thresholds, by a date you set in advance.
+
+</Callout>
+
+## Try it
+
+What's the right next step to roll AI out to a team? Decide for each. **Write your three calls in the box below before you reveal.**
+
+1. Everyone gets access today.
+2. Five volunteers for two weeks, with data rules.
+3. Roll out with no rules about data.
+
+<ExerciseReveal prompt="Reveal the answers" commit="Write your call on all three, then reveal:">
+<Fragment slot="answer">
+
+1. Too fast: this is Pam's big-bang launch that spikes then collapses.
+2. Yes. Small, time-boxed, volunteers, data rules up front.
+3. No. Set data rules *before* anyone starts, checked against your approved data classification and AI policy, because the pilot uses real work from day one.
+
+</Fragment>
+</ExerciseReveal>
+
+## Check yourself
+
+<KnowledgeCheck
+  question="What comes before expanding?"
+  options={[
+    "An announcement",
+    "A pilot that meets its goal",
+    "More tools",
+    "Nothing",
+  ]}
+  answer={1}
+  explanation="You expand on evidence, not optimism: a small pilot that hit its measured goal. An announcement is Pam's crash; more tools and 'nothing' both skip the learning a pilot is for."
+/>
+
+<TrueFalse statement="Raj should set the data rules only after the pilot shows the tool is useful." answer={false}>
+<Fragment slot="why">
+
+Data rules come first. Raj set them before people started, deciding what was allowed from his company's approved data classification and AI policy rather than a gut rule like "no client names," because a pilot still uses real work: waiting until the tool proves useful means two weeks of unprotected data. Rules up front, measure after.
+
+</Fragment>
+</TrueFalse>
+
+<Matching
+  pairs={[
+    { term: "Pick one use case", match: "Choose a single task with a clear benefit" },
+    { term: "Run a small pilot", match: "A few volunteers, not the whole company" },
+    { term: "Set rules", match: "Decide what data is allowed, by your data classification and AI policy, before anyone starts" },
+    { term: "Set thresholds", match: "Write down what success, stop, and expand mean before the pilot starts" },
+    { term: "Decide by a date", match: "Expand, adjust, or stop against your thresholds at a point set in advance" },
+  ]}
+/>
+
+<ExerciseReveal prompt="Describe your pilot: who, how long, and what success means, then name the decision date and the three options at that date." commit="Write your pilot's who/how-long/success, the decision date, and the three options, then reveal:">
+<Fragment slot="answer">
+
+Named group, a time box, and a measurable goal. Set the decision date in advance; at that date the three options are expand, adjust, or stop, chosen from what the feedback and measurements show, not from momentum.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the pilot plan and use it on your next real task.
+
+<ArtifactCard label="Pilot plan" file="pilot-plan.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Pilot", definition: "A small, time-boxed trial with volunteers on one use case, run before any wider rollout, small enough that problems stay cheap to fix." },
+    { term: "Data rules", definition: "Agreed limits on what information may be used with the tool, decided from your organization's approved data classification and AI policy (not a gut rule like 'no client names') and set before the pilot starts, because a pilot uses real work from day one." },
+    { term: "Thresholds", definition: "The success, stop, and expand lines written down before the pilot starts, so the final decision is a comparison against a pre-set bar, not an argument about momentum." },
+    { term: "Feedback loop", definition: "Collecting user experience weekly during the pilot so problems surface early and the prompt or process can be fixed." },
+    { term: "Decision date", definition: "A date set in advance to choose expand, adjust, or stop, based on measured results against your thresholds, not momentum." },
+  ]}
+/>

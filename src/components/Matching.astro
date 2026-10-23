@@ -1,0 +1,187 @@
+---
+interface Pair {
+  term: string;
+  match: string;
+}
+interface Props {
+  pairs: Pair[];
+}
+const { pairs } = Astro.props;
+const matchId = 'match-' + Math.random().toString(36).slice(2, 10);
+
+// Shuffle the match options so the correct order isn't just top-to-top.
+// Deterministic at build (seeded by index) so SSR output is stable.
+const options = pairs.map((p, i) => ({ text: p.match, i }));
+const shuffled = [...options].sort(
+  (a, b) => ((a.i * 7 + 3) % pairs.length) - ((b.i * 7 + 3) % pairs.length),
+);
+// Correct match per row, passed to JS via a closure - never into the DOM.
+const correctByRow = pairs.map((p) => p.match);
+---
+
+<form class="match" data-match id={matchId}>
+  <p class="match__type">Matching</p>
+  <p class="match__label">Match each item to its description</p>
+
+  <ol class="match__list">
+    {pairs.map((p, i) => (
+      <li class="match__row">
+        <span class="match__term" id={`${matchId}-term-${i}`}>{p.term}</span>
+        <select
+          class="match__select"
+          data-match-select
+          data-row={i}
+          aria-labelledby={`${matchId}-term-${i}`}
+        >
+          <option value="">choose…</option>
+          {shuffled.map((o) => (
+            <option value={o.text}>{o.text}</option>
+          ))}
+        </select>
+      </li>
+    ))}
+  </ol>
+
+  <div class="match__actions">
+    <button type="submit" class="match__check" data-match-check>Check</button>
+    <p class="match__feedback" aria-live="polite" aria-atomic="true"></p>
+  </div>
+
+  {/* The correct pairing is never encoded in the DOM (no data-correct on
+      selects or options). The answer key lives in a per-instance closure
+      below; "Check" grades every select against it and marks each row. */}
+</form>
+
+<script define:vars={{ matchId, correctByRow }}>
+  (() => {
+    const form = document.getElementById(matchId);
+    if (!form) return;
+    const feedback = form.querySelector('.match__feedback');
+    const selects = Array.from(form.querySelectorAll('[data-match-select]'));
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      let correct = 0;
+      for (const sel of selects) {
+        const row = sel.closest('.match__row');
+        if (!sel.value) {
+          row.setAttribute('data-state', 'empty');
+          continue;
+        }
+        const ok = sel.value === correctByRow[Number(sel.dataset.row)];
+        row.setAttribute('data-state', ok ? 'correct' : 'wrong');
+        if (ok) correct++;
+      }
+      feedback.textContent =
+        correct === selects.length
+          ? 'All correct!'
+          : `${correct} of ${selects.length} correct. Fix the highlighted rows and check again.`;
+    });
+  })();
+</script>
+
+<style>
+  .match {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--note);
+    border-radius: var(--radius);
+    padding: var(--space-4) var(--space-6);
+    margin-block: var(--space-6);
+  }
+
+  .match__type {
+    margin: 0 0 var(--space-2);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--note);
+    font-weight: 700;
+  }
+
+  .match__label {
+    margin: 0 0 var(--space-4);
+    font-size: var(--fs-base);
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .match__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .match__row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+  }
+  .match__term {
+    min-width: 0;
+    font-weight: 600;
+  }
+
+  .match__select {
+    width: 100%;
+    min-width: 0;
+    padding: var(--space-2) var(--space-3);
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-sans);
+    font-size: var(--fs-sm);
+    cursor: pointer;
+  }
+
+  /* Graded row states (applied by JS on submit). */
+  .match__row[data-state='correct'] {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+  .match__row[data-state='wrong'] {
+    border-color: var(--warn);
+    background: color-mix(in srgb, var(--warn) 10%, transparent);
+  }
+  .match__row[data-state='empty'] {
+    border-color: var(--muted);
+  }
+
+  .match__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-top: var(--space-4);
+    flex-wrap: wrap;
+  }
+  .match__check {
+    padding: var(--space-2) var(--space-6);
+    background: var(--accent-dim);
+    color: var(--accent-strong);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    font-size: var(--fs-base);
+    font-family: var(--font-sans);
+    cursor: pointer;
+    transition: background 0.1s ease, color 0.1s ease;
+  }
+  .match__check:hover {
+    background: var(--accent);
+    color: var(--bg);
+  }
+  .match__feedback {
+    margin: 0;
+    font-size: var(--fs-sm);
+    color: var(--muted);
+    min-height: 1.2em;
+  }
+</style>

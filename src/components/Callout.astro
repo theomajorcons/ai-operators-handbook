@@ -1,0 +1,93 @@
+---
+interface Props {
+  label: string;
+  variant?: 'framework' | 'note' | 'warn' | 'tip' | 'objective' | 'context' | 'key' | 'keyidea' | 'mistake' | 'trythis' | 'warning';
+}
+const { label, variant = 'note' } = Astro.props;
+
+// One glyph per variant - no icon lib, no runtime dep.
+const ICONS: Record<NonNullable<Props['variant']>, string> = {
+  objective: '🎯',
+  context: '🔗',
+  tip: '💡',
+  warn: '⚠',
+  key: '⚖',
+  note: '📖',
+  framework: '◆',
+  keyidea: '💎',
+  mistake: '✗',
+  trythis: '▶',
+  warning: '⚠',
+};
+---
+
+{/* role="note" (not a landmark) keeps callouts out of the landmark structure -
+    a page has many callouts, and multiple unnamed <aside> complementary
+    landmarks fail WCAG landmark-unique. aria-label names it from its label. */}
+<div class={`callout callout--${variant}`} role="note" aria-label={label}>
+  <p class="callout__label">
+    <span class="callout__icon" aria-hidden="true">{ICONS[variant]}</span>
+    {label}
+  </p>
+  <div class="callout__body"><slot /></div>
+</div>
+
+<style>
+  .callout {
+    /* Per-variant hue drives border, label, icon and tint in one place. */
+    --c: var(--note);
+    position: relative;
+    background: color-mix(in srgb, var(--c) var(--tint), var(--surface));
+    border: 1px solid color-mix(in srgb, var(--c) 30%, var(--border));
+    border-left: 3px solid var(--c);
+    border-radius: var(--radius);
+    padding: var(--space-4) var(--space-6);
+    margin-block: var(--space-6);
+  }
+  .callout__label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0 0 var(--space-2);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--c);
+  }
+  .callout__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.4em;
+    height: 1.4em;
+    font-size: 0.95em;
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--c) 18%, transparent);
+    line-height: 1;
+  }
+  .callout__body { margin: 0; }
+  .callout__body :global(> :first-child) { margin-top: 0; }
+  .callout__body :global(> :last-child) { margin-bottom: 0; }
+
+  .callout--note { --c: var(--note); }
+  .callout--warn { --c: var(--warn); }
+  .callout--tip { --c: var(--tip); }
+  .callout--objective { --c: var(--objective); }
+  .callout--context { --c: var(--context); }
+  .callout--key { --c: var(--key); }
+  .callout--keyidea { --c: var(--key); }
+  .callout--mistake { --c: var(--warn); }
+  .callout--trythis { --c: var(--tip); }
+  .callout--warning { --c: var(--warn); }
+
+  /* Framework - the named-framework teaching anchor: accent hue, and its label
+     stays title-case & larger (not an uppercase tag) since it names a concept. */
+  .callout--framework { --c: var(--accent); }
+  .callout--framework .callout__label {
+    color: var(--accent-strong);
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: var(--fs-base);
+  }
+</style>

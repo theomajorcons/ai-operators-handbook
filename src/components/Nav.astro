@@ -1,0 +1,551 @@
+---
+import { getCollection } from 'astro:content';
+import { withBase } from '../lib/base';
+import { byLessonOrder } from '../lib/lesson-order';
+
+interface Props {
+  width?: 'reading' | 'wide';
+}
+
+const { width = 'reading' } = Astro.props;
+
+const lessons = (await getCollection('lessons')).sort(byLessonOrder);
+
+// Static build emits /path/index.html, so Astro.url.pathname carries a
+// trailing slash while withBase() does not - normalize both before compare.
+const strip = (p: string) => p.replace(/\/$/, '');
+const here = strip(Astro.url.pathname);
+
+// Group lessons by level. Group label = the track name its lessons carry;
+// nothing hardcoded - new levels/tracks appear automatically from content.
+const byLevel = new Map<number, typeof lessons>();
+for (const l of lessons) {
+  const g = byLevel.get(l.data.level) ?? [];
+  g.push(l);
+  byLevel.set(l.data.level, g);
+}
+
+// Electives carry track "Electives"; everything else is a numbered Level.
+// Split so Electives render as their own menu item, not "Level 5".
+const levels = [...byLevel.entries()]
+  .filter(([, items]) => items[0]?.data.track !== 'Electives')
+  .sort((a, b) => a[0] - b[0])
+  .map(([level, items]) => ({
+    key: `level-${level}`,
+    short: `Level ${level}`,
+    label: items[0]?.data.track ?? `Level ${level}`,
+    overview: withBase(`/levels/${level}`),
+    items,
+  }));
+
+const electiveItems = [...byLevel.values()]
+  .flat()
+  .filter((l) => l.data.track === 'Electives');
+
+const menus = [
+  ...levels,
+  ...(electiveItems.length
+    ? [{ key: 'electives', short: 'Electives', label: 'Electives', overview: withBase('/levels/electives'), items: electiveItems }]
+    : []),
+];
+
+const isCurrent = (id: string) => here === strip(withBase(`/lessons/${id}`));
+const menuActive = (m: (typeof menus)[number]) =>
+  here === strip(m.overview) || m.items.some((l) => isCurrent(l.id));
+
+// Reference dropdown - static reference-spine pages.
+const refLinks = [
+  { label: 'Course Map', path: '/course-map' },
+  { label: 'Skill Map', path: '/skill-map' },
+  { label: 'Glossary', path: '/glossary' },
+  { label: 'Model lineup', path: '/models' },
+  { label: 'FAQ', path: '/faq' },
+  { label: 'Downloads', path: '/resources' },
+];
+const isPage = (path: string) => here === strip(withBase(path));
+const refActive = refLinks.some((r) => isPage(r.path));
+---
+
+<header class:list={['topbar', width === 'wide' && 'topbar--wide']}>
+  <div class="topbar__inner">
+    <a class="brand" href={withBase('/')}>
+      <img class="brand__mark" src={withBase('/favicon.svg')} alt="" aria-hidden="true" width="24" height="24" />
+      <span class="brand__text">The AI Operator&rsquo;s Handbook</span>
+    </a>
+
+    <div class="tools">
+      <button type="button" class="tool-btn tool-btn--fs" data-fs-dec aria-label="Decrease text size">A&minus;</button>
+      <button type="button" class="tool-btn tool-btn--fs" data-fs-inc aria-label="Increase text size">A+</button>
+      <button
+        type="button"
+        class="tool-btn tool-toggle"
+        data-theme-toggle
+        aria-label="Toggle color theme"
+        aria-pressed="false"
+      >
+        <svg class="tool-icon tool-icon--sun" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <circle cx="12" cy="12" r="4" />
+          <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+        </svg>
+        <svg class="tool-icon tool-icon--moon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+        </svg>
+      </button>
+    </div>
+
+    <button
+      class="nav-toggle"
+      type="button"
+      aria-expanded="false"
+      aria-controls="primary-nav"
+      aria-label="Menu"
+    >
+      <span class="nav-toggle__bar" aria-hidden="true"></span>
+      <span class="nav-toggle__bar" aria-hidden="true"></span>
+      <span class="nav-toggle__bar" aria-hidden="true"></span>
+    </button>
+
+    <nav id="primary-nav" class="primary" aria-label="Lessons by level">
+      <ul class="menubar">
+        <li class="menu">
+          <details class="menu__details" data-menu>
+            <summary
+              class="menu__summary"
+              aria-current={refActive ? 'true' : undefined}
+            >
+              <span class="menu__short">Reference</span>
+              <span class="menu__chev" aria-hidden="true">▾</span>
+            </summary>
+            <div class="menu__panel" role="menu">
+              <p class="menu__track">Reference</p>
+              <ul class="menu__list">
+                {refLinks.map((r) => (
+                  <li>
+                    <a
+                      role="menuitem"
+                      class="menu__link"
+                      href={withBase(r.path)}
+                      aria-current={isPage(r.path) ? 'page' : undefined}
+                    >
+                      <span class="menu__label">{r.label}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </details>
+        </li>
+        {menus.map((m) => (
+          <li class="menu">
+            <details class="menu__details" data-menu>
+              <summary
+                class="menu__summary"
+                aria-current={menuActive(m) ? 'true' : undefined}
+              >
+                <span class="menu__short">{m.short}</span>
+                <span class="menu__chev" aria-hidden="true">▾</span>
+              </summary>
+              <div class="menu__panel" role="menu">
+                <p class="menu__track">{m.label}</p>
+                <ul class="menu__list">
+                  <li>
+                    <a
+                      role="menuitem"
+                      class="menu__link menu__link--overview"
+                      href={m.overview}
+                      aria-current={here === strip(m.overview) ? 'page' : undefined}
+                    >
+                      <span class="menu__label">Overview</span>
+                    </a>
+                  </li>
+                  {m.items.map((l) => (
+                    <li>
+                      <a
+                        role="menuitem"
+                        class="menu__link"
+                        href={withBase(`/lessons/${l.id}`)}
+                        aria-current={isCurrent(l.id) ? 'page' : undefined}
+                      >
+                        <span class="menu__label">{l.data.title}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </details>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border-bottom: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-panel);
+  }
+  /* Thin accent sheen along the bottom edge. */
+  .topbar::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    background: var(--edge-glow);
+  }
+
+  .topbar__inner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    /* Chrome bar always uses the wide cap so the brand + multi-level menubar
+       have room - the reading measure (~65ch) is far too narrow for the nav
+       and forced horizontal overflow on reading-width lesson pages. */
+    max-width: var(--wide-max);
+    min-height: var(--bar-h);
+    margin-inline: auto;
+    padding: 0 var(--space-6);
+  }
+
+  /* Brand */
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-weight: 750;
+    letter-spacing: -0.015em;
+    color: var(--text);
+    white-space: nowrap;
+    /* Allow the brand to shrink below its intrinsic width so the title can
+       truncate instead of shoving the tools + hamburger past the viewport
+       edge on narrow phones (the horizontal-scroll bug at ~390px). */
+    min-width: 0;
+  }
+  .brand__text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+  }
+  .brand:hover { text-decoration: none; color: var(--accent-strong); }
+  .brand__mark {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    box-shadow: var(--glow-sm);
+    flex: none;
+    display: block;
+  }
+
+  /* Tools - theme toggle + text-size. Pushed to the right edge, before the
+     hamburger. Stays visible on mobile (not inside the collapsed .primary). */
+  .tools {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    margin-left: auto;
+  }
+  .tool-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 2rem;
+    padding: 0 var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+  .tool-btn:hover {
+    color: var(--text);
+    background: var(--accent-dim);
+  }
+  .tool-toggle .tool-icon { display: block; }
+  /* Dark (default): show the moon (click → go light). Light: show the sun. */
+  .tool-toggle .tool-icon--sun { display: none; }
+  :root[data-theme='light'] .tool-toggle .tool-icon--moon { display: none; }
+  :root[data-theme='light'] .tool-toggle .tool-icon--sun { display: block; }
+
+  /* Hamburger - hidden on desktop. */
+  .nav-toggle {
+    display: none;
+    margin-left: var(--space-1);
+    flex-direction: column;
+    gap: 4px;
+    padding: var(--space-2);
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+  }
+  .nav-toggle__bar {
+    width: 1.1rem;
+    height: 2px;
+    background: var(--text);
+    border-radius: 2px;
+  }
+
+  /* Primary nav row (menubar + progress) */
+  .primary {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-left: auto;
+  }
+  .menubar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .menu { position: relative; }
+
+  .menu__summary {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    list-style: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius-pill);
+    transition: color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  }
+  .menu__summary::-webkit-details-marker { display: none; }
+  .menu__summary:hover {
+    color: var(--text);
+    background: var(--accent-dim);
+  }
+  /* Keyboard focus ring follows the pill shape (global :focus-visible uses the
+     small radius, which clips the corners of these rounded tabs). */
+  .menu__summary:focus-visible {
+    outline: 2px solid var(--accent-strong);
+    outline-offset: 2px;
+    border-radius: var(--radius-pill);
+  }
+  /* Open dropdown: trigger adopts the active treatment so it reads as the
+     selected tab connected to its panel below. */
+  .menu__summary[aria-current='true'],
+  .menu__summary[aria-current='page'],
+  .menu__details[open] > .menu__summary {
+    color: var(--accent-strong);
+    border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+    box-shadow: var(--glow-sm);
+  }
+  /* Course Map is a direct link styled as a menubar item, not a dropdown. */
+  .menu__summary--link:hover { text-decoration: none; }
+  .menu__chev {
+    font-size: 0.6em;
+    transition: transform 0.2s ease;
+  }
+  .menu__details[open] .menu__chev { transform: rotate(180deg); }
+
+  /* Dropdown panel - glass + accent glow, floats below the summary.
+     Closed state is display:none so the absolutely-positioned panel never
+     participates in layout - otherwise the rightmost menus' 17rem panels push
+     past the viewport's right edge and force horizontal page scroll. */
+  .menu__panel { display: none; }
+  .menu__details[open] .menu__panel { display: block; }
+  .menu__panel {
+    position: absolute;
+    top: calc(100% + var(--space-2));
+    left: 0;
+    min-width: 17rem;
+    max-height: min(70vh, 30rem);
+    overflow-y: auto;
+    padding: var(--space-3);
+    background: var(--glass-panel);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--glow);
+  }
+  .menu__track {
+    margin: 0 0 var(--space-2);
+    padding: 0 var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .menu__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .menu__link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-2);
+    color: var(--muted);
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-sm);
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+  .menu__link:hover {
+    color: var(--text);
+    text-decoration: none;
+    background: var(--surface-2);
+  }
+  .menu__link:focus-visible {
+    outline: 2px solid var(--accent-strong);
+    outline-offset: -2px;
+  }
+  .menu__link[aria-current='page'] {
+    color: var(--accent-strong);
+    background: var(--accent-dim);
+    box-shadow: var(--glow-sm);
+  }
+  .menu__label { min-width: 0; }
+  /* Overview = the level's landing page; set apart from the lesson list with a
+     mono label + a hairline divider below it. */
+  .menu__link--overview {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: var(--space-1);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  }
+  .menu__link--overview:hover { color: var(--accent-strong); }
+
+  /* ── Mobile: collapse to hamburger + accordion ─────────────────── */
+  @media (max-width: 52rem) {
+    .nav-toggle { display: inline-flex; }
+    .primary {
+      display: none;
+      position: absolute;
+      top: var(--bar-h);
+      left: 0;
+      right: 0;
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--space-2);
+      margin: 0;
+      padding: var(--space-4) var(--space-6) var(--space-6);
+      background: var(--glass-panel);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border-bottom: 1px solid var(--glass-border);
+      box-shadow: var(--shadow-panel);
+    }
+    .topbar[data-open] .primary { display: flex; }
+    .topbar[data-open] .nav-toggle { box-shadow: var(--glow-sm); }
+
+    .menubar { flex-direction: column; align-items: stretch; gap: var(--space-1); }
+    .menu__summary { justify-content: space-between; width: 100%; }
+    /* Accordion: the dropdown becomes an inline expanding block. */
+    .menu__panel {
+      position: static;
+      min-width: 0;
+      margin-top: var(--space-1);
+      box-shadow: none;
+      background: color-mix(in srgb, var(--surface) 60%, transparent);
+    }
+  }
+
+  /* Phones: tighten the chrome bar so the brand + tools + hamburger fit within
+     the viewport without horizontal scroll. The brand ellipsizes only if even
+     this is too tight. */
+  @media (max-width: 30rem) {
+    .topbar__inner {
+      padding-inline: var(--space-3);
+      gap: var(--space-2);
+    }
+    .brand { font-size: 0.95rem; }
+  }
+</style>
+
+<script>
+  // Mobile hamburger toggles the whole nav region.
+  const bar = document.querySelector<HTMLElement>('.topbar');
+  const toggle = bar?.querySelector<HTMLButtonElement>('.nav-toggle');
+  toggle?.addEventListener('click', () => {
+    const open = bar!.toggleAttribute('data-open');
+    toggle.setAttribute('aria-expanded', String(open));
+  });
+
+  // Desktop dropdowns: close on outside-click and on Escape; only one open.
+  const menus = Array.from(document.querySelectorAll<HTMLDetailsElement>('[data-menu]'));
+  menus.forEach((d) => {
+    d.addEventListener('toggle', () => {
+      if (d.open) menus.forEach((o) => o !== d && (o.open = false));
+    });
+  });
+  document.addEventListener('click', (e) => {
+    if (!(e.target as Element)?.closest('[data-menu]')) {
+      menus.forEach((d) => (d.open = false));
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      menus.forEach((d) => {
+        if (d.open) {
+          d.open = false;
+          d.querySelector<HTMLElement>('.menu__summary')?.focus();
+        }
+      });
+    }
+  });
+
+  // ── Theme toggle + text-size control ────────────────────────────
+  const root = document.documentElement;
+  const curTheme = () =>
+    root.dataset.theme ||
+    (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+
+  const themeBtn = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
+  const syncPressed = () => themeBtn?.setAttribute('aria-pressed', String(curTheme() === 'light'));
+  syncPressed();
+  themeBtn?.addEventListener('click', () => {
+    const next = curTheme() === 'light' ? 'dark' : 'light';
+    if (next === 'light') root.dataset.theme = 'light';
+    else delete root.dataset.theme;
+    try { localStorage.setItem('handbook-theme', next); } catch {}
+    syncPressed();
+  });
+
+  // Font size snaps to 7 fixed stops across the --fs-scale range [0.9, 1.4],
+  // mirroring the professor's discrete A−/A+ ladder instead of free 0.1 steps.
+  const FS_STOPS = [0.9, 0.95, 1.0, 1.1, 1.2, 1.3, 1.4];
+  const nearestStop = (n: number) =>
+    FS_STOPS.reduce((a, b) => (Math.abs(b - n) < Math.abs(a - n) ? b : a), FS_STOPS[0]);
+  const curFs = () =>
+    parseFloat(getComputedStyle(root).getPropertyValue('--fs-scale')) || 1;
+  const setFs = (n: number) => {
+    const v = FS_STOPS[Math.min(FS_STOPS.length - 1, Math.max(0, n))];
+    root.style.setProperty('--fs-scale', String(v));
+    try { localStorage.setItem('handbook-fs', String(v)); } catch {}
+  };
+  const stepFs = (dir: number) => setFs(FS_STOPS.indexOf(nearestStop(curFs())) + dir);
+  document.querySelector('[data-fs-dec]')?.addEventListener('click', () => stepFs(-1));
+  document.querySelector('[data-fs-inc]')?.addEventListener('click', () => stepFs(1));
+</script>

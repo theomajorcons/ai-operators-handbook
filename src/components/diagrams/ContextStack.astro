@@ -1,0 +1,99 @@
+---
+// Diagram: context accumulates across a chat. Each turn re-carries every
+// prior turn plus attachments, so the stack grows while your new message
+// (the thin cap on turn 3) stays small. Static SVG, token-driven colours,
+// labels carry the meaning so colour is never the only cue.
+---
+
+<figure class="diagram">
+  <svg
+    viewBox="0 0 440 240"
+    role="img"
+    aria-labelledby="ctxstack-title ctxstack-desc"
+    class="diagram__svg"
+  >
+    <title id="ctxstack-title">Context builds up across a chat</title>
+    <desc id="ctxstack-desc">
+      Three turns shown left to right as growing stacks. Turn one carries a
+      little. Turn two re-carries turn one and adds more. Turn three re-carries
+      everything before it, so the stack is tallest even though your newest
+      message is only a thin slice on top.
+    </desc>
+
+    {/* baseline */}
+    <line class="c-base" x1="24" y1="200" x2="416" y2="200" />
+
+    {/* Turn 1 - one block */}
+    <g transform="translate(60 0)">
+      <rect class="c-block" x="-34" y="168" width="68" height="28" rx="3" />
+      <text class="c-turn" x="0" y="222">turn 1</text>
+    </g>
+
+    {/* Turn 2 - carries turn 1, adds a block */}
+    <g transform="translate(190 0)">
+      <rect class="c-block" x="-34" y="168" width="68" height="28" rx="3" />
+      <rect class="c-block" x="-34" y="138" width="68" height="28" rx="3" />
+      <text class="c-turn" x="0" y="222">turn 2</text>
+    </g>
+
+    {/* Turn 3 - carries everything, your new message is the thin cap */}
+    <g transform="translate(320 0)">
+      <rect class="c-block" x="-34" y="168" width="68" height="28" rx="3" />
+      <rect class="c-block" x="-34" y="138" width="68" height="28" rx="3" />
+      <rect class="c-block" x="-34" y="108" width="68" height="28" rx="3" />
+      <rect class="c-new" x="-34" y="88" width="68" height="12" rx="3" />
+      <text class="c-turn" x="0" y="222">turn 3</text>
+      <text class="c-newlabel" x="0" y="78">your new message</text>
+    </g>
+  </svg>
+  <figcaption class="diagram__cap">
+    Every turn re-carries all the turns before it, so the context keeps growing
+    even when your latest message is tiny.
+  </figcaption>
+</figure>
+
+<style>
+  .diagram {
+    margin: var(--space-6) 0;
+  }
+  .diagram__svg {
+    display: block;
+    width: 100%;
+    max-width: 30rem;
+    height: auto;
+    margin-inline: auto;
+  }
+  .diagram__cap {
+    margin-top: var(--space-2);
+    text-align: center;
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .c-base {
+    stroke: var(--border);
+    stroke-width: 2;
+  }
+  .c-block {
+    fill: color-mix(in srgb, var(--accent) 16%, var(--surface));
+    stroke: color-mix(in srgb, var(--accent) 45%, var(--border));
+    stroke-width: 1.5;
+  }
+  .c-new {
+    fill: var(--accent);
+    stroke: var(--accent);
+    stroke-width: 1.5;
+  }
+  .c-turn {
+    fill: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-anchor: middle;
+  }
+  .c-newlabel {
+    fill: var(--text);
+    font-family: var(--font-sans);
+    font-size: 11px;
+    text-anchor: middle;
+  }
+</style>

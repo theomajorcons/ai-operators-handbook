@@ -1,0 +1,182 @@
+---
+title: "Planning, delegation, and human gates"
+level: 4
+lesson: "18"
+track: "Running Claude as a system"
+last_verified: 2026-10-12
+download: "plan-and-gates-template.md"
+summary: "A big job becomes safe when you break it into steps and place a human approval gate at every point where a wrong move would be costly to undo."
+kind: concept
+beforeYouLeave:
+  - "Break a large job into a short ordered list of steps instead of one vague request."
+  - "Spot the steps where a mistake would be expensive or hard to reverse."
+  - "Place a human approval gate before each of those risky steps, not after."
+  - "Explain why a gate goes before the action rather than after the damage is done."
+  - "Write a plan Claude can follow that pauses and waits for your go-ahead at each gate."
+---
+
+import Callout from '../../../components/Callout.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+import WorkflowGates from '../../../components/diagrams/WorkflowGates.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can break a big job into steps and decide where a person must approve before Claude goes on.
+
+</Callout>
+
+## Why this matters
+
+Up to now you have handed Claude one task at a time and watched each result. But the moment you ask it to run a *whole job* ("plan and send the event announcement," "pull the attendee list and draft the invite"), it starts chaining steps together, and some of those steps act on the real world: they send, they spend, they expose data. If you only look at the final result, the damage is already done.
+
+The skill that keeps this safe is not doing less with Claude. It is deciding, *before anything runs*, which steps a person has to approve. This lesson gives you a way to find those steps on purpose instead of discovering them after the fact.
+
+## Step one: get the plan before anything runs
+
+The first habit is the simplest and the one people skip: **make Claude lay out the whole plan before it executes a single step.** A plan is just the ordered list of actions it intends to take: draft the email, pull the list, send to everyone. Seeing that list up front costs you nothing and buys you the one thing that matters: a chance to look at each step *before* it happens, not after.
+
+This is why "plan first, act second" is a rule and not a nicety. Once a step has run, once the email is sent, your review comes too late. The plan is the only moment where review is still cheap.
+
+## Step two: rate each step's risk
+
+With the plan in front of you, you look at each step and ask how much it could hurt if it went wrong. Five questions catch almost everything:
+
+- **Authority:** is Claude even allowed to do this, and who signs off? Some actions aren't yours to take.
+- **Data sensitivity:** does the step touch private, customer, or personal data? Moving a spreadsheet of emails into a shared draft is a data step even if it feels like formatting.
+- **Scope:** how many things or people does it affect? Emailing one person and emailing two thousand are not the same action.
+- **Blast radius:** if it's wrong, how much damage, and can it be undone? This is where the most common mistake lives, so it gets its own section below.
+- **People:** does it affect someone's job, pay, legal standing, a customer commitment, or a relationship? These are the steps you least want a machine doing unreviewed.
+
+You are not scoring the step out of ten. You are asking a yes/no: does any of these five fire loudly enough that a person should look before it runs?
+
+### The trap: "reversible" is not "harmless"
+
+The instinct most people bring is *if I can undo it, it's safe to let run.* That instinct is wrong, and it is the single biggest source of quiet damage.
+
+Take a real case. Someone lets Claude "freely" pull a spreadsheet of attendee details into a draft announcement. The action is completely reversible: you can delete the draft in one click. But the private emails are now sitting in a shared draft that three other people can already see. Undoing the step does not un-expose the data. Reversibility measured whether you could *roll back the action*; it said nothing about whether the action *leaked something, cost money, contacted someone, or ran untrusted code* on the way.
+
+So the rule is: a step can be perfectly undoable and still need a gate. Blast radius is only one of the five questions. Judge the other four even when the undo button works.
+
+<Callout variant="mistake" label="Common mistake">
+
+Letting a step run ungated because "I can always undo it." Reversibility only measures whether you can roll the action back; it says nothing about what the action leaked, sent, spent, or ran on the way. Deleting the shared draft does not un-expose the emails three people already saw. Judge authority, data, scope, and people too, not just whether there is an undo button.
+
+</Callout>
+
+## Step three: gate the risky steps
+
+A **gate** is a checkpoint where Claude stops and a person approves before it continues. That's the whole mechanism. The art is knowing where to put them: too few and risky steps slip through, too many and you've just made yourself do everything by hand.
+
+The clean dividing line: gate any step that **sends, spends, deletes, publishes, changes permissions, runs unreviewed code, touches sensitive data, or affects people.** Let the harmless steps (drafting, reformatting your own notes, brainstorming) run free. Compare the two openers: the person who says "plan and send the whole announcement" hands the risky send to a machine; the person who asks for a plan, approves each step, and reads it once more before the send has put a gate exactly where one belongs.
+
+<WorkflowGates />
+
+## The rule
+
+<Callout variant="framework" label="Plan, Rate the Risk, Then Gate">
+
+Rate each step on five questions:
+
+1. **Authority:** is Claude allowed to do this, and who approves?
+2. **Data sensitivity:** does it touch private, customer, or personal data?
+3. **Scope:** how many things or people does it affect?
+4. **Blast radius:** if it is wrong, how much damage, and can it be undone?
+5. **People:** does it affect someone's job, pay, legal standing, a customer commitment, or a relationship?
+
+Gate anything that sends, spends, deletes, publishes, changes permissions, runs unreviewed code, touches sensitive data, or affects people. Plan first, act second, and log decisions.
+
+</Callout>
+
+## Try it
+
+Gate or no gate? Decide for each, and **write your four calls plus the deciding question in the box below before you reveal.**
+
+1. Draft an announcement for review.
+2. Email it to 500 people.
+3. Summarize a spreadsheet of employee performance reviews into a shared doc.
+4. Reformat your own notes.
+
+<ExerciseReveal prompt="Reveal the answers" commit="Write gate/no-gate and the deciding question for all four, then reveal:">
+<Fragment slot="answer">
+
+1. No gate. Draft only.
+2. Gate (scope, people).
+3. Gate (sensitive data, people).
+4. No gate.
+
+</Fragment>
+</ExerciseReveal>
+
+## Check yourself
+
+<KnowledgeCheck
+  question="Which step needs a gate even though it can be undone?"
+  options={[
+    "Reformatting your own notes",
+    "Pulling private customer data into a shared document",
+    "Brainstorming titles",
+    "Fixing a typo in a draft",
+  ]}
+  answer={1}
+  explanation="Pulling private data into a shared doc is reversible (you can delete the draft), but deleting it does not un-expose the data to whoever already saw it. Data sensitivity fires regardless of whether the action can be rolled back. The other three touch no sensitive data and affect no one."
+/>
+
+<TrueFalse statement="A step is safe to run without a gate as long as it can be undone." answer={false}>
+<Fragment slot="why">
+
+Reversible does not mean harmless. A step you can undo can still expose private data, run untrusted code, change permissions, contact people, or cost money. Gate whenever an action touches any of those, not just when it cannot be reversed.
+
+</Fragment>
+</TrueFalse>
+
+<KnowledgeCheck
+  question="An automation will email a one-time discount code to 2,000 customers. Which risk question most clearly triggers a gate?"
+  options={[
+    "Authority: nobody said Claude could not",
+    "Scope: it affects thousands of people at once",
+    "Data sensitivity: codes are not secret",
+    "None: email is reversible",
+  ]}
+  answer={1}
+  explanation="Scope is the loudest trigger here: the step reaches 2,000 people in one shot, and you can't recall 2,000 sent emails. 'Email is reversible' is the trap from this lesson: a sent email is not undoable, and even if it were, scope and people still fire."
+/>
+
+<Matching
+  pairs={[
+    { term: "Authority", match: "Is Claude allowed to do this, and who approves?" },
+    { term: "Data sensitivity", match: "Does it touch private, customer, or personal data?" },
+    { term: "Scope", match: "How many things or people does it affect?" },
+    { term: "Blast radius", match: "If it is wrong, how much damage, and can it be undone?" },
+    { term: "People", match: "Does it affect someone's job, pay, legal standing, or a relationship?" },
+  ]}
+/>
+
+<ExerciseReveal prompt="Take a workflow you could automate. List its gates and the question that triggers each." commit="Write the steps, mark each gate, and name its deciding question, then reveal:">
+<Fragment slot="answer">
+
+Specific steps, each tied to authority, data, scope, blast radius, or people.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the plan-and-gates template and use it on your next real task.
+
+<ArtifactCard label="Plan and gates template" file="plan-and-gates-template.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Plan first, act second", definition: "Get Claude's full ordered plan before any step runs. The plan is the only moment where reviewing a step is still cheap, because review after the action is too late." },
+    { term: "Gate", definition: "A checkpoint where a person must approve before Claude continues. Required whenever an action sends, spends, deletes, publishes, changes permissions, runs unreviewed code, touches sensitive data, or affects people." },
+    { term: "Blast radius", definition: "How much damage a step causes if it goes wrong, and whether it can be undone. A large or irreversible blast radius is a reason to gate, but only one of the five risk questions." },
+    { term: "Reversible", definition: "A step you can undo. Reversible is not the same as harmless: a reversible step can still expose data, contact people, or cost money on the way, so it may still need a gate." },
+  ]}
+/>

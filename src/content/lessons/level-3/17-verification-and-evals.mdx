@@ -1,0 +1,176 @@
+---
+title: "Verification and evals"
+level: 3
+lesson: "17"
+track: "Building with Claude"
+last_verified: 2026-10-12
+download: "eval-sheet.md"
+summary: "One good try lies to you, so build a small deliberate test set and run it against a workflow before you rely on it, making failures show up in testing instead of in real work."
+kind: concept
+beforeYouLeave:
+  - "Collect about ten inputs with a real mix: safe cases including odd formats, adversarial cases, and prohibited cases that must be refused."
+  - "Write what a good result looks like for each case before you run it."
+  - "Run and score each case as pass or fail against that written expectation."
+  - "Fix and rerun all ten after every change, since a fix can break a case that was passing."
+  - "Recheck when the model, the prompt, or the inputs change, and run repeated trials for high-risk or inconsistent workflows."
+---
+
+import Callout from '../../../components/Callout.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can build a small, deliberate test set (an eval) and run it against an AI workflow *before* you rely on it, so failures show up in testing instead of in real work.
+
+</Callout>
+
+## Why this matters
+
+Here's the trap that catches almost everyone who builds something with Claude. You write a prompt, try it once, the answer looks great, so you trust it. Then weeks later it quietly fails on some input you never tried, and nobody notices until the damage is done.
+
+The problem isn't the prompt. It's that **one good result proves almost nothing.** A workflow that works on the easy case you happened to test can still break on the odd format, the missing field, or the request it should have refused. The fix is to stop judging a workflow by a single try and start testing it the way you'd test anything you depend on: on a handful of cases chosen to find the breaks. That small, deliberate test set is called an **eval**, and this lesson teaches you to build one.
+
+## Why one try lies to you
+
+Think about what a single successful run actually tells you. It tells you the workflow handles *that one input*. It says nothing about the input with a weird date format, the one with a blank field, the one where someone pasted in a sneaky instruction, or the one asking for something the workflow should never do.
+
+Those untested cases are where real failures live, precisely because they're the ones you didn't think to try. A single happy-path test gives you false confidence: it feels like proof, but it's a sample size of one on the easiest possible case. The only honest way to know where a workflow breaks is to *go looking* for the breaks on purpose, before it's carrying real work.
+
+<Callout variant="mistake" label="Common mistake">
+
+Trying a workflow once, seeing it work, and trusting it. That one run only proves it handles that one easy input; it says nothing about the odd format, the blank field, or the request it should have refused, and those are where the real failures hide. Build the ten-case set and go looking for the breaks before the workflow carries anything that matters.
+
+</Callout>
+
+## What goes in an eval, and why the mix matters
+
+An eval isn't just "try it a few more times." It's a *deliberately varied* set of ten cases, chosen so that each kind of case probes a different way the workflow could fail. The mix is the whole point:
+
+- **Five safe cases:** normal, realistic inputs, but stretched to include the awkward-but-legitimate ones: an odd date format, a missing field, an unusually long entry. These test whether the workflow handles the full range of *valid* input, not just the tidy example you built it on.
+- **Three adversarial cases:** inputs designed to push the workflow off course. This is where you fold in what you learned about untrusted input: content with a hidden instruction, a confusing or contradictory request, something trying to steer the output somewhere it shouldn't go. These test whether the workflow holds its line under pressure.
+- **Two prohibited cases:** requests for something the workflow must *never* do: using data you aren't authorized to use, or taking an irreversible action without approval. Here's the twist that confuses people: for a prohibited case, **a correct result is a refusal or a stop at the gate.** You're not testing whether the workflow *can* do the thing; you're confirming it *won't*. If it complies, that's a failure, even though the output "worked."
+
+That spread (five safe, three adversarial, two prohibited) is what turns ten cases into real coverage instead of ten variations on the same easy test.
+
+## Write the answer before you run
+
+One step does more work than any other, and it's tempting to skip: **before you run a case, write down what a good result looks like.** For a safe case that's the right summary or the correct number; for a prohibited case it's "refuses" or "stops for approval."
+
+Why beforehand? Because if you judge the output *after* you see it, you'll rationalize. A so-so answer looks fine when you had nothing to compare it against: you read the output, shrug, and call it a pass. Writing the expected result first turns a vague impression into a clean pass-or-fail: it either matches what you said good looks like, or it doesn't.
+
+## Keep it honest over time
+
+An eval isn't a one-time gate; it's something you re-run. Two habits keep it meaningful:
+
+- **After any change, rerun all ten.** This is the one people resist, and it's the most important. When you tweak a prompt to fix case 7, that same tweak can silently break case 2, which was passing before. A fix in one place is a change everywhere; the only way to catch the new break is to run the whole set again, every time.
+- **Recheck when the ground shifts.** If the model changes, the prompt changes, or the kind of input changes, your old results no longer certify anything. Re-run the eval so your confidence stays attached to how the workflow behaves *now*.
+
+## The rule
+
+<Callout variant="framework" label="Ten Cases Before Trust">
+
+1. **Collect ten inputs,** real or realistic, with the mix from the eval sheet: five safe cases (including odd formats and missing data), three adversarial cases, and two prohibited cases. A prohibited case asks for something the workflow must never do (using unauthorized data or taking an irreversible action without approval) and the correct result is a refusal or a stop at the gate.
+2. **Write what a good result looks like** for each *before* you run it.
+3. **Run and score** pass or fail against that written expectation.
+4. **Fix and rerun all ten** after every change: a fix can break a case that was passing.
+5. **Recheck** when the model, the prompt, or the inputs change.
+
+Ten cases is the **starter minimum** for a new workflow, enough to catch obvious gaps. It is not sufficient evidence for every situation. If a workflow is high-risk (taking irreversible actions, touching sensitive data) or shows inconsistent results, run **repeated trials** on the same cases across multiple sessions. A workflow that passes ten cases once but fails the same cases one run in five is not ready to trust.
+
+</Callout>
+
+## Try it
+
+Run a real mini-eval: four cases is enough to feel the method work.
+
+1. Pick a prompt you actually use. Fill the first four rows of the eval sheet, and **write the expected result for each before you run anything.**
+2. Run each case and mark pass or fail against what you wrote.
+3. Change the prompt once, then rerun all four, not just the one you were trying to fix.
+
+<ExerciseReveal prompt="Reveal what to watch for" commit="Run all four, change the prompt, rerun all four, then reveal:">
+<Fragment slot="answer">
+
+Watch for the case that was passing and now isn't after your change: if a fix broke an earlier case, that's *exactly* why the rule says rerun everything. And if you found yourself tempted to call a mediocre output a "pass," that's the tell that you skipped writing the expected result first.
+
+</Fragment>
+</ExerciseReveal>
+
+## Check yourself
+
+<KnowledgeCheck
+  question="Why rerun all cases after each change, not just the one you fixed?"
+  options={[
+    "To waste time on purpose",
+    "A fix can break something that was passing before",
+    "Because a rule says you must, with no real reason",
+    "To switch to a different model",
+  ]}
+  answer={1}
+  explanation="A change you make to fix one case ripples through the whole workflow and can silently break a case that used to pass. Rerunning the full set is the only way to catch that regression before real work does."
+/>
+
+<KnowledgeCheck
+  question="You try a workflow once, it works, so you trust it. Why is a single successful run weak evidence?"
+  options={[
+    "It proves the workflow is fast enough for real use",
+    "It only shows the workflow handles that one input; the untested odd formats, blank fields, and sneaky requests are where failures hide",
+    "It means the prompt is written correctly",
+    "It confirms the workflow will refuse prohibited requests",
+  ]}
+  answer={1}
+  explanation="One good result is a sample size of one on the easiest case you happened to try. It says nothing about the weird date format, the missing field, or the request the workflow should refuse, and those untested cases are exactly where real failures live."
+/>
+
+<TrueFalse statement="For a prohibited case, a correct result is a refusal or a stop at the gate." answer={true}>
+<Fragment slot="why">
+
+A prohibited case asks for something the workflow must never do: using unauthorized data, or taking an irreversible action without approval. The right outcome is that the workflow refuses or stops, not that it complies. Even a well-written compliant answer is a failed prohibited case.
+
+</Fragment>
+</TrueFalse>
+
+<Matching
+  pairs={[
+    { term: "Safe case", match: "Normal input, including odd formats and missing data" },
+    { term: "Adversarial case", match: "Input that tries to push the workflow off course" },
+    { term: "Prohibited case", match: "A request the workflow must refuse or stop at the gate" },
+    { term: "Expected result", match: "What a good answer looks like, written before you run" },
+  ]}
+/>
+
+<ExerciseReveal prompt="Describe three cases you would test for a workflow of your own, and say which one should be refused or flagged, and why." commit="Write your three cases and mark the one that should be refused, then reveal:">
+<Fragment slot="answer">
+
+A strong set covers the spread in miniature: one normal case, one tricky-but-legitimate or adversarial case, and one prohibited case that *should* be refused or flagged. Naming *why* the third must be refused (unauthorized data, an irreversible action, no approval) is the part that shows you understand the point of a prohibited case.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the eval sheet and build your ten cases for one real workflow before you trust it.
+
+<ArtifactCard label="Eval sheet" file="eval-sheet.md" />
+
+## Level 3 challenge
+
+This is the last lesson in Level 3, so put the whole level to work: in a safe folder, build one small reusable skill, write a ten case eval for it, and run a safe Claude Code session that ends in a scoped git commit. Save the SKILL.md, the eval sheet, and the commit as your portfolio artifact; it is the direct run-up to the capstone.
+
+<ArtifactCard label="Level 3 challenge" file="level-3-challenge.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Eval", definition: "A small, deliberate test set run against an AI workflow (ten varied cases with written expected results) to find where it breaks before real work does." },
+    { term: "Safe case", definition: "A normal or realistic input, including the awkward-but-valid ones like odd formats and missing data. The eval sheet calls for five of these." },
+    { term: "Adversarial case", definition: "An input designed to push the workflow off course: a hidden instruction or a contradictory request. The eval sheet calls for three of these." },
+    { term: "Prohibited case", definition: "A request the workflow must never fulfill: using unauthorized data or taking an irreversible action without approval. A correct result is a refusal or a stop at the gate." },
+    { term: "Expected result", definition: "What a good answer looks like, written down before you run the case, so scoring is a clean pass or fail instead of an after-the-fact rationalization." },
+  ]}
+/>

@@ -1,0 +1,303 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import LessonIndex from '../components/LessonIndex.astro';
+import OnThisPage from '../components/OnThisPage.astro';
+import Pill from '../components/Pill.astro';
+import Callout from '../components/Callout.astro';
+import { withBase } from '../lib/base';
+import type { CollectionEntry } from 'astro:content';
+import type { MarkdownHeading } from 'astro';
+
+interface LessonRef { id: string; title: string; }
+interface Props {
+  lesson: CollectionEntry<'lessons'>;
+  prev?: LessonRef;
+  next?: LessonRef;
+  // Computed global display number ("7") or "Elective 2" - NOT the raw
+  // frontmatter `lesson` string. Supplied by the lesson route.
+  displayNo: string;
+  badge?: 'Bridge' | 'Lab' | null;
+  headings?: MarkdownHeading[];
+  minutesRead: number;
+}
+
+const { lesson, prev, next, displayNo, badge, headings = [], minutesRead } = Astro.props;
+const { title, track, level, practice_time, practice_note, time_label, summary, kind, beforeYouLeave } = lesson.data;
+
+// kind → pill label. Only Concept/Exercise/Project; absent means no pill.
+const KIND_LABEL: Record<string, string> = { concept: 'Concept', exercise: 'Exercise', project: 'Project' };
+const kindLabel = kind ? KIND_LABEL[kind] : undefined;
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+const hasToc = toc.length >= 2;
+
+// Eyebrow names where you are: TRACK · LEVEL · LESSON, all uppercase.
+// Electives aren't a numbered level, so they skip the LEVEL n segment.
+// Eyebrow uses the computed display number. Electives read "ELECTIVE n" (the
+// number already carries the word), numbered lessons read "LESSON n".
+const isElective = track === 'Electives';
+const eyebrow = isElective
+  ? `${track.toUpperCase()} · ${displayNo.toUpperCase()}`
+  : `${track.toUpperCase()} · LEVEL ${level} · LESSON ${displayNo}`;
+// Pill text. Capstone-style projects set `time_label` and show it verbatim
+// (no computed read time). Everything else uses the script-computed read time,
+// optionally followed by a practice segment. `practice_time` is a bare number
+// or a short "N min" string; normalize to "{n} min practice". "read" appears
+// exactly once, here - upstream frontmatter must not repeat it.
+function practiceSegment(pt: string | number | undefined): string {
+  if (pt === undefined) return '';
+  const n = String(pt).match(/\d+/)?.[0];
+  return n ? ` · ${n} min practice` : '';
+}
+const timePill = time_label
+  ? time_label
+  : `${minutesRead} min read${practiceSegment(practice_time)}`;
+---
+
+<BaseLayout title={title} description={summary} width="wide">
+  <div class:list={['lesson-shell', hasToc && 'lesson-shell--toc']}>
+    {/* Layout wrapper only - the <nav> inside is the real landmark. A bare
+        <aside> here adds a second unnamed complementary landmark (fails
+        WCAG landmark-unique against .lesson-toc), so use a plain div. */}
+    <div class="lesson-aside">
+      <LessonIndex currentLevel={level} />
+    </div>
+
+    <div class="lesson-main reading">
+      <header class="lesson-header">
+        <p class="eyebrow">{eyebrow}</p>
+        <h1 class="lesson-title">{title}</h1>
+        {summary && <p class="lesson-subtitle">{summary}</p>}
+        <p class="lesson-pills">
+          <Pill tone="accent" solid>{track}</Pill>
+          {!isElective && <Pill tone="note">Level {level}</Pill>}
+          {badge && <Pill tone="accent">{badge}</Pill>}
+          {kindLabel && <Pill tone="objective">{kindLabel}</Pill>}
+          <Pill tone="muted">{timePill}</Pill>
+        </p>
+      </header>
+
+      <article>
+        <slot />
+        {practice_note && (
+          <Callout variant="objective" label="In practice">
+            <p set:html={practice_note} />
+          </Callout>
+        )}
+      </article>
+
+      {beforeYouLeave && beforeYouLeave.length > 0 && (
+        <Callout variant="tip" label="Before you leave">
+          <ul class="before-leave">
+            {beforeYouLeave.map((item) => (
+              <li class="before-leave__item">
+                <span class="before-leave__check" aria-hidden="true"></span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </Callout>
+      )}
+
+      <footer class="lesson-footer">
+        <nav class="lesson-nav" aria-label="Lesson navigation">
+          {prev ? (
+            <a href={withBase(`/lessons/${prev.id}`)} class="nav-link nav-link--prev">
+              <span class="nav-link__dir">← Previous</span>
+              <span class="nav-link__title">{prev.title}</span>
+            </a>
+          ) : <span />}
+          {next && (
+            <a href={withBase(`/lessons/${next.id}`)} class="nav-link nav-link--next">
+              <span class="nav-link__dir">Next →</span>
+              <span class="nav-link__title">{next.title}</span>
+            </a>
+          )}
+        </nav>
+      </footer>
+    </div>
+
+    {hasToc && (
+      <div class="lesson-toc">
+        <OnThisPage headings={headings} />
+      </div>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  /* Narrow screens: single column.
+     Order: lesson-aside (index) → lesson-toc (on this page) → lesson-main (article). */
+  .lesson-shell {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+  }
+  .lesson-aside { min-width: 0; order: 0; }
+  .lesson-toc   { min-width: 0; order: 1; }
+  /* On narrow screens the TOC is folded above the article (its <details>
+     accordion handles collapse). It only becomes a rail at 80rem - see below. */
+  .lesson-main  {
+    min-width: 0;
+    order: 2;
+    /* Reset .reading's page padding - the .wide main already pads. */
+    padding: 0;
+    margin-inline: 0;
+  }
+
+  @media (min-width: 60rem) {
+    /* Two-column band (60-80rem). BOTH variants are two columns here -
+       14rem index + flexible article. The TOC-variant's third rail doesn't
+       fit until 80rem, so the folded TOC stays in the content column above
+       the article (its <details> accordion handles collapse).
+       Columns are placed EXPLICITLY so nothing auto-places into col 1 and
+       squeezes the article: index→1, article→2, toc never gets col 2. */
+    .lesson-shell {
+      grid-template-columns: 14rem minmax(0, 1fr);
+    }
+    .lesson-aside {
+      grid-column: 1;
+      order: 0;
+      position: sticky;
+      top: calc(var(--bar-h) + var(--space-6));
+      align-self: start;
+      max-height: calc(100vh - var(--bar-h) - var(--space-8));
+      overflow-y: auto;
+    }
+    .lesson-main {
+      grid-column: 2;
+      order: 1;
+      max-width: var(--measure);
+      margin-inline: 0;
+    }
+    /* Folded TOC lives in the article column, above the article. It is NOT a
+       grid track here - no grid-column:2 that would collide with the article. */
+    .lesson-shell--toc .lesson-toc {
+      order: 1;
+      max-width: var(--measure);
+    }
+    .lesson-shell--toc .lesson-main { order: 2; }
+  }
+
+  /* Three-column rail only once it genuinely fits:
+     14rem index + flexible article + 16rem rail + 2 gaps (2×--space-8=4rem)
+     + page padding (2×--space-6=3rem) = 37rem of chrome. At 80rem that still
+     leaves ~43rem for the article, so the rail fits with no overflow - and
+     1230px (~76.9rem) stays in the two-column band above, killing the ~20px
+     horizontal scroll that a 75rem/minmax(40rem) trigger caused. */
+  @media (min-width: 80rem) {
+    .lesson-shell--toc {
+      grid-template-columns: 14rem minmax(0, 1fr) 16rem;
+    }
+    .lesson-shell--toc .lesson-aside { grid-column: 1; }
+    .lesson-shell--toc .lesson-main {
+      grid-column: 2;
+      order: 1;
+      max-width: none;
+      margin-inline: 0;
+    }
+    .lesson-shell--toc .lesson-toc {
+      grid-column: 3;
+      order: 2;
+      position: sticky;
+      top: calc(var(--bar-h) + var(--space-6));
+      align-self: start;
+      max-height: calc(100vh - var(--bar-h) - var(--space-8));
+      overflow-y: auto;
+    }
+  }
+
+  .lesson-header {
+    margin-bottom: var(--space-8);
+    padding-bottom: var(--space-6);
+    border-bottom: 1px solid var(--border);
+  }
+  .lesson-title {
+    font-size: var(--fs-display);
+    margin: 0;
+  }
+  .lesson-subtitle {
+    margin: var(--space-4) 0 0;
+    color: var(--muted);
+    font-size: var(--fs-base);
+    line-height: 1.5;
+    max-width: var(--measure);
+  }
+  .lesson-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-6) 0 0;
+  }
+
+  .lesson-footer {
+    margin-top: var(--space-12);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+
+  .lesson-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+
+  .nav-link {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    max-width: 48%;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    text-decoration: none;
+    color: var(--text);
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+  .nav-link:hover { border-color: var(--accent); }
+  .nav-link:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .nav-link__dir {
+    font-size: var(--fs-xs);
+    font-family: var(--font-mono);
+    letter-spacing: 0.04em;
+    color: var(--accent);
+  }
+  .nav-link__title {
+    font-size: var(--fs-sm);
+    color: var(--text);
+  }
+
+  .nav-link--next { margin-left: auto; text-align: right; align-items: flex-end; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .nav-link { transition: none; }
+  }
+
+  /* "Before you leave" - a static self-check list inside a tip callout. */
+  .before-leave {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .before-leave__item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+  .before-leave__check {
+    flex: none;
+    width: 1.1em;
+    height: 1.1em;
+    margin-top: 0.15em;
+    border: 1.5px solid color-mix(in srgb, var(--tip) 60%, transparent);
+    border-radius: var(--radius-sm, 4px);
+  }
+</style>

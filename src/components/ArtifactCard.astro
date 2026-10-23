@@ -1,0 +1,65 @@
+---
+import { withBase } from '../lib/base';
+interface Props {
+  label: string;
+  file: string;
+}
+const { label, file } = Astro.props;
+const href = withBase('/artifacts/' + file);
+---
+
+<a class="artifact" href={href} download>
+  <span class="artifact__icon" aria-hidden="true">↓</span>
+  <span class="artifact__label">{label}</span>
+  <span class="artifact__file">{file}</span>
+</a>
+
+<style>
+  .artifact {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    max-width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--space-3) var(--space-4);
+    color: var(--text);
+    text-decoration: none;
+    transition: border-color 0.1s ease, background 0.1s ease;
+  }
+  .artifact:hover {
+    border-color: var(--accent);
+    background: var(--surface-2);
+    text-decoration: none;
+  }
+
+  .artifact__icon {
+    flex: none;
+    width: 1.8rem;
+    height: 1.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-sm);
+    color: var(--accent-strong);
+    font-size: var(--fs-md);
+    line-height: 1;
+  }
+
+  .artifact__label {
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .artifact__file {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--muted);
+    overflow-wrap: anywhere;
+    min-width: 0;
+  }
+</style>

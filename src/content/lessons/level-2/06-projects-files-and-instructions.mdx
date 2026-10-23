@@ -1,0 +1,167 @@
+---
+title: "Projects, files, and instructions"
+level: 2
+lesson: "6"
+track: "Working with Claude"
+practice_time: 15
+last_verified: 2026-10-12
+download: "project-setup-template.md"
+summary: "A Project lets you write your background and rules once so Claude starts every chat already knowing them, instead of re-explaining yourself each time."
+kind: exercise
+beforeYouLeave:
+  - "Put stable rules in instructions: who you work for, the tone, the format, and what to avoid."
+  - "Attach only reference files you will actually reuse, not everything you own."
+  - "Trim the file pile, since a long one makes answers slower to focus."
+  - "When you correct Claude twice about the same thing, add that correction to the instructions."
+  - "Check what your plan offers, because Project features vary by account."
+---
+
+import Callout from '../../../components/Callout.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+import ContextMechanisms from '../../../components/diagrams/ContextMechanisms.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can set up a Project so Claude starts every chat already knowing your background and rules, instead of you re-explaining them each time.
+
+</Callout>
+
+## Why this matters
+
+In Lesson 4 you learned Claude only knows what's in the current chat. That has a cost you feel fast: every new chat starts blank. If you do the same kind of work repeatedly (a weekly report, a newsletter, study notes), you end up re-typing the same background every single time, and the day you forget a line, the output drifts.
+
+A **Project** fixes exactly that. It's the first tool in this course that lets context *persist* across chats. This lesson teaches what a Project holds, how its two parts differ, and the one habit that keeps it sharp instead of sluggish.
+
+## What a Project actually is
+
+A Project is a **workspace that carries standing context into every chat inside it.** Open a chat in the Project and Claude already has your background in front of it: you didn't paste it, the Project did. It's the context check from Lesson 4, saved once and reused.
+
+That standing context comes in two distinct parts, and knowing which is which is the whole skill:
+
+- **Instructions:** rules you write in plain language: who you're working for, the tone, the format, what to avoid. These apply to *every* chat in the Project. This is the right home for anything stable: "Audience is small-business owners. Keep it under 400 words. Never invent statistics."
+- **Files:** reference material you attach: a style guide, two sample issues, a product sheet. Claude can draw on these when a chat needs them.
+
+The short version: **instructions are rules, files are reference.** Rules shape how Claude works; files are what it works *from*.
+
+<ContextMechanisms />
+
+Here's the problem a Project solves. **Tara** runs a small newsletter. Every new chat, she re-explains her audience, her tone, and her formatting rules, and some days she forgets one, so the output drifts. With a Project she writes those rules into the instructions once, drops her style guide and two past issues into the files, and every chat starts from there. The re-typing is gone, and so is the drift.
+
+### The trap: more files is not more help
+
+Here's the part beginners get backwards. It feels like piling every file you own into a Project makes Claude smarter. It does the opposite.
+
+Claude doesn't re-read every file top to bottom on every question. With large files it **retrieves**: it pulls the slices that look relevant and works from those. Bury the one page that matters under forty files of clutter and retrieval has more haystack to search, so answers get slower and less focused. Fewer, well-chosen files beat a big pile every time.
+
+<Callout variant="mistake" label="Common mistake">
+
+Treating a Project like a filing cabinet and dumping every file you own into it "just in case." More files does not make Claude smarter; it gives retrieval a bigger haystack and makes answers slower and vaguer. Attach only the handful of files you actually reuse, and trim the rest.
+
+</Callout>
+
+That gives you a running maintenance habit: when you catch yourself **correcting Claude about the same thing twice**, that's not a one-off: it's a missing rule. Add it to the instructions so you never correct it a third time. A Project is something you tend, not something you set once and forget.
+
+A Project's instructions are scoped to that one workspace. For rules you want across *every* chat, and for the context Claude saves on its own, see [memory and standing instructions](/lessons/level-2/08-memory-and-standing-instructions/) next. (Project features and limits vary by plan, so check what your own account offers.)
+
+## The rule
+
+<Callout variant="framework" label="Write It Once, Keep It Short">
+
+1. **Instructions:** who you're working for, the tone, the format, what to avoid. Stable rules only.
+2. **Files:** only reference material you'll actually reuse, not everything you own.
+3. **Trim:** a long pile of files makes answers slower to focus. Remove what you don't need.
+4. **Update:** when you correct Claude twice about the same thing, add that correction to the instructions.
+
+Features vary by plan, so check what your account offers.
+
+</Callout>
+
+## Try it
+
+Build a small Project around something you do repeatedly: a newsletter, a weekly plan, or study notes.
+
+1. Open `project-setup-template.md` and fill in audience, tone, format, and one thing to avoid.
+2. Create a Project in your Claude account and paste those lines into its instructions.
+3. Add one file you'll actually reuse.
+4. Start a new chat in the Project and ask for a typical task.
+5. Note one thing you had to correct, and add it to the instructions.
+
+<ExerciseReveal prompt="Reveal what to expect" commit="Write your four instruction lines (audience, tone, format, one thing to avoid) before you build it, then reveal:">
+<Fragment slot="answer">
+
+A good Project makes the *second* chat better than the first, because the drift is gone. If an answer ignores your file, ask Claude what it found in it; that tells you whether retrieval reached it. Then feed step 5 back into the instructions; that loop is what makes the Project improve over time. Project features vary by plan.
+
+</Fragment>
+</ExerciseReveal>
+
+## Check yourself
+
+<KnowledgeCheck
+  question="What belongs in project instructions?"
+  options={[
+    "Everything you have ever written",
+    "Standing rules you want applied every time",
+    "Only today's task",
+    "Passwords",
+  ]}
+  answer={1}
+  explanation="Instructions are the stable rules (audience, tone, format, what to avoid) applied to every chat in the Project. Today's one-off task belongs in the chat, not the instructions; and passwords belong in neither (that's next lesson)."
+/>
+
+<KnowledgeCheck
+  question="Your Project keeps answering slowly and missing the point. What does the rule suggest you do with the files?"
+  options={[
+    "Add every file you own so Claude has more to work with",
+    "Trim the files down to only reference material you actually reuse",
+    "Delete the instructions instead",
+    "Switch to a new account",
+  ]}
+  answer={1}
+  explanation="More files is not more help. Claude retrieves the slices it thinks are relevant, so a big pile of clutter gives retrieval a bigger haystack and answers get slower and vaguer. Trim to the few files you actually reuse."
+/>
+
+<TrueFalse statement="A long pile of files in a Project always makes answers sharper and more focused." answer={false}>
+<Fragment slot="why">
+
+The opposite. Claude retrieves relevant slices rather than re-reading everything, so a long pile of files gives retrieval more to sift and makes answers slower to focus. The rule is *Trim*: keep only reference material you'll actually reuse.
+
+</Fragment>
+</TrueFalse>
+
+<Matching
+  pairs={[
+    { term: "Instructions", match: "Standing rules: audience, tone, format, what to avoid" },
+    { term: "Files", match: "Reference material Claude works from: a style guide, past samples" },
+    { term: "Update the Project", match: "Correcting Claude twice about the same thing, add it as a rule" },
+  ]}
+/>
+
+<ExerciseReveal prompt="Write two lines of instructions for a Project you would actually create." commit="Write your two lines, then reveal:">
+<Fragment slot="answer">
+
+Concrete and standing (audience and format, for example), not a one-off task. "Audience: new hires. Format: numbered steps, no jargon" is a rule. "Write today's onboarding email" is a task, and belongs in the chat.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the template and use it to stand up your first real Project: instructions first, then one reused file.
+
+<ArtifactCard label="Project setup template" file="project-setup-template.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Project", definition: "A workspace that carries a standing set of instructions and files into every chat inside it, so you don't re-explain your background each time. The first tool here that persists context across chats." },
+    { term: "Instructions", definition: "The standing rules for a Project: who you're working for, the tone, the format, what to avoid. Written once, applied to every chat in the Project. Rules, not reference." },
+    { term: "Files", definition: "Reference material attached to a Project: a style guide, samples, a product sheet. Claude retrieves relevant slices when a chat needs them. What Claude works from, not how it works." },
+    { term: "Trim", definition: "Removing files you don't need. Because Claude retrieves relevant slices rather than reading everything, a big pile slows and blurs answers, keep only what you'll reuse." },
+  ]}
+/>

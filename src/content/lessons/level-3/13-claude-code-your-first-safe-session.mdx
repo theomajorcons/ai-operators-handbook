@@ -1,0 +1,181 @@
+---
+title: "Claude Code: your first safe session"
+level: 3
+lesson: "13"
+track: "Building with Claude"
+last_verified: 2026-10-18
+download: "first-session-checklist.md"
+summary: "Claude Code is safe to start when you keep it in a small practice folder, run a mode that asks before acting, read every proposed change, and lean on Git as your undo."
+kind: exercise
+beforeYouLeave:
+  - "Launch Claude Code in a small practice folder, not inside real or sensitive work."
+  - "Start in a mode that asks before editing files or running commands, and leave automatic modes off until you know what they do."
+  - "Read every proposed change before you approve it, because nothing replaces your own review."
+  - "Give Claude one small, specific task rather than a vague open-ended one."
+  - "After the session, run git diff to see what changed, then keep it with git commit or undo it with git restore."
+---
+
+import Callout from '../../../components/Callout.astro';
+import Steps from '../../../components/Steps.astro';
+import Step from '../../../components/Step.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can launch Claude Code in a practice project, read its proposed changes, and undo them.
+
+</Callout>
+
+## Why this matters
+
+Claude Code is different from the chat window in one important way: it can act on your computer directly, editing files, running commands, changing things. That's what makes it powerful, and it's also why your first session should be a *careful* one. The good news is that the same habits you just learned in the bridge (a practice folder and Git) plus a couple of built-in settings make a first session controlled and much safer.
+
+The trap to avoid is approving everything without reading, in a folder full of files that matter. This lesson walks you through the opposite: a small folder, a mode that asks first, and a review step before you say yes.
+
+## What Claude Code is
+
+**Claude Code** is Claude running in your terminal, inside a folder, with the ability to read and change the files there. You type a request in plain English ("add a summary to the top of this file") and it proposes the change. Depending on how you've set it up, it either does the change and asks you to confirm, or does it automatically. Everything in this lesson is about keeping yourself in the "asks you to confirm" lane while you learn.
+
+## Four things protect you, and they're not the same
+
+Beginners often think one thing keeps them safe. Really there are four, and they do different jobs. Knowing which does what is the whole lesson:
+
+- **Permissions and modes** are limits *Claude Code enforces* on what it's allowed to do before asking you. This is the setting you control at launch.
+- **Your review** is *you* reading each proposed change and catching a bad one before you approve it. No setting replaces this.
+- **Git** *records* changes so you can recover tracked files if an approved change turns out wrong. This is your safety net, from the bridge lesson.
+- **The folder you start in** only *narrows* the work; it points Claude Code at a smaller set of files. It is **not** a hard sandbox: it reduces blast radius, it doesn't lock the door.
+
+That last point matters most, because it's the one people get wrong. Starting in a small folder is good hygiene, but don't mistake it for containment. Real safety comes from the first three working together, and from the sandboxing feature if you need true containment of what commands can reach.
+
+<Callout variant="mistake" label="Common mistake">
+
+Treating the folder you launch in as a hard sandbox. It is not: it narrows which files Claude Code works on, but it does not lock the door, and a command can still reach outside it. The folder reduces blast radius; it is not containment. Lean on the mode, your review, and Git for safety, and use the sandboxing feature when you need true containment.
+
+</Callout>
+
+## The modes, from safest to least safe
+
+The "mode" is how much Claude Code does on its own before asking. You cycle modes with `Shift+Tab`. As a beginner, you want the one that asks the most:
+
+- **Manual mode** (launch with `claude --permission-mode manual`) asks before editing files or running most commands. This is where you start.
+- **Plan mode** blocks source edits but still performs reads, and, when Auto mode is available, may run classifier-approved commands. Good for "look but mostly don't touch."
+- **Accept Edits mode** automatically accepts file edits and common filesystem commands in your working directories. Faster, but it's approving on your behalf.
+- **Auto mode** lets a classifier review actions instead of you. Not for a first session.
+
+Current versions may start in Auto mode, so don't assume the default is the safe one. Launch Manual explicitly. Learn what each mode does *before* you turn on anything more automatic. Accept Edits, Auto, and bypass modes are not for beginners.
+
+<Callout variant="warning" label="Warning">
+
+Accept Edits and Auto modes let Claude Code change files and run commands without pausing for your yes. On a first session, or in any folder with work that matters, that means edits and deletions can land before you have read them. Launch Manual mode explicitly, approve one change at a time, and do not switch to an automatic mode until you have seen exactly what it will do on its own.
+
+</Callout>
+
+## The rule
+
+<Callout variant="framework" label="Small Folder, Ask First, Read the Diff, Keep an Undo">
+
+<Steps>
+<Step n="0" title="Install (once).">Follow the current Claude Code quickstart for your system, then run `claude --version` to confirm it is installed. Claude Code supports macOS, Linux, and native Windows (with WSL also supported).</Step>
+<Step n="1" title="Go to your practice project.">`cd practice` (from the bridge lesson), with Git already set up.</Step>
+<Step n="2" title="Launch in Manual mode.">Run `claude --permission-mode manual` and sign in if asked.</Step>
+<Step n="3" title="Trust prompt.">It may ask whether you trust the folder. Say yes only for folders you chose.</Step>
+<Step n="4" title="Stay in a mode that asks before acting.">Manual mode asks before editing files or running most commands; `Shift+Tab` cycles modes. Don't turn on anything more automatic until you know what it does.</Step>
+<Step n="5" title="One small task.">For example, "Add a short summary at the top of hello.md."</Step>
+<Step n="6" title="Read every proposed change before approving.">This is your review, and nothing replaces it.</Step>
+<Step n="7" title="Check.">Run `git diff`. Keep it with `git commit`, or undo with `git restore`.</Step>
+</Steps>
+
+Exact commands and menus change between versions, so check the current Claude Code documentation. (Flag verified against the official [CLI reference](https://code.claude.com/docs/en/cli-usage) on 2026-10-18: `manual` is the current value for the ask-first mode, accepted as an alias for `default`.)
+
+</Callout>
+
+## Try it
+
+Run this once in your practice folder.
+
+1. Launch Claude Code in `practice`.
+2. Ask for one small edit to `hello.md`.
+3. Read the proposed change before approving.
+4. Run `git diff`.
+5. Undo it with `git restore hello.md`.
+
+<ExerciseReveal prompt="Reveal the answers" commit="Run all five steps in your practice folder, then reveal:">
+<Fragment slot="answer">
+
+If you completed step 5 and the file is back to normal, you have the full loop: ask, read, approve, inspect, undo. That loop, not the folder, is what kept you safe.
+
+</Fragment>
+</ExerciseReveal>
+
+## Check yourself
+
+<KnowledgeCheck
+  question="What actually limits what Claude Code can do?"
+  options={[
+    "The folder alone",
+    "Permissions and modes you set, plus your review and version control",
+    "Nothing",
+    "The size of the folder",
+  ]}
+  answer={1}
+  explanation="Three things work together: the permissions and mode you launch with, your review of each change, and Git recording what changed. The folder only narrows the work; it is not a hard sandbox on its own."
+/>
+
+<KnowledgeCheck
+  question="You open Claude Code for your first session. Which mode should you launch in, and why?"
+  options={[
+    "Accept Edits mode, so edits apply without interrupting you",
+    "Manual mode (`claude --permission-mode manual`), because it asks before editing files or running most commands",
+    "Whatever the current version defaults to; the default is always the safest",
+    "Auto mode, so a classifier reviews actions for you",
+  ]}
+  answer={1}
+  explanation="Launch Manual mode explicitly. It asks before editing files or running most commands, which is exactly the lane you want while learning. Don't assume the default is safe: current versions may start in Auto, where a classifier approves on your behalf."
+/>
+
+<TrueFalse statement="Starting Claude Code inside a small folder is a hard sandbox that stops it from touching anything outside." answer={false}>
+<Fragment slot="why">
+
+The folder only narrows the work; it is not a hard sandbox. Real containment comes from permissions and modes, your review of each change, and version control, with the sandboxing feature for true containment of what commands can reach.
+
+</Fragment>
+</TrueFalse>
+
+<Matching
+  pairs={[
+    { term: "Manual mode", match: "Asks before editing files or running most commands" },
+    { term: "Accept Edits mode", match: "Auto-accepts file edits and common filesystem commands in your working directories" },
+    { term: "Plan mode", match: "Blocks source edits but still performs reads" },
+    { term: "git restore", match: "Undoes a change after you read the diff" },
+  ]}
+/>
+
+<ExerciseReveal prompt="Describe the first small task you would try and the exact check you would run afterward." commit="Write your task and your check, then reveal:">
+<Fragment slot="answer">
+
+One task, a named file, and a concrete check such as `git diff`. For example, "add a one-line summary to hello.md," then `git diff` to read exactly what changed before you keep or restore it.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the checklist and use it on your next real task.
+
+<ArtifactCard label="First session checklist" file="first-session-checklist.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Manual mode", definition: "The permission mode (`claude --permission-mode manual`) that asks before editing files or running most commands: the recommended starting mode for beginners." },
+    { term: "Diff", definition: "The set of proposed changes to your files. Reading the diff before approving is how your review catches problems." },
+    { term: "Sandboxing", definition: "A Claude Code feature for real containment of what commands can reach. The folder you launch in only narrows the work; it is not a hard sandbox on its own." },
+    { term: "git restore", definition: "A Git command that reverts a tracked file to its last committed state: your undo after inspecting a change." },
+  ]}
+/>

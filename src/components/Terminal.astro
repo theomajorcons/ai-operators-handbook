@@ -1,0 +1,161 @@
+---
+import type { Frame } from '../lib/terminal-player';
+interface Props {
+  frames: Frame[];
+  title?: string;
+}
+const { frames, title = 'claude code' } = Astro.props;
+const prefix: Record<Frame['kind'], string> = {
+  prompt: '>',
+  tool: '→', // → tool call
+  output: ' ',
+};
+---
+
+{/* Full transcript renders server-side: readable with no JS. The client
+   script hides unrevealed frames and replays them; without JS nothing is
+   hidden, and with reduced-motion everything is revealed instantly. */}
+<figure class="term" data-terminal>
+  <div class="term__bar" aria-hidden="true">
+    <span class="term__dot"></span><span class="term__dot"></span><span class="term__dot"></span>
+    <span class="term__title">{title}</span>
+  </div>
+  <pre class="term__body"><code>{frames.map((f) => (
+    <span class={`term__line term__line--${f.kind}`} data-frame data-kind={f.kind}>
+      <span class="term__prefix" aria-hidden="true">{prefix[f.kind]}</span>
+      <span class="term__text">{f.text}</span>
+    </span>
+  ))}</code></pre>
+  <div class="term__controls">
+    <button type="button" data-play>Play</button>
+    <button type="button" data-step>Step</button>
+    <button type="button" data-reset>Reset</button>
+  </div>
+</figure>
+
+<style>
+  .term {
+    margin: var(--space-8) 0;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    font-family: var(--font-mono);
+    box-shadow: var(--shadow-panel);
+  }
+  .term__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+  }
+  .term__dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+  .term__title {
+    margin-left: var(--space-2);
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .term__body {
+    margin: 0;
+    padding: var(--space-4) var(--space-6);
+    background: var(--bg);
+    border: none;
+    border-radius: 0;
+    font-size: var(--fs-sm);
+    line-height: var(--leading-body);
+  }
+  .term__body code { background: none; border: none; padding: 0; }
+  .term__line {
+    display: flex;
+    gap: var(--space-3);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .term__prefix {
+    flex: none;
+    user-select: none;
+    color: var(--muted);
+  }
+  .term__line--prompt .term__prefix { color: var(--accent); }
+  .term__line--prompt .term__text { color: var(--accent-strong); font-weight: 600; }
+  .term__line--tool .term__prefix { color: var(--note); }
+  .term__line--tool .term__text { color: var(--note); }
+  .term__line--output .term__text { color: var(--muted); }
+
+  /* Hidden state is only ever applied by the client script. No JS => visible. */
+  .term[data-active] .term__line[hidden] { display: none; }
+
+  .term__controls {
+    display: flex;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+  }
+  .term__controls button {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--text);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: var(--space-1) var(--space-3);
+    cursor: pointer;
+  }
+  .term__controls button:hover { background: var(--border); }
+</style>
+
+<script>
+  import { TerminalPlayer, type Frame } from '../lib/terminal-player';
+
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  document.querySelectorAll<HTMLElement>('[data-terminal]').forEach((term) => {
+    const lines = Array.from(term.querySelectorAll<HTMLElement>('[data-frame]'));
+    // Reduced motion: leave the full transcript as-is, no hiding, no typing.
+    if (reduced) return;
+
+    // The transcript is already in the DOM; the player just drives the cursor
+    // over the same count of lines (content lives in the SSR'd spans).
+    const player = new TerminalPlayer(
+      lines.map((el) => ({
+        kind: (el.getAttribute('data-kind') as Frame['kind']) ?? 'output',
+        text: el.textContent ?? '',
+      })),
+    );
+    term.setAttribute('data-active', '');
+
+    const render = () => {
+      lines.forEach((el, i) => el.toggleAttribute('hidden', i >= player.index));
+    };
+    const reset = () => { player.reset(); render(); };
+
+    let timer: number | undefined;
+    const stop = () => { clearInterval(timer); timer = undefined; };
+    const play = () => {
+      stop();
+      if (player.atEnd()) reset();
+      timer = window.setInterval(() => {
+        if (!player.step()) { stop(); return; }
+        render();
+      }, 700);
+    };
+
+    term.querySelector('[data-play]')?.addEventListener('click', play);
+    term.querySelector('[data-step]')?.addEventListener('click', () => {
+      stop();
+      player.step();
+      render();
+    });
+    term.querySelector('[data-reset]')?.addEventListener('click', () => { stop(); reset(); });
+
+    reset();
+  });
+</script>

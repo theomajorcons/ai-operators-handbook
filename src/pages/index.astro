@@ -1,0 +1,785 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Pill from '../components/Pill.astro';
+import { getCollection } from 'astro:content';
+import { withBase } from '../lib/base';
+import { byLessonOrder } from '../lib/lesson-order';
+import { lessonNumbers, lessonBadge, displayNumber } from '../lib/lesson-number';
+import { readingTimeMinutes } from '../lib/reading-time';
+import { levels, getLevelInfo } from '../data/levels';
+
+const lessons = (await getCollection('lessons')).sort(byLessonOrder);
+const nums = lessonNumbers(lessons);
+
+// First lesson overall → the "Start Level 1" fallback target for the CTA, and
+// the Featured "Start Here" card's destination (Lesson 1).
+const first = lessons[0];
+const startHref = first ? withBase(`/lessons/${first.id}`) : null;
+
+// Group lessons by level. A level's name is the track string its lessons carry;
+// electives carry track "Electives" and render as a trailing group. Nothing
+// hardcoded - new levels/tracks appear automatically from content.
+const byLevel = new Map<number, typeof lessons>();
+for (const l of lessons) {
+  const g = byLevel.get(l.data.level) ?? [];
+  g.push(l);
+  byLevel.set(l.data.level, g);
+}
+const isElectives = (items: typeof lessons) => items[0]?.data.track === 'Electives';
+const numberedKeys = [...byLevel.entries()]
+  .filter(([, items]) => !isElectives(items))
+  .map(([lvl]) => lvl);
+const maxLevel = Math.max(1, ...numberedKeys);
+
+// kind → Pill tone + label. concept/exercise/project read from frontmatter.
+const KIND = {
+  concept: { tone: 'note' as const, label: 'Concept' },
+  exercise: { tone: 'tip' as const, label: 'Exercise' },
+  project: { tone: 'objective' as const, label: 'Project' },
+};
+
+// One decorated lesson card: number, title, summary, read time, kind pill.
+// `slug` (the lesson id) lets the client script light a ✓ when it's complete.
+const card = (l: (typeof lessons)[number]) => ({
+  num: displayNumber(l, nums, lessons),
+  badge: lessonBadge(l),
+  title: l.data.title,
+  summary: l.data.summary,
+  minutes: readingTimeMinutes(l.body ?? ''),
+  kind: l.data.kind ? KIND[l.data.kind] : null,
+  href: withBase(`/lessons/${l.id}`),
+  slug: l.id,
+});
+
+// Level cards for the "Choose your level" grid - now each carries the one-line
+// description from levels.ts.
+const levelCards = Array.from({ length: maxLevel }, (_, i) => {
+  const lvl = i + 1;
+  const items = byLevel.get(lvl) ?? [];
+  return {
+    level: lvl,
+    name: items[0]?.data.track ?? getLevelInfo(lvl)?.label ?? `Level ${lvl}`,
+    description: getLevelInfo(lvl)?.description ?? '',
+    color: `var(--level-${lvl})`,
+    count: items.length,
+    live: items.length > 0,
+    href: items.length ? withBase(`/levels/${lvl}`) : null,
+    slugs: items.map((i) => i.id),
+  };
+});
+
+const electiveItems = [...byLevel.values()].find(isElectives) ?? [];
+const electiveCard = electiveItems.length
+  ? {
+      name: 'Electives',
+      count: electiveItems.length,
+      href: withBase('/levels/electives'),
+    }
+  : null;
+
+// Full catalog: every level (numbered, then Electives) as a section with a
+// "LEVEL n · LESSONS x-y" label, one-line summary, and a grid of lesson cards.
+// Lesson range is computed from the first/last lesson numbers in the level.
+const catalog = [...byLevel.entries()]
+  .sort((a, b) => a[0] - b[0])
+  .map(([lvl, items]) => {
+    const elective = isElectives(items);
+    const info = getLevelInfo(lvl);
+    const dn = items.map((i) => nums.get(i.id)).filter((n): n is number => n != null);
+    return {
+      key: elective ? 'electives' : `level-${lvl}`,
+      elective,
+      label: elective
+        ? `Electives · ${items.length} lesson${items.length === 1 ? '' : 's'}`
+        : `Level ${lvl} · Lessons ${dn[0]} to ${dn[dn.length - 1]}`,
+      name: items[0]?.data.track ?? info?.label ?? `Level ${lvl}`,
+      description: info?.description ?? '',
+      color: elective ? 'var(--level-electives)' : `var(--level-${lvl})`,
+      lessons: items.map(card),
+      slugs: items.map((i) => i.id),
+    };
+  })
+  .sort((a, b) => Number(a.elective) - Number(b.elective));
+
+const liveCount = lessons.length;
+const levelsLive = levelCards.filter((l) => l.live).length;
+
+// "What you'll learn" - the headline outcome from each numbered level, so the
+// panel stays short (one line per level) and scannable. Data-driven from
+// levels.ts; electives excluded to keep it to the core track.
+const learn = levels
+  .filter((l) => l.track !== 'Electives')
+  .map((l) => ({ label: l.label, name: l.track, outcome: l.outcomes[0] }));
+---
+
+<BaseLayout title="The AI Operator's Handbook" description="A hands-on course for using Claude well: pick the right model, write a clear spec, build with Claude Code, and run it as a dependable system." width="wide">
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-grid" aria-hidden="true"></div>
+    <div class="hero-inner">
+      <div class="hero-copy">
+        <p class="eyebrow">A practical field guide</p>
+        <h1 id="hero-title" class="hero-title">The AI Operator&rsquo;s Handbook</h1>
+        <p class="hero-lede">
+          Operating AI systems at work isn&rsquo;t about prompts. It&rsquo;s about
+          judgment, workflow, and knowing where the seams are. This is the guide I
+          wish I&rsquo;d had.
+        </p>
+        <p class="hero-badges">
+          {liveCount > 0 && (
+            <Pill tone="accent" solid>{liveCount} lesson{liveCount === 1 ? '' : 's'}</Pill>
+          )}
+          <Pill tone="tip" solid>{levelsLive} level{levelsLive === 1 ? '' : 's'}</Pill>
+          <Pill tone="note">Self-paced</Pill>
+          <Pill tone="muted">No prior experience needed</Pill>
+        </p>
+        <div class="hero-cta">
+          {startHref && (
+            <a class="cta cta--primary" href={startHref}>
+              <span>Start Level 1</span>
+              <span class="cta__arrow" aria-hidden="true">→</span>
+            </a>
+          )}
+          <a class="cta cta--ghost" href={withBase('/course-map')}>See the course map</a>
+        </div>
+      </div>
+
+      {learn.length > 0 && (
+        <aside class="learn" aria-labelledby="learn-title">
+          <h2 id="learn-title" class="learn__title">What you&rsquo;ll learn</h2>
+          <ul class="learn__list" role="list">
+            {learn.map((l) => (
+              <li class="learn__row">
+                <span class="learn__lvl" aria-hidden="true">{l.label}</span>
+                <span class="learn__body">
+                  <span class="learn__name">{l.name}</span>
+                  <span class="learn__outcome">{l.outcome}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </aside>
+      )}
+    </div>
+  </section>
+
+  {startHref && (
+    <section class="featured" aria-labelledby="featured-title">
+      <a class="featured__card" href={startHref}>
+        <span class="featured__kicker">Start here</span>
+        <span id="featured-title" class="featured__title">How this handbook works</span>
+        <span class="featured__body">
+          Every lesson teaches the idea first, then has you do it. Four levels
+          build on each other (from working in a plain chat window up to running
+          Claude as a dependable system) plus optional electives. You don&rsquo;t
+          need any prior experience; start at Lesson 1 and go in order.
+        </span>
+        <span class="featured__cta">Begin at Lesson 1 <span aria-hidden="true">→</span></span>
+      </a>
+    </section>
+  )}
+
+  <section class="levels" aria-labelledby="levels-heading">
+    <h2 id="levels-heading" class="section-heading">Choose your level</h2>
+    <ul class="level-grid" role="list">
+      {levelCards.map((lvl) => {
+        const Tag = lvl.href ? 'a' : 'div';
+        return (
+          <li>
+            <Tag
+              class:list={['lcard', { 'lcard--soon': !lvl.live }]}
+              style={`--lv: ${lvl.color}`}
+              {...(lvl.href ? { href: lvl.href } : { 'aria-disabled': 'true' })}
+            >
+              <span class="lcard__top">
+                <span class="lcard__num" aria-hidden="true">{lvl.level}</span>
+                {lvl.live
+                  ? <Pill tone="tip" solid>live</Pill>
+                  : <Pill tone="muted">soon</Pill>}
+              </span>
+              <span class="lcard__title">{lvl.name}</span>
+              {lvl.description && <span class="lcard__desc">{lvl.description}</span>}
+              <span class="lcard__meta">
+                {lvl.live
+                  ? `${lvl.count} lesson${lvl.count === 1 ? '' : 's'}`
+                  : 'Coming soon'}
+              </span>
+              {lvl.href && (
+                <span class="lcard__cta">
+                  Begin <span aria-hidden="true">→</span>
+                </span>
+              )}
+            </Tag>
+          </li>
+        );
+      })}
+
+      {electiveCard && (
+        <li>
+          <a class="lcard lcard--elective" href={electiveCard.href} style="--lv: var(--level-electives)">
+            <span class="lcard__top">
+              <span class="lcard__num lcard__num--elective" aria-hidden="true">+</span>
+              <Pill tone="objective" solid>bonus</Pill>
+            </span>
+            <span class="lcard__title">{electiveCard.name}</span>
+            {getLevelInfo(5)?.description && (
+              <span class="lcard__desc">{getLevelInfo(5)?.description}</span>
+            )}
+            <span class="lcard__meta">
+              {`${electiveCard.count} lesson${electiveCard.count === 1 ? '' : 's'}`}
+            </span>
+            <span class="lcard__cta">Explore <span aria-hidden="true">→</span></span>
+          </a>
+        </li>
+      )}
+    </ul>
+  </section>
+
+  <section class="catalog" aria-labelledby="catalog-heading">
+    <div class="catalog-head">
+      <h2 id="catalog-heading" class="section-heading">The full course</h2>
+      <p class="legend" aria-label="What the lesson tags mean">
+        <span class="legend__item"><Pill tone="note">Concept</Pill> read &amp; understand</span>
+        <span class="legend__item"><Pill tone="tip">Exercise</Pill> do it yourself</span>
+        <span class="legend__item"><Pill tone="objective">Project</Pill> build something real</span>
+      </p>
+    </div>
+
+    {catalog.map((lvl) => (
+      <section
+        class:list={['unit', { 'unit--elective': lvl.elective }]}
+        style={`--lv: ${lvl.color}`}
+        aria-label={lvl.name}
+      >
+        <p class="unit__label">{lvl.label}</p>
+        <h3 class="unit__name">{lvl.name}</h3>
+        {lvl.description && <p class="unit__desc">{lvl.description}</p>}
+        <ul class="lesson-grid" role="list">
+          {lvl.lessons.map((l) => (
+            <li>
+              <a class="lesson" href={l.href}>
+                <span class="lesson__top">
+                  <span class="lesson__num" aria-hidden="true">{l.num}</span>
+                  <span class="lesson__top-right">
+                    {l.badge && <Pill tone="accent">{l.badge}</Pill>}
+                    {l.kind && <Pill tone={l.kind.tone}>{l.kind.label}</Pill>}
+                  </span>
+                </span>
+                <span class="lesson__title">{l.title}</span>
+                {l.summary && <span class="lesson__summary">{l.summary}</span>}
+                <span class="lesson__meta">{l.minutes} min read</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </section>
+
+  <section class="always" aria-labelledby="always-heading">
+    <h2 id="always-heading" class="section-heading">Resources</h2>
+    <p class="always__lede">Reference you&rsquo;ll come back to, from any lesson.</p>
+    <ul class="always-grid" role="list">
+      <li>
+        <a class="qcard" href={withBase('/skill-map')}>
+          <span class="qcard__icon" aria-hidden="true">◇</span>
+          <span class="qcard__title">Skill map · start here</span>
+          <span class="qcard__body">Every skill as a graph: levels branch into skills, skills into lessons. Double-click to jump in.</span>
+        </a>
+      </li>
+      <li>
+        <a class="qcard" href={withBase('/glossary')}>
+          <span class="qcard__icon" aria-hidden="true">A-Z</span>
+          <span class="qcard__title">Glossary</span>
+          <span class="qcard__body">Plain-English definitions for every term the handbook uses.</span>
+        </a>
+      </li>
+      <li>
+        <a class="qcard" href={withBase('/faq')}>
+          <span class="qcard__icon" aria-hidden="true">?</span>
+          <span class="qcard__title">FAQ &amp; Troubleshooting</span>
+          <span class="qcard__body">Common questions and what to do when something goes sideways.</span>
+        </a>
+      </li>
+      <li>
+        <a class="qcard" href={withBase('/resources')}>
+          <span class="qcard__icon" aria-hidden="true">↓</span>
+          <span class="qcard__title">Downloads</span>
+          <span class="qcard__body">Every checklist, template, and cheat-sheet in one place.</span>
+        </a>
+      </li>
+      <li>
+        <a class="qcard" href={withBase('/course-map')}>
+          <span class="qcard__icon" aria-hidden="true">▤</span>
+          <span class="qcard__title">Course Map</span>
+          <span class="qcard__body">The whole syllabus at a glance, with jump-to-lesson links.</span>
+        </a>
+      </li>
+    </ul>
+  </section>
+</BaseLayout>
+
+<style>
+  /* ── Hero - layered gradient + glow, animated grid (reduced-motion safe) ── */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding: var(--space-16) var(--space-8);
+    margin-bottom: var(--space-12);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    background: var(--gradient-hero), var(--surface);
+    box-shadow: var(--glow-lg);
+  }
+  /* Subtle moving grid behind the copy - pure CSS, masked to fade out. */
+  .hero-grid {
+    position: absolute;
+    inset: -2px;
+    background-image:
+      linear-gradient(rgba(var(--accent-rgb), 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(var(--accent-rgb), 0.08) 1px, transparent 1px);
+    background-size: 2.5rem 2.5rem;
+    mask-image: radial-gradient(120% 90% at 20% 0%, #000 10%, transparent 70%);
+    -webkit-mask-image: radial-gradient(120% 90% at 20% 0%, #000 10%, transparent 70%);
+    animation: grid-drift 24s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes grid-drift {
+    from { background-position: 0 0, 0 0; }
+    to { background-position: 2.5rem 2.5rem, 2.5rem 2.5rem; }
+  }
+
+  /* Two-column hero: copy left, "what you'll learn" panel right. Stacks on
+     narrow screens (panel below copy). */
+  .hero-inner {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: var(--space-10);
+    align-items: center;
+  }
+  .hero-copy { min-width: 0; max-width: 60ch; }
+
+  .hero-title {
+    margin: 0;
+    font-size: var(--fs-display-lg);
+    background: linear-gradient(120deg, var(--text) 30%, var(--accent-strong));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    background-size: 200% 100%;
+    animation: hero-shimmer 8s ease-in-out infinite alternate;
+  }
+  @keyframes hero-shimmer {
+    from { background-position: 0% 50%; }
+    to { background-position: 100% 50%; }
+  }
+  .hero-lede {
+    margin: var(--space-6) 0 0;
+    font-size: var(--fs-md);
+    color: var(--muted);
+    max-width: 55ch;
+  }
+  .hero-badges {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin: var(--space-6) 0 0;
+  }
+  .hero-cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+    margin: var(--space-8) 0 0;
+  }
+  /* Primary CTA - glowing glass pill. */
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-6);
+    font-weight: 650;
+    border-radius: var(--radius-pill);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  }
+  .cta--primary {
+    color: var(--bg);
+    background: linear-gradient(140deg, var(--accent-strong), var(--accent));
+    box-shadow: var(--glow);
+  }
+  .cta--primary:hover {
+    text-decoration: none;
+    transform: translateY(-2px);
+    box-shadow: var(--glow-lg);
+  }
+  .cta__arrow { transition: transform 0.2s ease; }
+  .cta--primary:hover .cta__arrow { transform: translateX(3px); }
+  .cta--ghost {
+    color: var(--accent-strong);
+    border: 1px solid var(--glass-border);
+    background: var(--surface);
+  }
+  .cta--ghost:hover {
+    text-decoration: none;
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  /* ── Hero "What you'll learn" panel ────────────────────────────── */
+  .learn {
+    min-width: 0;
+    padding: var(--space-6);
+    background: var(--gradient-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-panel);
+  }
+  .learn__title {
+    margin: 0 0 var(--space-4);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .learn__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .learn__row {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-3);
+    align-items: start;
+  }
+  .learn__lvl {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    color: var(--accent-strong);
+    background: var(--accent-dim);
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+    border-radius: var(--radius-pill);
+    padding: 2px var(--space-2);
+    white-space: nowrap;
+  }
+  .learn__body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .learn__name { font-weight: 650; line-height: var(--leading-tight); }
+  .learn__outcome {
+    font-size: var(--fs-sm);
+    color: var(--muted);
+    line-height: var(--leading-tight);
+  }
+
+  /* ── Featured "Start here" card ─────────────────────────────────── */
+  .featured { margin-bottom: var(--space-12); }
+  .featured__card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-8);
+    color: var(--text);
+    background:
+      radial-gradient(120% 140% at 0% 0%, var(--accent-dim), transparent 55%),
+      var(--gradient-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--glow);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .featured__card:hover {
+    text-decoration: none;
+    transform: translateY(-3px);
+    border-color: var(--accent);
+    box-shadow: var(--glow-lg);
+  }
+  .featured__kicker {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .featured__title {
+    font-size: var(--fs-lg);
+    font-weight: 700;
+    line-height: var(--leading-tight);
+  }
+  .featured__body {
+    max-width: 68ch;
+    color: var(--muted);
+    line-height: var(--leading-body);
+  }
+  .featured__cta {
+    margin-top: var(--space-2);
+    color: var(--accent-strong);
+    font-weight: 650;
+  }
+
+  /* ── Section headings ──────────────────────────────────────────── */
+  .section-heading {
+    margin: 0 0 var(--space-6);
+    font-size: var(--fs-lg);
+  }
+
+  /* ── Level cards - interactive glass card grid ─────────────────── */
+  .level-grid {
+    list-style: none;
+    margin: 0 0 var(--space-12);
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: var(--space-6);
+  }
+
+  .lcard {
+    --lv: var(--accent);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    height: 100%;
+    padding: var(--space-6);
+    color: var(--text);
+    background: var(--gradient-card);
+    border: 1px solid var(--glass-border);
+    /* Level tint along the top edge - a non-text colour cue. */
+    border-top: 3px solid color-mix(in srgb, var(--lv) 70%, transparent);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-panel);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  a.lcard:hover {
+    text-decoration: none;
+    transform: translateY(-4px);
+    border-color: var(--lv);
+    box-shadow: var(--glow);
+  }
+  .lcard--soon { opacity: 0.6; }
+
+  .lcard__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+  .lcard__num {
+    display: grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-md);
+    font-weight: 700;
+    color: var(--lv);
+    background: color-mix(in srgb, var(--lv) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--lv) 45%, transparent);
+    border-radius: var(--radius-pill);
+  }
+  .lcard__title {
+    font-size: var(--fs-md);
+    font-weight: 650;
+    line-height: var(--leading-tight);
+  }
+  .lcard__desc {
+    font-size: var(--fs-sm);
+    color: var(--muted);
+    line-height: var(--leading-body);
+  }
+  .lcard__meta {
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    font-family: var(--font-mono);
+  }
+  .lcard__cta {
+    margin-top: auto;
+    color: var(--lv);
+    font-weight: 600;
+    font-size: var(--fs-sm);
+  }
+
+  /* ── Full course catalog ───────────────────────────────────────── */
+  .catalog { margin-bottom: var(--space-16); }
+  .catalog-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    margin: 0 0 var(--space-6);
+    font-size: var(--fs-sm);
+    color: var(--muted);
+  }
+  .legend__item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .unit {
+    --lv: var(--accent);
+    margin-bottom: var(--space-16);
+    padding-left: var(--space-4);
+    /* Level-coloured spine down the whole section - a non-text cue. */
+    border-left: 3px solid color-mix(in srgb, var(--lv) 55%, transparent);
+  }
+  .unit:last-child { margin-bottom: var(--space-8); }
+  .unit__label {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    color: var(--lv);
+  }
+  .unit__name {
+    margin: var(--space-2) 0 0;
+    font-size: var(--fs-md);
+    font-weight: 700;
+  }
+  .unit__desc {
+    margin: var(--space-2) 0 0;
+    color: var(--muted);
+    font-size: var(--fs-sm);
+    line-height: var(--leading-body);
+  }
+
+  .lesson-grid {
+    list-style: none;
+    margin: var(--space-6) 0 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    gap: var(--space-6);
+  }
+  .lesson {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    height: 100%;
+    padding: var(--space-6);
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--glass-border);
+    /* Level tint along the top edge - matches the section spine. */
+    border-top: 3px solid color-mix(in srgb, var(--lv) 60%, transparent);
+    border-radius: var(--radius-lg);
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .lesson:hover {
+    text-decoration: none;
+    transform: translateY(-3px);
+    border-color: var(--lv);
+    box-shadow: var(--glow-sm);
+  }
+  .lesson__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+  .lesson__top-right { display: inline-flex; align-items: center; gap: var(--space-2); }
+  .lesson__num {
+    display: grid;
+    place-items: center;
+    min-width: 2.1rem;
+    height: 1.7rem;
+    padding: 0 var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    color: var(--lv);
+    background: color-mix(in srgb, var(--lv) 14%, transparent);
+    border-radius: var(--radius-pill);
+  }
+  .lesson__title {
+    font-weight: 650;
+    line-height: var(--leading-tight);
+  }
+  .lesson__summary {
+    font-size: var(--fs-sm);
+    color: var(--muted);
+    line-height: var(--leading-body);
+  }
+  .lesson__meta {
+    margin-top: auto;
+    padding-top: var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--muted);
+  }
+
+  /* ── "Always open" quick reference ─────────────────────────────── */
+  .always__lede {
+    margin: calc(-1 * var(--space-4)) 0 var(--space-6);
+    color: var(--muted);
+    font-size: var(--fs-sm);
+  }
+  .always-grid {
+    list-style: none;
+    margin: 0 0 var(--space-12);
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: var(--space-4);
+  }
+  .qcard {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    height: 100%;
+    padding: var(--space-5);
+    color: var(--text);
+    background: var(--gradient-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-panel);
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .qcard:hover {
+    text-decoration: none;
+    transform: translateY(-3px);
+    border-color: var(--accent);
+    box-shadow: var(--glow);
+  }
+  .qcard__icon {
+    display: grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    color: var(--accent-strong);
+    background: var(--accent-dim);
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+    border-radius: var(--radius-sm);
+  }
+  .qcard__title {
+    font-weight: 650;
+    line-height: var(--leading-tight);
+  }
+  .qcard__body {
+    font-size: var(--fs-sm);
+    color: var(--muted);
+    line-height: var(--leading-body);
+  }
+
+  /* ── Responsive: stack hero + tighten grids on narrow screens ──── */
+  @media (max-width: 52rem) {
+    .hero-inner { grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-title, .hero-grid { animation: none; }
+    .cta, .lcard, .lesson, .qcard, .featured__card, .cta__arrow { transition: none; }
+  }
+</style>

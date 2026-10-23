@@ -1,0 +1,172 @@
+---
+interface Props {
+  question: string;
+  options: string[];
+  answer: number; // zero-based index of the correct option
+  explanation?: string; // optional "why" shown after answering
+}
+const { question, options, answer, explanation } = Astro.props;
+const kcId = 'kc-' + Math.random().toString(36).slice(2, 10);
+---
+
+<div class="kc" data-kc id={kcId}>
+  <p class="kc__type">Multiple choice</p>
+  <p class="kc__question">{question}</p>
+  <ul class="kc__options" role="list">
+    {options.map((opt, i) => (
+      <li class="kc__option" data-index={i}>
+        <button type="button" class="kc__btn" data-kc-btn aria-label={opt}>
+          <span class="kc__marker" aria-hidden="true">{String.fromCharCode(65 + i)}</span>
+          <span class="kc__text">{opt}</span>
+        </button>
+      </li>
+    ))}
+  </ul>
+  <p class="kc__feedback" aria-live="polite" aria-atomic="true"></p>
+  {explanation && (
+    <p class="kc__explanation" data-kc-explanation hidden>{explanation}</p>
+  )}
+</div>
+
+{/* The correct index is injected into a per-instance closure below, never into
+    a DOM attribute or aria-label - so nothing in the initial DOM (readable by
+    screen readers or dev tools) says which option is correct. Correct/wrong is
+    announced only after a click, via the aria-live feedback region. A wrong
+    pick stays retryable until the learner gets it right. */}
+<script define:vars={{ kcId, answer }}>
+  (() => {
+    const kc = document.getElementById(kcId);
+    if (!kc) return;
+    const feedback = kc.querySelector('.kc__feedback');
+    const explanation = kc.querySelector('[data-kc-explanation]');
+    let solved = false;
+
+    kc.querySelectorAll('[data-kc-btn]').forEach((btn) => {
+      const li = btn.closest('[data-index]');
+      const idx = Number(li.dataset.index);
+
+      btn.addEventListener('click', () => {
+        if (solved) return;
+
+        const isCorrect = idx === answer;
+        li.setAttribute('data-state', isCorrect ? 'correct' : 'wrong');
+        feedback.textContent = isCorrect
+          ? 'Correct!'
+          : `Not quite. Try another. (Was ${String.fromCharCode(65 + idx)}.)`;
+
+        if (isCorrect) {
+          solved = true;
+          kc.querySelectorAll('[data-kc-btn]').forEach((b) => { b.disabled = true; });
+          if (explanation) explanation.hidden = false;
+        } else {
+          btn.disabled = true;
+        }
+      });
+    });
+  })();
+</script>
+
+<style>
+  .kc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--note);
+    border-radius: var(--radius);
+    padding: var(--space-4) var(--space-6);
+    margin-block: var(--space-6);
+  }
+
+  .kc__type {
+    margin: 0 0 var(--space-2);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--note);
+    font-weight: 700;
+  }
+
+  .kc__question {
+    margin: 0 0 var(--space-4);
+    font-size: var(--fs-base);
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .kc__options {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .kc__btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: var(--space-2) var(--space-4);
+    color: var(--text);
+    font-size: var(--fs-base);
+    font-family: var(--font-sans);
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.1s ease, background 0.1s ease;
+  }
+  .kc__btn:hover:not(:disabled) {
+    border-color: var(--note);
+    background: var(--surface);
+  }
+  .kc__btn:disabled { cursor: default; }
+
+  .kc__marker {
+    flex: none;
+    width: 1.4rem;
+    height: 1.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-sm);
+    color: var(--muted);
+    font-family: var(--font-mono);
+  }
+
+  /* Answered states (applied by JS via data-state on the li) */
+  [data-state="correct"] .kc__btn {
+    border-color: var(--accent);
+    background: var(--accent-dim);
+  }
+  [data-state="correct"] .kc__marker {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg);
+  }
+  [data-state="wrong"] .kc__btn {
+    border-color: var(--warn);
+    background: color-mix(in srgb, var(--warn) 10%, transparent);
+  }
+  [data-state="wrong"] .kc__marker {
+    background: var(--warn);
+    border-color: var(--warn);
+    color: var(--bg);
+  }
+
+  .kc__feedback {
+    margin: var(--space-4) 0 0;
+    font-size: var(--fs-sm);
+    color: var(--muted);
+    min-height: 1.2em; /* stable height so layout doesn't jump */
+  }
+
+  .kc__explanation {
+    margin: var(--space-2) 0 0;
+    font-size: var(--fs-sm);
+    color: var(--text);
+  }
+</style>

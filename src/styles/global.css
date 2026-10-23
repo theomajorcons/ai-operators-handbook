@@ -1,0 +1,357 @@
+@import "tailwindcss";
+
+/* ── Design tokens ─────────────────────────────────────────────
+   Developer-grade dark theme. Everything below is token-driven —
+   no hardcoded colors in components or layouts. Contrast ratios
+   (vs --bg #0d1117) noted inline; all body/accent text meets WCAG AA. */
+:root {
+  /* Surfaces */
+  --bg: #0d1117;          /* near-black canvas */
+  --surface: #161b22;     /* raised panels, callouts */
+  --surface-2: #21262d;   /* hover / nested surface */
+  --border: #30363d;      /* hairline dividers */
+
+  /* Text */
+  --text: #e6edf3;        /* 13.9:1 on --bg — AAA */
+  --muted: #9aa5b1;       /* 7.0:1 on --bg — AA (small), AAA (large) */
+
+  /* Accent — a single restrained teal (#059374, the signature) */
+  --accent: #059374;      /* 4.8:1 on --bg — AA */
+  --accent-strong: #0abd94;
+  --accent-dim: rgba(5, 147, 116, 0.12);
+
+  /* Variant hues (callouts / pills) — each has a readable text tone and a
+     derived tint used for soft-filled backgrounds via color-mix. */
+  --note: #58a6ff;        /* 6.7:1 on --bg */
+  --warn: #e3a008;        /* 8.2:1 on --bg */
+  --tip: #56d364;         /* 9.6:1 on --bg — green "do this" */
+  --objective: #bc8cff;   /* 6.9:1 on --bg — violet "learning objective" */
+  --context: #f778ba;     /* 6.4:1 on --bg — pink "connect / context" */
+  --key: #e3b341;         /* 9.9:1 on --bg — amber "key rule / term" */
+
+  /* Per-level accent — aliases the AA variant hues above so each level reads
+     distinct. Theme-neutral: the hues they point at are re-taken per theme, so
+     these inherit the correct light/dark contrast automatically. Colour is
+     never the only signal — level labels/numbers carry text too. */
+  --level-1: var(--accent);      /* teal — the signature */
+  --level-2: var(--note);        /* blue */
+  --level-3: var(--context);     /* pink */
+  --level-4: var(--key);         /* amber */
+  --level-electives: var(--objective); /* violet */
+
+  /* Tint strength for soft-filled callout backgrounds (mixed with --bg). */
+  --tint: 10%;
+
+  /* Typography — modular scale, ratio 1.25 (major third), base 1rem */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Code", "Fira Code",
+    Menlo, Consolas, monospace;
+
+  /* User text-size control multiplies the whole scale. Clamped [0.9,1.4] by
+     the toolbar script / no-FOUC head script; CSS just applies it. */
+  --fs-scale: 1;
+
+  --fs-xs: calc(0.72rem * var(--fs-scale));
+  --fs-sm: calc(0.8rem * var(--fs-scale));
+  --fs-base: calc(1rem * var(--fs-scale));
+  --fs-md: calc(1.25rem * var(--fs-scale));
+  --fs-lg: calc(1.563rem * var(--fs-scale));
+  --fs-xl: calc(1.953rem * var(--fs-scale));
+  --fs-2xl: calc(2.441rem * var(--fs-scale));
+  --fs-3xl: calc(3.052rem * var(--fs-scale));
+
+  /* Display sizes — fluid, for page titles & hero. Bigger presence than the
+     modular body scale, clamped so they never blow out on mobile. Each clamp
+     term scales so the fluid curve keeps its shape under --fs-scale. */
+  --fs-display: clamp(calc(2.4rem * var(--fs-scale)), calc(1.6rem * var(--fs-scale)) + 3.6vw, calc(3.6rem * var(--fs-scale)));
+  --fs-display-lg: clamp(calc(2.8rem * var(--fs-scale)), calc(1.8rem * var(--fs-scale)) + 4.6vw, calc(4.6rem * var(--fs-scale)));
+
+  --leading-tight: 1.1;
+  --leading-body: 1.7;
+
+  --weight-display: 750;
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Radius */
+  --radius-sm: 4px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  /* Reading column */
+  --measure: 65ch;
+  /* Wide layout cap — fills large screens without hitting the edge on ultrawide */
+  --wide-max: min(94vw, 96rem);
+
+  /* ── Futuristic layer: glow / glass / gradient ──────────────────
+     All derived from the tokens above via color-mix / rgba on --accent,
+     so re-theming the accent re-themes every glow. No raw hex here. */
+
+  /* Accent as channels — lets glows/gradients mix alpha without new hexes. */
+  --accent-rgb: 5, 147, 116;
+
+  /* Glow — layered accent shadow for active/hover states and panel edges.
+     --glow-sm for chips/links, --glow for panels/cards, --glow-lg for hero. */
+  --glow-sm: 0 0 0 1px rgba(var(--accent-rgb), 0.25),
+             0 2px 10px -2px rgba(var(--accent-rgb), 0.35);
+  --glow: 0 0 0 1px rgba(var(--accent-rgb), 0.18),
+          0 8px 30px -8px rgba(var(--accent-rgb), 0.45);
+  --glow-lg: 0 0 0 1px rgba(var(--accent-rgb), 0.15),
+             0 20px 60px -16px rgba(var(--accent-rgb), 0.5);
+  /* Plain depth shadow for glass panels (no accent tint). */
+  --shadow-panel: 0 16px 40px -16px rgba(0, 0, 0, 0.6);
+
+  /* Glass — translucent surface + blur. --glass-bg for the sticky bar,
+     --glass-panel (more opaque) for dropdowns/cards that overlay content. */
+  --glass-bg: color-mix(in srgb, var(--bg) 72%, transparent);
+  --glass-panel: color-mix(in srgb, var(--surface) 86%, transparent);
+  --glass-border: color-mix(in srgb, var(--accent) 22%, var(--border));
+  --glass-blur: 14px;
+
+  /* Gradient — accent-washed sheens for hero and card hovers. */
+  --gradient-hero: radial-gradient(
+      120% 100% at 15% 0%,
+      rgba(var(--accent-rgb), 0.16),
+      transparent 55%
+    ),
+    radial-gradient(90% 90% at 100% 0%, var(--accent-dim), transparent 50%);
+  --gradient-card: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--accent) 7%, var(--surface)),
+    var(--surface)
+  );
+  /* Hairline accent sheen for the bottom edge of the sticky bar. */
+  --edge-glow: linear-gradient(
+    90deg,
+    transparent,
+    rgba(var(--accent-rgb), 0.5),
+    transparent
+  );
+
+  /* Sticky top bar height — layouts offset sticky sidebars by this. */
+  --bar-h: 3.5rem;
+}
+
+/* ── Light theme ───────────────────────────────────────────────────
+   Opt-in via [data-theme="light"] on <html> (set by the no-FOUC head
+   script / nav toggle). Overrides only theme-dependent tokens; the scale,
+   spacing, radius, typography, and layout tokens inherit from :root above.
+   Not an inversion — a genuine light palette. Contrast ratios noted inline
+   are vs this block's --bg #fbfcfe and meet WCAG AA (body/small ≥4.5:1). */
+:root[data-theme="light"] {
+  /* Surfaces */
+  --bg: #fbfcfe;          /* soft off-white canvas */
+  --surface: #ffffff;     /* raised panels, callouts */
+  --surface-2: #eef1f6;   /* hover / nested surface */
+  --border: #d0d7de;      /* hairline dividers */
+
+  /* Text */
+  --text: #1c2128;        /* 15.77:1 on --bg — AAA */
+  --muted: #57606a;       /* 6.22:1 on --bg — AA */
+
+  /* Accent — deeper shade of the #059374 teal so it reads on a light canvas */
+  --accent: #06775f;      /* 5.3:1 on --bg — AA */
+  --accent-strong: #045743; /* 8.0:1 on --bg — AAA */
+  --accent-dim: rgba(6, 119, 95, 0.1);
+
+  /* Variant hues re-taken for a light canvas. */
+  --note: #0a58ca;        /* 6.27:1 on --bg */
+  --warn: #8a6100;        /* 5.40:1 on --bg */
+  --tip: #0f7b34;         /* 5.24:1 on --bg — green "do this" */
+  --objective: #7536c9;   /* 6.54:1 on --bg — violet "learning objective" */
+  --context: #b5156f;     /* 6.20:1 on --bg — pink "connect / context" */
+  --key: #8a6d00;         /* 4.79:1 on --bg — amber "key rule / term" */
+
+  /* Softer tint on a light canvas so fills stay subtle. */
+  --tint: 8%;
+
+  /* Accent channels for glows/gradients (light accent). */
+  --accent-rgb: 6, 119, 95;
+
+  /* Glow — softened on light: lower alpha, no heavy halo. */
+  --glow-sm: 0 0 0 1px rgba(var(--accent-rgb), 0.18),
+             0 2px 8px -2px rgba(var(--accent-rgb), 0.2);
+  --glow: 0 0 0 1px rgba(var(--accent-rgb), 0.14),
+          0 8px 24px -8px rgba(var(--accent-rgb), 0.22);
+  --glow-lg: 0 0 0 1px rgba(var(--accent-rgb), 0.12),
+             0 20px 48px -16px rgba(var(--accent-rgb), 0.25);
+  /* Neutral depth shadow, much lighter than the dark panel shadow. */
+  --shadow-panel: 0 16px 40px -20px rgba(27, 33, 40, 0.18);
+
+  /* Glass — high-white translucency, blur preserved. */
+  --glass-bg: color-mix(in srgb, var(--bg) 78%, transparent);
+  --glass-panel: color-mix(in srgb, #ffffff 88%, transparent);
+  --glass-border: color-mix(in srgb, var(--accent) 20%, var(--border));
+
+  /* Gradient — gentle accent wash on light. */
+  --gradient-hero: radial-gradient(
+      120% 100% at 15% 0%,
+      rgba(var(--accent-rgb), 0.1),
+      transparent 55%
+    ),
+    radial-gradient(90% 90% at 100% 0%, var(--accent-dim), transparent 50%);
+  --gradient-card: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--accent) 6%, var(--surface)),
+    var(--surface)
+  );
+  --edge-glow: linear-gradient(
+    90deg,
+    transparent,
+    rgba(var(--accent-rgb), 0.4),
+    transparent
+  );
+}
+
+/* ── Base element styling ──────────────────────────────────────── */
+* {
+  box-sizing: border-box;
+}
+
+/* Anchor jumps clear the sticky top bar instead of hiding under it. */
+html {
+  scroll-padding-top: var(--bar-h);
+}
+
+:root {
+  color-scheme: dark;
+}
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  /* Safety net against horizontal page scroll from any stray overflowing
+     element. `clip` (unlike `hidden`) does not create a scroll container, so
+     the sticky top bar keeps sticking. */
+  overflow-x: clip;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: var(--leading-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4 {
+  line-height: var(--leading-tight);
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  color: var(--text);
+  text-wrap: balance;
+}
+h1 { font-size: var(--fs-2xl); font-weight: var(--weight-display); letter-spacing: -0.025em; }
+h2 { font-size: var(--fs-xl); font-weight: 700; }
+h3 { font-size: var(--fs-lg); }
+h4 { font-size: var(--fs-md); }
+
+/* Article section headings get a thin accent tick on the left for rhythm &
+   presence. Scoped to lesson prose so sidebar/card h2s stay plain. */
+article > h2 {
+  padding-left: var(--space-4);
+  border-left: 3px solid var(--accent);
+  margin-top: var(--space-12);
+}
+
+/* Eyebrow / breadcrumb — small mono uppercase label used above display titles. */
+.eyebrow {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+}
+
+p, ul, ol { margin-block: var(--space-4); }
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover { text-decoration: underline; }
+
+/* Inline links inside lesson body text need a non-color cue (WCAG 1.4.1
+   link-in-text-block). Scoped to prose so nav, cards, and component chrome
+   keep their color-only styling, which axe accepts outside text blocks. */
+.lesson-main :where(p, li) a { text-decoration: underline; }
+
+code, pre {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+code {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.1em 0.35em;
+}
+pre {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  overflow-x: auto;
+}
+pre code { background: none; border: none; padding: 0; }
+
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin-block: var(--space-8);
+}
+
+/* ── Accessibility ─────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--space-4);
+  top: calc(-1 * var(--space-16));
+  z-index: 100;
+  padding: var(--space-2) var(--space-4);
+  background: var(--accent);
+  color: var(--bg);
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  transition: top 0.15s ease;
+}
+.skip-link:focus { top: var(--space-4); text-decoration: none; }
+
+/* Comfortable reading column */
+.reading {
+  max-width: var(--measure);
+  margin-inline: auto;
+  padding: var(--space-12) var(--space-6);
+}
+
+/* Wide layout — hosts a page that manages its own inner reading column
+   (e.g. lessons: sidebar + reading-width article). Caps total width so
+   the sidebar + 65ch article stay centered on large screens. */
+.wide {
+  max-width: var(--wide-max);
+  margin-inline: auto;
+  padding: var(--space-12) var(--space-6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}

@@ -1,0 +1,159 @@
+---
+title: "Filesystem as context"
+level: 3
+lesson: "14"
+track: "Building with Claude"
+practice_time: 10
+last_verified: 2026-10-12
+download: "readme-template.md"
+summary: "Once Claude can read your folders, the way you name and arrange files becomes the context, so a clear map lets it find what it needs without you pasting anything."
+kind: concept
+beforeYouLeave:
+  - "Name files clearly for their content, like budget-2026.md instead of final2."
+  - "Keep one topic per file so each has a single clear purpose."
+  - "Add a README at the top that says what lives where."
+  - "Archive old versions so there is exactly one current file to trust."
+  - "Point Claude at the specific file when you ask, instead of making it guess."
+---
+
+import Callout from '../../../components/Callout.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can organize files so Claude can find what it needs without you pasting anything.
+
+</Callout>
+
+## Why this matters
+
+In the chat window, you hand Claude context by pasting it in. In a tool that reads your files (like Claude Code from the last lesson) you hand it context a different way: by how your folders are *arranged*. A tidy folder tells Claude where everything is. A messy one makes it guess, and a guess is how you get the wrong file edited.
+
+This is the quiet shift Level 3 has been building toward. Once Claude can see your filesystem, your folder structure *is* your prompt. This lesson is about writing that prompt well.
+
+## Your folders are the context now
+
+When Claude reads your files, it doesn't magically know which one you mean. It reads the names, opens what looks relevant, and works from what it finds. So everything that helps a *person* find the right file fast helps Claude too, and everything that would confuse a new teammate confuses Claude.
+
+Picture a folder named `stuff` with files called `final`, `final2`, and `new_final`. A human can't tell which is current without opening all three; neither can Claude. It opens one, guesses it's the right one, and edits the wrong version. The folder didn't give it a map, so it wandered.
+
+Now picture the opposite: clear folders, one topic per file, names that say what's inside, and a short note at the top explaining the layout. Point Claude at that note and it goes straight to the right file and works. Same request, opposite result, and the only thing that changed was the structure.
+
+<Callout variant="mistake" label="Common mistake">
+
+Keeping `final`, `final2`, and `new_final` side by side and expecting Claude to know which is current. It cannot, any more than a new teammate could, so it opens one, guesses, and may edit the stale copy. Name files for their content and archive old versions, so there is exactly one current file and nothing to guess wrong.
+
+</Callout>
+
+## The four things that make a map
+
+Four habits turn a folder from a maze into a map:
+
+- **Clear names.** `budget-2026.md` tells Claude (and you) exactly what's inside; `final2` tells it nothing. Name files by their topic, not their version history.
+- **One topic per file.** A file about one thing is easy to point to. A file that's a little bit of everything matches every question and answers none well.
+- **A README at the top.** A short `README.md` that says what lives where is a map Claude can read. Point it at the README (or paste it in) and it's the single highest-value file in a messy folder. (Don't assume it's read automatically: a generic `README.md` isn't auto-loaded the way Claude Code loads a project's `CLAUDE.md`.)
+- **Archive old versions.** Move outdated files into a subfolder so there's exactly one current version of each thing. Then Claude can't pick a stale one, because there's nothing stale in the way.
+
+And when you ask, **point to the file** if you can: "update `budget-2026.md`" beats "update my budget" every time, because it removes the guess entirely.
+
+## The rule
+
+<Callout variant="framework" label="Give It a Map">
+
+1. **Clear names:** `budget-2026.md`, not `final2`.
+2. **One topic per file.**
+3. **A README** at the top: what lives where.
+4. **Archive old versions** so there is one current file.
+5. **Point to the file** when you ask.
+
+</Callout>
+
+## Try it (10 minutes)
+
+Clean up one real folder, ten minutes maximum.
+
+1. Pick a folder with at least ten files.
+2. Rename five files so the names describe the topic. Archive older versions into a subfolder.
+3. Create `README.md` using `readme-template.md` and fill in purpose and layout.
+4. In a Claude Code session or a chat with the README attached, ask: "Where would I find my budget?"
+5. Note whether Claude found the right file.
+
+<ExerciseReveal prompt="Reveal what to expect" commit="Do the cleanup and run the test question, then reveal:">
+<Fragment slot="answer">
+
+If Claude picked the wrong file, the names or README were unclear: the structure, not the question, is the thing to fix. Rename the file or tighten the README, and ask again.
+
+</Fragment>
+</ExerciseReveal>
+
+## Check yourself
+
+<KnowledgeCheck
+  question="What helps Claude find the right file?"
+  options={[
+    "Clear names and a README",
+    "More files",
+    "Shorter chats",
+    "A bigger model",
+  ]}
+  answer={0}
+  explanation="Clear names and a README give Claude a map so it goes straight to the right file. More files, shorter chats, and a bigger model don't fix a folder it can't navigate."
+/>
+
+<KnowledgeCheck
+  question="In a tool that reads your files, what is doing the work of context?"
+  options={[
+    "The length of your prompt",
+    "The folder structure: names, one topic per file, and a short guide",
+    "The number of files in the folder",
+    "The speed of your computer",
+  ]}
+  answer={1}
+  explanation="When Claude reads your filesystem, the arrangement of your folders is the context it works from. A clear structure is the prompt; prompt length, file count, and machine speed don't replace it."
+/>
+
+<TrueFalse statement="When you ask, naming the exact file ('update budget-2026.md') is better than a general request like 'update my budget.'" answer={true}>
+<Fragment slot="why">
+
+Pointing to the file removes the guess entirely. A general request makes Claude pick which file you meant, and a wrong guess edits the wrong file. Naming the file is the cheapest way to be sure it works on the one you intended.
+
+</Fragment>
+</TrueFalse>
+
+<Matching
+  pairs={[
+    { term: "Clear names", match: "budget-2026.md instead of final2" },
+    { term: "One topic per file", match: "Keeps each file about a single thing" },
+    { term: "README at the top", match: "Describes what lives where" },
+    { term: "Archive old versions", match: "Leaves one current file so Claude does not guess" },
+  ]}
+/>
+
+<ExerciseReveal prompt="Sketch a folder layout for one of your own projects." commit="Sketch your layout (folder names, a few files, a README line), then reveal:">
+<Fragment slot="answer">
+
+Clear folder names, one topic per file, and a README that says what lives where. If a stranger could find the right file from your sketch in ten seconds, so can Claude.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the template and use it on your next real task.
+
+<ArtifactCard label="README template" file="readme-template.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Filesystem as context", definition: "The idea that, for a tool which reads your files, the folder structure itself is the context Claude works from, so clear names and layout matter as much as the prompt." },
+    { term: "README", definition: "A short file at the top of a folder that explains what lives where. Point Claude at it and it has a map instead of a guess. (Unlike Claude Code's CLAUDE.md, a generic README isn't loaded automatically.)" },
+    { term: "Archiving", definition: "Moving older versions into a subfolder so there is exactly one current file, which stops Claude from picking the wrong version." },
+  ]}
+/>

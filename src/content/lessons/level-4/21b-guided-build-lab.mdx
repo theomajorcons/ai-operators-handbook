@@ -1,0 +1,135 @@
+---
+title: "Guided build lab, part 1: plan, restrict, gate"
+level: 4
+lesson: "21b"
+track: "Running Claude as a system"
+last_verified: 2026-10-22
+download: "build-lab-starter.md"
+summary: "Part 1 of the guided build lab: on safe practice data you plan and threat-model one small workflow, scope it to least privilege, and build the human gate into the code's shape, putting your hands on the first three capstone controls."
+kind: exercise
+beforeYouLeave:
+  - "Say the practice job in one sentence, and write the three threat-model questions for it before building anything."
+  - "Scope the workflow to least privilege and be honest that reading the short script, not an OS sandbox, is what confirms it."
+  - "Build the human gate into the code's shape so there is no path from a ticket's text to a send."
+  - "See why a hidden instruction in a ticket cannot talk its way past a gate that is a code shape."
+  - "Continue to part 2 to add the log, the kill switch, and the recovery drill."
+---
+
+import Callout from '../../../components/Callout.astro';
+import Steps from '../../../components/Steps.astro';
+import Step from '../../../components/Step.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lab you have started one small workflow end to end on a safe practice dataset, using a **deterministic safety-control simulator**: the sorting logic is fixed Python keyword rules, not a model, so you can put your own hands on the controls without a model's variability getting in the way. This part covers the first three controls: a plan with a threat model, least privilege (by design, honestly scoped), and a human gate built into the code's shape. Part 2 adds the log, the kill switch, and recovery. The *principles* behind every control carry straight over to a real AI, model-driven workflow, where a model would take the place of the keyword logic and sit behind the same gate; the *implementation and the threat model* change, because a model's output is variable and a real model can be prompt-injected in ways fixed keyword rules cannot.
+
+</Callout>
+
+## Why a lab before the capstone
+
+You have now read about every control a real system needs. [Lesson 24](/lessons/level-4/21-automation-and-safety/) listed nine of them and the capstone in [Lesson 27](/lessons/level-4/22-capstone-build-and-defend-a-system/) will ask you to build and defend a workflow where those controls hold up under attack. The trouble is that reading about a kill switch and pulling one are different skills, and the capstone is a poor place to discover the difference.
+
+So this lab is a dress rehearsal on a **practice harness**. You build one small workflow on a safe, made-up dataset, and you practice each control once, with a worked example showing you what finished looks like. The workflow uses a deterministic stand-in instead of a real model: the "sorting" is fixed Python keyword rules, so it does the same thing every time. That is on purpose. It lets you focus on drilling the six controls by hand, without a model's variability muddying what you are rehearsing. In a real AI workflow a model would replace that keyword logic, and the controls you practice here sit in exactly the same places around it. Nothing here is graded and nothing here is real, which is the point: you want to fumble the recovery drill here, on fake support tickets, and not on the capstone with a reviewer watching.
+
+The lab runs in two parts so each one stays a self-contained sitting. **Part 1 (this lab)** covers the first three controls: plan and threat model, least privilege, and the human gate. **Part 2** ([Lab, Lesson 26](/lessons/level-4/21c-guided-build-lab-part-2/)) covers the privacy-aware log, the kill switch, and the recovery drill, then hands you to the capstone. Do part 1 first; it sets up the script and folders that part 2 builds on.
+
+The job is deliberately tiny. A workflow you can defend beats an ambitious one you cannot.
+
+## The practice job
+
+The starter project you download gives you a synthetic scenario: a folder of made-up customer support tickets that need sorting, and a real, runnable Python script (`sort_tickets.py`, standard library only, nothing to install) that does the work. The script is a **deterministic stand-in for a model**: it tags each ticket by matching fixed keywords (no model, no AI call), and writes a one-line draft reply to an `outbox/` for a human to approve. Because the rules are fixed, the same ticket always gets the same tag, which is what makes this a clean rehearsal harness rather than a real AI workflow. In a real system a model would make that tagging call; the point here is to drill the controls around it. Every ticket in the starter is obviously invented, so there is no real or sensitive data anywhere in the exercise.
+
+One sentence names the job: **read each synthetic ticket, tag its category, and draft a reply for a person to approve by hand before anything moves to a test outbox.** If you cannot say the job in a sentence, it is too big; shrink it until you can.
+
+You do not have to write code. The whole script is in the starter, ready to copy, and you drive it from a terminal with two commands: `python sort_tickets.py sort` to draft, and `python sort_tickets.py send` to move the drafts you approved. (The starter opens with a preflight to find whether your machine uses `python`, `python3`, or `py` so you are not stuck at the first command.) You are running Python yourself, so these runs have no Claude Code permission prompt gating them; the approval gate is the script's own `approved/` step. The point of the lab is to run each control and watch it work, not to program.
+
+## Build it in order
+
+The order matters. You plan the safety in before you build the feature, because a control bolted on at the end is the one that fails under pressure. This part walks the first three controls in sequence, running each one on the real script as you go. Part 2 picks up at control 4.
+
+<Steps>
+<Step n="1" title="Plan it and threat-model it.">Before a single step, write the three threat-model questions from Lesson 24: what could go wrong, who could abuse it, and what data it touches. For the ticket sorter: a ticket could carry a hidden instruction (abuse), the workflow could tag wrong or send a bad reply (what goes wrong), and it touches ticket text plus the draft files (data). Writing this first changes the design: because a stranger can put text in a ticket, you already know the send step needs a gate.</Step>
+<Step n="2" title="Least privilege (by design, not by sandbox).">Give the workflow the narrowest access that does the job. The script only reads `tickets/` and writes `outbox/`, `sent/`, and `run.log`. It has no mail server, no customer database, and no network calls at all. Be honest about *why* it stays in those folders: nothing at the operating-system level forces it to. The confinement is two things working together: the script is written to touch only those paths, and you read the short script before you run it. When you run `python sort_tickets.py` yourself in a terminal, you are running Python directly, so there is no Claude Code permission prompt in the loop approving that run. That is a safe-by-design script plus a human checking it, not a hard sandbox. It lines up exactly with Lesson 24's point: "only touch these folders" is a design intention, not a wall, so you confirm the design by reading rather than trusting a claim. The approval gate in this lab is not a tool prompt; it is the script's own `approved/` step (control 3 next).</Step>
+<Step n="3" title="A human gate built into the script's shape.">The draft reply is a risky action the moment it could be sent, so it stops at a gate. In the lab the gate is the script's shape, not a polite instruction to the model: the `sort` command only ever writes drafts to `outbox/`, and there is no code path from a ticket's text to a send. Sending is a separate `send` command you run by hand, and it moves **only** drafts you first approved by copying them into an `approved/` folder. Run `send` with nothing approved and it sends nothing. A hidden instruction in a ticket cannot talk its way past a gate that is a code shape, because the model never had a send button to be tricked into pressing.</Step>
+</Steps>
+
+<Callout variant="mistake" label="Common mistake">
+
+Building the gate as a polite instruction ("draft only, wait for my approval before sending") instead of a shape in the code. An instruction is exactly what a hidden instruction in a ticket can argue with. A real gate is structural: the `sort` command has no send in it at all, and `send` moves only drafts a person copied into `approved/`. If there is no send button in the path, no injected text can press one.
+
+</Callout>
+
+That is the first half of the build: plan the risks, restrict the access, and gate the risky action. The remaining three controls (the log, the kill switch, and recovery) are in [part 2](/lessons/level-4/21c-guided-build-lab-part-2/), and they build on the same script and folders you just set up.
+
+## The rule so far
+
+<Callout variant="framework" label="Plan, Restrict, Gate">
+
+Build the first half of any small workflow in this order, running the control at each step:
+
+1. **Plan and threat-model** before you build: what could go wrong, who could abuse it, what data it touches.
+2. **Restrict** access to the narrowest that does the job (least privilege), and be honest that reading the code is what confirms it, not a claimed sandbox.
+3. **Gate** every risky action in the code's shape, so there is no path from untrusted input to the action and a person must approve it by hand.
+
+Do each one on the practice data here, by running the script, so your hands know the move before the capstone asks for it under review. Part 2 continues with Log, Stop, Restore.
+
+</Callout>
+
+## Try it
+
+Run the starter script through the first three steps on the synthetic tickets: write the threat model, read the script to confirm its access, and run `python sort_tickets.py sort` to see drafts land in `outbox/` with no send happening. Then commit to one answer below before you reveal it.
+
+<ExerciseReveal prompt="Reveal the answers" commit="Name the one control of the first three you found hardest to actually do (not just read about), and what you will do differently in the capstone, then reveal:">
+<Fragment slot="answer">
+
+An honest pick and a concrete plan. For most people the hardest of these three to *do* rather than read is the technically enforced gate, because it is tempting to just tell the model to wait, which is not a boundary. A real gate is a shape in the code with no path from untrusted input to the action. Whichever you fumbled here is the one to design in first on the capstone.
+
+</Fragment>
+</ExerciseReveal>
+
+## Check yourself
+
+<KnowledgeCheck
+  question="In the lab, why does a hidden instruction in a ticket fail to make the script send a reply?"
+  options={[
+    "The prompt politely tells the model not to send",
+    "The script's sort command has no code path from ticket text to a send; sending is a separate command that only moves drafts a person approved by hand",
+    "The script scans each ticket for attacks and deletes them",
+    "The ticket text is encrypted before the model reads it",
+  ]}
+  answer={1}
+  explanation="The gate is the code's shape, not a line in the prompt. The sort command only writes drafts; there is no send button for an injected instruction to trigger. Sending happens only when a person copies a draft into approved/ and runs send. A gate that is only a polite instruction is not a boundary, which is exactly Lesson 24's point about untrusted input."
+/>
+
+<Matching
+  pairs={[
+    { term: "Plan and threat model", match: "What could go wrong, who could abuse it, what data it touches, written before you build" },
+    { term: "Least privilege (by design)", match: "The script reads tickets and writes outbox, confirmed by reading it, not by a sandbox" },
+    { term: "Gate in the code's shape", match: "No path from ticket text to a send; a person approves a draft before send moves it" },
+  ]}
+/>
+
+## Take this with you
+
+Download the starter project, open it, and run the ticket sorter through the first three steps by following the instructions inside. It ships with the full `sort_tickets.py` script (copy it in, nothing to install), the synthetic tickets, the folder layout, the exact terminal commands, and a full worked example with real run output so you can check your run against one that is already finished.
+
+<ArtifactCard label="Build lab starter project" file="build-lab-starter.md" />
+
+When you have the first three controls working, **continue to [part 2](/lessons/level-4/21c-guided-build-lab-part-2/)** to add the privacy-aware log, the kill switch, and the recovery drill, which then hands you to the capstone in [Lesson 27](/lessons/level-4/22-capstone-build-and-defend-a-system/). Keeping the human gate ([Lesson 21](/lessons/level-4/18-planning-delegation-and-human-gates/)) carries straight over.
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Guided build lab", definition: "A graded-nothing dress rehearsal on a deterministic safety-control harness: build and run one small workflow on safe synthetic data and practice each capstone control once before the capstone scores them. Split across part 1 (plan, restrict, gate) and part 2 (log, stop, restore)." },
+    { term: "Deterministic safety-control harness", definition: "A practice workflow whose logic is fixed (here, Python keyword rules, not a model) so it behaves the same every run, letting you rehearse the controls by hand. In a real AI workflow a model replaces the fixed logic and sits behind the same controls." },
+    { term: "Synthetic data", definition: "Obviously made-up practice data (here, invented support tickets) used so you can build and break a workflow without touching any real or sensitive information." },
+    { term: "Gate in the code's shape", definition: "A human-approval step built into the workflow's structure (the sort step only drafts; a separate send step moves only drafts a person approved), so there is no path for untrusted input to trigger a send and no prompt wording can bypass it." },
+    { term: "Safe by design, not sandboxed", definition: "The workflow stays in its folders because the script is written that way and a human reads it before running it, not because the operating system forces it. Running Python yourself in a terminal has no per-action permission prompt; the only enforced human gate is the script's approved/ step, which stops the send (the risky action), not every action. Honest confinement, not a hard boundary." },
+  ]}
+/>

@@ -1,0 +1,157 @@
+---
+title: "Connectors in regular chat"
+level: 2
+lesson: "11"
+track: "Working with Claude"
+practice_time: 8
+last_verified: 2026-10-12
+download: "connector-decision-sheet.md"
+summary: "Connecting Claude to an app is worth it only for a named job done with the least access, so default to read-only and review anything it sends or changes."
+kind: exercise
+beforeYouLeave:
+  - "Name the job before you connect anything."
+  - "Connect the minimum that does that job."
+  - "Choose read-only access when the connector offers it."
+  - "Review actions before Claude sends or changes anything."
+  - "Disconnect connectors you no longer use."
+---
+
+import Callout from '../../../components/Callout.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can evaluate whether to connect Claude to one of your apps, plan the minimum access it would need, and decide exactly what it should be allowed to **see** and **do**.
+
+</Callout>
+
+## Why this matters
+
+So far, Claude only knows what you type or attach. A **connector** changes that: it links Claude directly to one of your apps (your email, your calendar, your files) so it can pull information from it, and sometimes act on it, without you copying anything in. That's genuinely useful: "summarize today's calendar" stops being a paste job and becomes one sentence.
+
+But every connector you add widens the circle of what Claude can reach, and the same link that lets it *read* your calendar might also let it *change* it. So the skill isn't "turn on connectors." It's deciding, before you connect anything, the smallest amount of access that still does the job. This lesson teaches that decision before it asks you to make one.
+
+## What a connector actually grants
+
+Two things about a connector decide how much you're handing over, and they're worth separating:
+
+- **Scope: how much it can reach.** Connecting one app (just your calendar) is a narrow scope. Connecting email *and* calendar *and* files at once is a wide one. The wider the scope, the more of your life Claude can see, and the more there is to go wrong if a request goes sideways. A connector set up for "everything" sees everything, even when today's job only needed one thing. (What connectors are available varies by account, organization, and administrator settings; check what your plan and admin allow before planning a connection.)
+- **Permission: read, or read *and* write.** Reading is Claude looking at your data. Writing is Claude *changing* it: sending the email, moving the meeting, deleting the file. Many connectors let you grant read-only access, which is a very different risk from letting Claude act on your behalf. When a job only needs Claude to *look*, read-only is the safer grant, full stop. (Which permission options exist, and what the consent screen shows, varies by connector and plan.)
+
+Put those together and the safe default is obvious: the fewest apps, with the least power, that still does the one thing you actually want.
+
+<Callout variant="warning" label="Warning">
+
+Write access lets Claude act for you: send the email, move the meeting, delete the file. Those are one-way doors, and a connector granted write access can walk through them on a misread request. Grant read-only whenever the job only needs Claude to look, and if a connector must act, review every send or change before it goes through.
+
+</Callout>
+
+### The contrast in the wild
+
+**Yuki** connects her email, calendar, *and* files all at once so Claude can "help with everything." It's convenient, until she realizes how much it can now see and act on, far beyond anything she's actually asked it to do. Her friend **Marcus** connects only his calendar, read-only, for a single job: a Monday summary of his week. Marcus gave up nothing he didn't need to. Yuki opened wide for a vague "everything," and a wide, powerful connection is exactly the thing that turns a small mistake into a big one. Neither of them did anything exotic; the only difference is that Marcus named the job first and let it set the access.
+
+## The rule
+
+<Callout variant="framework" label="One Job, Least Access">
+
+1. **Name the job** before you connect anything.
+2. **Connect the minimum** that does it.
+3. **Read before write.** Choose read-only access when the connector offers it. Permission options vary by connector and plan.
+4. **Review actions.** If Claude can send or change things, check before it does.
+5. **Disconnect** what you no longer use.
+
+Options differ by account and organization, so check what yours allow.
+
+</Callout>
+
+## Try it
+
+Evaluate a connector without connecting anything; the plan is the whole exercise. Pick one real app you use. (Whether this connection is available to you depends on your plan, account, and any administrator restrictions; the goal here is the decision-making practice, not completing the connection itself.)
+
+1. Open `connector-decision-sheet.md`.
+2. Write the one job (for example, "summarize my calendar each Monday").
+3. Write the minimum access it needs, and whether read-only is available.
+4. Write who approves any action, and the date you would disconnect it.
+5. Only then decide whether to connect it.
+
+<ExerciseReveal prompt="Reveal what to expect" commit="Before you reveal, write the one job and the minimum access it needs, then reveal:">
+<Fragment slot="answer">
+
+Stopping at the plan is the point: you've done the thinking that keeps a connector narrow before any access is granted. If you couldn't name one job and the minimum access, that's the signal *not* to connect the app yet. The whole decision flows from the job: name it first, and the right scope and permission fall out.
+
+</Fragment>
+</ExerciseReveal>
+
+## Check yourself
+
+<KnowledgeCheck
+  question="What should you decide before connecting an app?"
+  options={[
+    "Nothing",
+    "The one job it is for and the minimum access",
+    "How many apps I can add",
+    "Whether it looks cool",
+  ]}
+  answer={1}
+  explanation="Naming the job first is what keeps the scope narrow: it's the difference between Marcus's one-app, read-only calendar and Yuki's connect-everything. The job decides the access, not the other way around."
+/>
+
+<KnowledgeCheck
+  question="A connector offers both read-only and read-and-write access for the one job you named. Which do you choose?"
+  options={[
+    "Read-and-write, so it can do more later",
+    "Read-only, because the job does not require Claude to act",
+    "Whichever is the default",
+    "Both, to keep options open",
+  ]}
+  answer={1}
+  explanation="Read-only lets Claude look but not change, a very different risk from letting it send or delete. If the job only needs Claude to read, granting write access adds power you don't need and risk you didn't ask for."
+/>
+
+<TrueFalse statement="Connecting your email, calendar, and files all at once, instead of just the one app the job needs, is the safer choice because Claude can then help with more." answer={false}>
+<Fragment slot="why">
+
+This is Yuki's mistake. A wider scope means Claude can see and act on more of your life, so a small mistake has a far bigger blast radius. The safe default is the opposite: name the one job first and connect only the minimum it needs, the way Marcus connected just his calendar, read-only.
+
+</Fragment>
+</TrueFalse>
+
+<Matching
+  pairs={[
+    { term: "Name the job", match: "Decide what the connector is for before you connect anything" },
+    { term: "Connect the minimum", match: "Add only the apps that one job needs" },
+    { term: "Read before write", match: "Choose read-only access when the connector offers it" },
+    { term: "Disconnect", match: "Remove access you no longer use" },
+  ]}
+/>
+
+<ExerciseReveal prompt="Pick one app and write the one job you would connect it for." commit="Write the app, the job, and whether read-only covers it, then reveal:">
+<Fragment slot="answer">
+
+A single job, with read or write access named, for example, "calendar → summarize my week each Monday → read-only is enough." If the job needs no action from Claude, read-only is your answer every time.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the decision sheet and use it before your next connection: name the job, grant the minimum, and set a date to disconnect.
+
+<ArtifactCard label="Connector decision sheet" file="connector-decision-sheet.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Connector", definition: "A link that gives Claude access to one of your apps (email, calendar, files) so it can read from or act on it. Availability and options vary by connector, account, plan, and administrator settings." },
+    { term: "Scope", definition: "How much a connector can reach: one app is narrow, several at once is wide. The wider the scope, the more Claude can see and the more there is to go wrong." },
+    { term: "One Job, Least Access", definition: "The rule for connectors: name the single job first, then grant only the minimum access that does it." },
+    { term: "Read-only access", definition: "Permission for Claude to see an app's data but not change or send anything; choose it whenever the connector offers it and the job does not need action." },
+    { term: "Review actions", definition: "Checking before Claude sends or changes anything when a connector can act, not just read." },
+  ]}
+/>

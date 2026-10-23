@@ -1,0 +1,205 @@
+---
+title: "When things go wrong"
+level: 2
+lesson: "12"
+track: "Working with Claude"
+last_verified: 2026-10-12
+download: "troubleshooting-ladder.md"
+summary: "A bad answer has a cause, so you diagnose why it went wrong and fix that cause instead of retrying the same prompt and hoping."
+kind: concept
+beforeYouLeave:
+  - "Ask Claude what it assumed, and treat the reply as a hypothesis, not proof."
+  - "Compare the prompt you wrote to what you actually meant."
+  - "Check that inputs and sources are the right file and not a stale copy."
+  - "Check that any search or tool actually ran, and spot-check a number or parsed value by hand."
+  - "Change one thing and rerun to confirm the fix before suspecting a transient glitch."
+---
+
+import Callout from '../../../components/Callout.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can diagnose a bad answer (find *why* it went wrong) and fix the cause instead of retrying the same prompt and hoping.
+
+</Callout>
+
+## Why this matters
+
+Sooner or later Claude gives you an answer that's just wrong: off-topic, ignoring something you said, or confidently making things up. The instinct is to retype the prompt and try again. But retrying without changing anything is rolling the dice: you get a *different* wrong answer, learn nothing, and burn time doing it.
+
+This lesson closes out Level 2 by pulling together everything before it into one habit: when an answer's bad, the fix almost always traces back to a specific cause you've already met, and naming the cause tells you the one change to make. Diagnose first, then fix. That's the difference between five frustrated retries and one informed correction.
+
+## Bad answers have causes, not bad luck
+
+A wrong answer feels random, but it rarely is. It almost always comes from one of five causes, each of which maps back to a lesson you've already done:
+
+- **Missing context.** Claude didn't have something it needed: you forgot to attach the file, or never mentioned the constraint. It fills the gap by guessing, and a confident guess reads just like a real answer. (Lesson 4, giving Claude what it needs.)
+- **A vague request.** "Make it better" doesn't say what *better* means, so Claude picks a direction, often not yours. The answer isn't wrong so much as aimed at a target you never named. (Lesson 5, asking clearly.)
+- **A chat that's grown too long.** In a very long conversation, something you set at the top can get crowded out by everything since. Claude starts ignoring the budget or rule you gave forty messages ago. (Lesson 3, chat length and starting fresh.)
+- **The wrong model or too little effort.** A genuinely hard, tangled task handed to a quick setting comes back shallow: neat on the surface, thin underneath. (Lesson 2, picking the model and effort.)
+- **A fact Claude couldn't know.** Something time-sensitive or private that no amount of rephrasing will fix without a search or a source you provide. (Lesson 12, research and sources.) When the fix is to give Claude a source, mind what's in it: never paste credentials (passwords, API keys, tokens, ID numbers) as a "source," and share other sensitive data only when you're authorized, in an approved environment, and trimmed to the minimum the question needs.
+
+A fast way to start is to **ask Claude what it assumed.** "What did you take for granted in that answer?" surfaces a likely culprit in a single message, far faster than guessing from the outside. But be clear about what that reply is: it's a **hypothesis**, a lead to check, not proof of the real cause. Claude is guessing at its own reasoning after the fact, and that guess can be wrong or incomplete. Treat it as "here's where to look first," then confirm it against the evidence below before you trust it.
+
+### Check the evidence, not just the self-report
+
+A hypothesis points you somewhere; evidence tells you whether you're right. Before you change anything, look at what actually happened, in roughly this order:
+
+- **Compare the prompt** to what you meant to ask. Half of bad answers trace to the prompt saying something other than what you intended.
+- **Check the inputs and sources.** Did the file actually attach? Is the source the current one, or a stale copy? Is Claude reading the thing you think it's reading?
+- **Check tool activity and permissions.** If the task needed a search, a file, or a connected tool, did that tool actually run, or was it unavailable or blocked? A step that silently didn't happen looks just like a wrong answer.
+- **Check parsing and calculations.** If the answer involves numbers or structured data, spot-check one value by hand. Math and parsing errors hide inside confident prose.
+- **Change exactly one variable, then rerun.** Once the evidence points at a cause, change that one thing and run it again to confirm the fix (more on why one-at-a-time below).
+
+The self-report and the evidence work together: the hypothesis tells you which of these to check first, and the evidence confirms or kills it.
+
+### A fuller list of causes
+
+The five above are the ones you've already met, and they cover most bad answers. As you do more with Claude, a few others show up often enough to recognize on sight. They sort into the same evidence checks:
+
+- **Permissions.** Claude tried to do something it wasn't allowed to (open a file, reach a tool) and the answer is built around the hole. Shows up in the tool-activity and permissions check.
+- **A tool wasn't available.** Search was off, a connector wasn't set up, so Claude answered from memory instead of looking. Same check: did the tool actually run?
+- **A stale source.** The file or page Claude read was an old copy, so the answer is correct for last month. Caught in the inputs-and-sources check.
+- **Conflicting instructions.** You told it two things that can't both be true ("keep it short" and "cover all ten points"), so it picked one. Caught by comparing the prompt to what you meant.
+- **A parsing or math error.** Claude misread a table or dropped a step in a calculation. Caught by spot-checking a value.
+- **A safety refusal.** Claude declined or hedged because the request looked risky; the fix is to add context or rephrase, not to retry unchanged.
+- **Prompt injection.** A document or web page Claude read contained hidden instructions that hijacked the answer. If an answer takes a sudden strange turn right after reading an outside source, suspect this and check the source.
+- **A transient failure.** Occasionally nothing is wrong with your prompt: a tool timed out or a request glitched. This is the one case where a plain retry is the right move, but only after the checks above have ruled out a real cause.
+
+You don't memorize this list; you run the evidence checks, and the checks tell you which cause you're looking at.
+
+### Why "change one thing" matters
+
+Once you've found the likely cause, there's a discipline that makes the fix *stick*: change exactly one thing, then try again. If you attach the file *and* rewrite the prompt *and* switch the model all at once and the answer improves, you don't know which change did it, so next time you can't repeat the fix. Change one variable, see what it does, and you're learning the tool instead of flailing at it.
+
+### The contrast in the wild
+
+**Pia** gets a wrong answer and retypes the same prompt five times: five slightly different wrong answers, and no idea why any of them missed. **Leo** gets a wrong answer, asks Claude "what did you assume?", and sees in the reply that it summarized a report he never actually attached. One cause (missing context), one fix (attach the file), one try. Leo wasn't luckier than Pia; he spent his first move diagnosing instead of re-rolling, and that one habit collapsed five retries into one.
+
+<Callout variant="mistake" label="Common mistake">
+
+Retyping the same prompt and hoping for a better answer. A bad answer has a cause, and re-rolling it unchanged, as Pia did five times, just produces a different wrong answer while teaching you nothing. Spend your first move on the diagnosis, not the retry: find the cause, change the one thing it points at, then run it again.
+
+</Callout>
+
+## The rule
+
+<Callout variant="framework" label="Diagnose Before You Retry">
+
+Start with a hypothesis, then confirm it with evidence:
+
+1. **Get a lead:** ask Claude what it assumed. Treat the reply as a hypothesis, not proof.
+2. **Compare the prompt** to what you meant (context, Lesson 4; clarity, Lesson 5).
+3. **Check inputs and sources:** right file, current source, not a stale copy.
+4. **Check tool activity and permissions:** did the search or tool actually run (facts, Lesson 12)?
+5. **Check parsing and calculations:** spot-check a number or a parsed value by hand.
+6. **Change one thing and rerun** to confirm the fix. If everything checks out, suspect a transient glitch and retry once.
+
+Also worth ruling out: chat grown too long (Lesson 3), or a model with too little effort (Lesson 2).
+
+</Callout>
+
+## Try it
+
+Diagnose these three cases. For each, name the likely cause and the one change you would make.
+
+**Case A.** You asked for a summary of a report you forgot to attach. Claude wrote a confident summary anyway.
+
+**Case B.** In a 70-message chat, Claude keeps ignoring the budget you set at the start.
+
+**Case C.** You asked "Make it better" and got a rewrite you hate.
+
+<ExerciseReveal prompt="Reveal the answers" commit="Before you reveal, write your cause + one fix for each of A, B, and C, then reveal:">
+<Fragment slot="answer">
+
+**A.** Missing context, and Claude should have flagged it rather than inventing. Attach the report, ask Claude to tell you when it's missing something, and treat the invented summary as unreliable.
+
+**B.** The chat has grown too long. Ask for a handoff summary and restart fresh (Lesson 3).
+
+**C.** A vague request. Say what *better* means (shorter, warmer, more formal) and ask again.
+
+Each one maps to a single cause on the ladder and a single change. Notice you never had to retype the whole prompt from scratch; you changed the one thing the diagnosis pointed at.
+
+</Fragment>
+</ExerciseReveal>
+
+## Check yourself
+
+<KnowledgeCheck
+  question="What should you do before retrying?"
+  options={[
+    "Retype it louder",
+    "Ask what Claude assumed and fix the cause",
+    "Switch apps",
+    "Give up",
+  ]}
+  answer={1}
+  explanation="Asking what Claude assumed gives you a hypothesis to check (a missing file, a vague target) in one message. You still confirm it against the evidence before fixing. That's Leo's move: diagnose first, then make the single change, instead of re-rolling the dice like Pia."
+/>
+
+<KnowledgeCheck
+  question="After you find the likely cause, how many things should you change before trying again?"
+  options={[
+    "Everything at once, to be safe",
+    "One thing, so you know what fixed it",
+    "Nothing, just retype the prompt",
+    "Two or three unrelated things",
+  ]}
+  answer={1}
+  explanation="Change one variable and you learn what fixed it, so you can repeat the fix next time. Change several at once and even if the answer improves, you've learned nothing about which change mattered."
+/>
+
+<TrueFalse statement="When an answer comes back wrong, retyping the same prompt unchanged is a reliable way to fix it." answer={false}>
+<Fragment slot="why">
+
+This is Pia's mistake: five retries, five different wrong answers, no idea why. Retrying without changing anything just re-rolls the dice. Diagnose first (ask Claude what it assumed for a lead, then confirm it against the evidence), then change exactly one thing so you know what fixed it. A plain retry is right only for a transient glitch, once the real causes are ruled out.
+
+</Fragment>
+</TrueFalse>
+
+<Matching
+  pairs={[
+    { term: "Claude summarized a report you forgot to attach", match: "Missing context: attach the report and treat the invented summary as unreliable" },
+    { term: "In a 70-message chat, Claude ignores the budget you set early on", match: "Chat too long: ask for a handoff and restart" },
+    { term: "You asked 'Make it better' and hate the rewrite", match: "Unclear request: say what better means: shorter, warmer, more formal" },
+  ]}
+/>
+
+<ExerciseReveal prompt="Think of a bad answer you got. Which cause was it, and what would you change?" commit="Write the bad answer, the cause from the ladder, and your one change, then reveal:">
+<Fragment slot="answer">
+
+One named cause from the ladder (context, request, chat length, model, or facts) and one concrete change tied to it. If you can't pin a cause, ask Claude what it assumed to get a hypothesis, then confirm it against the evidence (prompt, inputs and sources, tool activity, parsing) before you change anything.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the ladder and run it the next time an answer misses: diagnose the cause, change one thing, try again.
+
+<ArtifactCard label="Troubleshooting ladder" file="troubleshooting-ladder.md" />
+
+## Level 2 challenge
+
+This closes out Level 2, so put the whole level to work: build a Project with instructions and a source document for one real workflow, produce output in the shape it actually needs, include one researched point with a source, and troubleshoot the first miss. Save the Project configuration and the output as your portfolio artifact.
+
+<ArtifactCard label="Level 2 challenge" file="level-2-challenge.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Diagnose Before You Retry", definition: "The rule for bad answers: find the cause (context, request, chat length, model, or facts) before sending the prompt again." },
+    { term: "Ask what it assumed", definition: "A one-message diagnostic ('what did you take for granted?') that gives you a hypothesis for the cause, a lead to confirm against the evidence, not proof on its own." },
+    { term: "Evidence-first diagnosis", definition: "Confirming a suspected cause by checking what actually happened (prompt, inputs and sources, tool activity and permissions, parsing and math) before changing anything." },
+    { term: "Missing context", definition: "A cause of bad answers where Claude lacked something it needed, like an unattached file; the fix is to supply it, not to retry." },
+    { term: "Change one thing", definition: "After finding a likely cause, alter a single variable before retrying so you can tell what actually fixed the answer." },
+    { term: "Handoff", definition: "A summary you ask for when a chat has grown too long, so you can restart fresh without losing the thread (Lesson 3)." },
+  ]}
+/>

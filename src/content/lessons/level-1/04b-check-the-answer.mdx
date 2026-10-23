@@ -1,0 +1,156 @@
+---
+title: "Check the answer"
+level: 1
+lesson: "4b"
+track: "Knowing your Claude"
+last_verified: 2026-10-22
+download: "answer-check-card.md"
+summary: "Claude's answers sound fluent and sure whether or not they are right, so before you use one, find the claims it can be checked against and verify the few the task leans on."
+kind: concept
+beforeYouLeave:
+  - "Explain why fluent and confident does not mean correct: Claude writes the same smooth prose for a right answer and a wrong one."
+  - "Spot the checkable claims in an answer: dates, numbers, names, and specific facts, as opposed to opinion or phrasing."
+  - "Pick the load-bearing claims, the ones the decision rests on, and verify those first rather than every line."
+  - "Verify a claim by going to the source, recomputing the number, or cross-checking a second place, not by asking Claude again."
+  - "Decide to use, fix, or drop the answer based on what the check found, before you send or act on it."
+---
+
+import Callout from '../../../components/Callout.astro';
+import ExerciseReveal from '../../../components/ExerciseReveal.astro';
+import KnowledgeCheck from '../../../components/KnowledgeCheck.astro';
+import TrueFalse from '../../../components/TrueFalse.astro';
+import Matching from '../../../components/Matching.astro';
+import Glossary from '../../../components/Glossary.astro';
+import ArtifactCard from '../../../components/ArtifactCard.astro';
+
+<Callout variant="objective" label="Learning objective">
+
+By the end of this lesson you can take an answer from Claude, find the claims it can be checked against, verify the few the task leans on, and decide whether to use it.
+
+</Callout>
+
+## Why this matters
+
+You have learned to pick a model, keep a chat lean, hand over the right context, and [write a prompt like a spec](/lessons/level-1/04-write-a-prompt-like-a-spec/). All of that gets you a better answer. This lesson is about the step most people skip: deciding whether to trust the answer you got. It is the other half of the Check you wrote into your spec, done after the answer comes back.
+
+Here is the trap. Claude writes with the same calm confidence whether it is right or wrong. A correct total and a wrong total come back in the same tidy sentence, in the same sure voice. The fluency is not evidence. It tells you the writing is good, not that the facts are. So the habit to build is simple: before an answer leaves your hands, check the parts the task leans on.
+
+You do not re-grade the whole thing. You find the claims that can be checked and verify the ones that carry weight.
+
+## Two people, one answer
+
+Claude returns the same report to two interns. It summarizes a vendor quote and ends: "The total is 12,400 dollars, the contract renews on March 3, 2026, and Acme is the only vendor offering net-60 terms."
+
+**Dana** reads it, nods, and pastes the numbers straight into an email to her manager. It reads well and it sounds sure, so she treats sounding sure as being sure. The quote actually totaled 14,200 dollars; Claude transposed two digits. Dana's email now carries a wrong number in her own name, and the confident tone is exactly what kept her from looking twice.
+
+**Priya** reads the same report and first marks the **checkable claims**: a total (12,400), a date (March 3), and a named fact (only vendor with net-60). Three claims she could verify, as opposed to the wording around them. Then she asks which ones the decision rests on. The total drives the budget ask, so that is **load-bearing**; she opens the quote PDF and adds the line items herself. They come to 14,200. She has caught the error before it left the building, and she fixes it rather than forwarding it.
+
+Same answer, same confident voice. Dana trusted the tone; Priya checked the claims that mattered. That is the whole difference.
+
+<Callout variant="mistake" label="Common mistake">
+
+Reading a sure, fluent answer as a correct one. Claude writes a wrong total in the same tidy, confident sentence as a right one, so the smoothness tells you nothing about the facts. The trap is letting that tone stand in for a check. Find the load-bearing claim and verify it before the answer leaves your hands.
+
+</Callout>
+
+## The rule
+
+<Callout variant="framework" label="Find, Pick, Verify">
+
+1. **Find the checkable claims.** Scan the answer for anything concrete: dates, numbers, named facts, quotes, specific steps. These are things that are either true or not, as opposed to tone or phrasing.
+2. **Pick the load-bearing ones.** Ask which claims the decision or the next action rests on. You verify those, not every line. A wrong adjective is cosmetic; a wrong total is not.
+3. **Verify independently.** Go to the source, recompute the number, or cross-check a second place. Asking Claude "are you sure?" is not a check: it can restate a wrong answer just as confidently.
+
+Then **decide**: use it, fix the parts that failed, or drop it and ask again with better context.
+
+</Callout>
+
+A fast way in: ask yourself "what in here would embarrass me if it were wrong?" That question finds the load-bearing claims almost every time.
+
+This is the same instinct behind two failure signals from [Lesson 2](/lessons/level-1/01-pick-the-right-model/): a missed contradiction and a number that does not add up are things you only catch by checking a claim, not by rereading the tone. And when you do this at scale, as a repeatable set of test cases instead of a one-off read, it grows into an **eval**, the discipline [Lesson 20](/lessons/level-3/17-verification-and-evals/) and the [public-workflows elective](/lessons/electives/e1-public-workflows-research-and-publishing/) build on.
+
+## Try it
+
+For each answer from Claude, name the one claim you would verify first and how you would check it. **Commit to all three before you reveal.**
+
+1. "Based on the attached CSV, total Q3 revenue was 318,000 dollars."
+2. "The deadline to file is April 15, and late filings incur a 5 percent monthly penalty."
+3. "This function is safe to delete; nothing else in the codebase calls it."
+
+<ExerciseReveal prompt="Reveal the answers" commit="Name your claim and check for all three, then reveal:">
+<Fragment slot="answer">
+
+1. **The 318,000 total.** Recompute it from the CSV yourself, or spot-check a few rows that should sum to it. The number drives a decision, so it is load-bearing.
+2. **The April 15 date and the 5 percent figure.** Both are checkable facts with consequences; confirm them against the actual filing rule, not against Claude. A wrong date here is expensive.
+3. **The "nothing else calls it" claim.** Search the codebase for the function name yourself. This is the load-bearing claim, and the only safe check is independent: deleting on Claude's word is how you break something.
+
+</Fragment>
+</ExerciseReveal>
+
+## Check yourself
+
+<KnowledgeCheck
+  question="An answer from Claude reads smoothly and sounds completely sure of itself. What does that confidence tell you about whether it is correct?"
+  options={[
+    "It is almost certainly correct; Claude hedges when unsure",
+    "Nothing: Claude writes with the same confidence whether right or wrong",
+    "It is probably wrong, since confident answers are usually a cover",
+    "It depends only on which model tier you used",
+  ]}
+  answer={1}
+  explanation="Fluency and confidence are features of the writing, not evidence about the facts. A right answer and a wrong one come back in the same sure voice, which is exactly why you check the claims the task leans on rather than trusting the tone."
+/>
+
+<TrueFalse statement="The best way to check a number Claude gave you is to ask Claude whether it is sure." answer={false}>
+<Fragment slot="why">
+
+False. Asking "are you sure?" is not an independent check: Claude can restate a wrong number just as confidently as a right one. A real check goes outside the answer: recompute the number, open the source, or cross-check a second place.
+
+</Fragment>
+</TrueFalse>
+
+<KnowledgeCheck
+  question="A long answer has a dozen specific claims in it. Under Find, Pick, Verify, which do you check?"
+  options={[
+    "Every single claim, in order, before using anything",
+    "The load-bearing ones the decision or next action rests on",
+    "Only the first and last claim, as a spot check",
+    "None: if the answer is internally consistent it is fine",
+  ]}
+  answer={1}
+  explanation="You do not re-grade the whole thing. Find the checkable claims, then verify the few the task actually leans on. A wrong adjective is cosmetic; a wrong total that drives a budget ask is load-bearing and gets checked."
+/>
+
+<Matching
+  pairs={[
+    { term: "Checkable claim", match: "A concrete date, number, name, or fact that is either true or not" },
+    { term: "Load-bearing claim", match: "The one the decision or next action rests on" },
+    { term: "Independent check", match: "Go to the source, recompute, or cross-check a second place" },
+    { term: "Confident tone", match: "A feature of the writing, not evidence the facts are right" },
+  ]}
+/>
+
+<ExerciseReveal prompt="Take a real answer Claude gave you recently. Name one claim in it that would embarrass you if it were wrong, and how you would verify it." commit="Name your claim and your check, then reveal:">
+<Fragment slot="answer">
+
+The embarrassing-if-wrong question points straight at the load-bearing claim: usually a number, a date, or a specific fact someone else would act on. The check is independent: open the source, recompute it, or confirm it somewhere other than the same chat. If you cannot verify it, that itself is the signal to hold the answer rather than send it.
+
+</Fragment>
+</ExerciseReveal>
+
+## Take this with you
+
+Download the card and run it on the next answer you are about to act on: find the checkable claims, pick the load-bearing ones, verify them independently, then decide.
+
+<ArtifactCard label="Answer check card" file="answer-check-card.md" />
+
+## Key terms
+
+<Glossary
+  terms={[
+    { term: "Checkable claim", definition: "A concrete, verifiable statement in an answer: a date, a number, a name, a quote, or a specific fact. It is either true or not, as opposed to tone, phrasing, or opinion, which cannot be checked the same way." },
+    { term: "Load-bearing claim", definition: "The checkable claim the decision or next action actually rests on. You verify these first rather than every line, because a wrong one changes what you do while a cosmetic one does not." },
+    { term: "Find, Pick, Verify", definition: "The checking routine: find the checkable claims, pick the load-bearing ones, and verify them independently by going to the source, recomputing, or cross-checking, then decide to use, fix, or drop the answer." },
+    { term: "Independent check", definition: "Verifying a claim outside the answer itself, by opening the source, recomputing the number, or confirming it in a second place. Asking Claude whether it is sure is not an independent check." },
+  ]}
+/>

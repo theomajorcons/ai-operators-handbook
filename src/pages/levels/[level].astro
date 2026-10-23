@@ -1,0 +1,489 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Pill from '../../components/Pill.astro';
+import ArtifactCard from '../../components/ArtifactCard.astro';
+import { getCollection } from 'astro:content';
+import { withBase } from '../../lib/base';
+import { byLessonOrder } from '../../lib/lesson-order';
+import { lessonNumbers, lessonBadge, displayNumber } from '../../lib/lesson-number';
+import { readingTimeMinutes } from '../../lib/reading-time';
+import { getLevelInfo } from '../../data/levels';
+import { skillsByLevel } from '../../data/skills';
+
+// One overview page per level: numbered levels at /levels/1..N, electives at
+// /levels/electives. The route param is the numeric level ("1") or "electives";
+// each page carries its level's copy (levels.ts) + a live lesson list computed
+// from the collection. Nothing about counts/order is hardcoded.
+export async function getStaticPaths() {
+  const lessons = (await getCollection('lessons')).sort(byLessonOrder);
+  const byLevel = new Map<number, typeof lessons>();
+  for (const l of lessons) {
+    const g = byLevel.get(l.data.level) ?? [];
+    g.push(l);
+    byLevel.set(l.data.level, g);
+  }
+  const isElectives = (items: typeof lessons) => items[0]?.data.track === 'Electives';
+
+  return [...byLevel.entries()].map(([level, items]) => ({
+    params: { level: isElectives(items) ? 'electives' : String(level) },
+    props: { level, items },
+  }));
+}
+
+// kind → Pill tone + label, mirroring the home-page catalog cards.
+const KIND = {
+  concept: { tone: 'note' as const, label: 'Concept' },
+  exercise: { tone: 'tip' as const, label: 'Exercise' },
+  project: { tone: 'objective' as const, label: 'Project' },
+};
+
+const { level, items } = Astro.props;
+const elective = items[0]?.data.track === 'Electives';
+const info = getLevelInfo(level);
+
+// Global display numbers need the whole course, not just this level's slice.
+const allLessons = (await getCollection('lessons')).sort(byLessonOrder);
+const nums = lessonNumbers(allLessons);
+
+const name = items[0]?.data.track ?? info?.label ?? `Level ${level}`;
+const label = elective ? 'Electives' : `Level ${level}`;
+const dn = items.map((i) => nums.get(i.id)).filter((n): n is number => n != null);
+const rangeLabel = elective
+  ? `Electives · ${items.length} lesson${items.length === 1 ? '' : 's'}`
+  : `Level ${level} · Lessons ${dn[0]} to ${dn[dn.length - 1]}`;
+const lvColor = elective ? 'var(--level-electives)' : `var(--level-${level})`;
+
+const startHref = items[0] ? withBase(`/lessons/${items[0].id}`) : null;
+
+const rows = items.map((l) => ({
+  num: displayNumber(l, nums, allLessons),
+  badge: lessonBadge(l),
+  title: l.data.title,
+  summary: l.data.summary,
+  minutes: readingTimeMinutes(l.body ?? ''),
+  kind: l.data.kind ? KIND[l.data.kind] : null,
+  href: withBase(`/lessons/${l.id}`),
+  slug: l.id,
+}));
+
+const slugs = items.map((l) => l.id);
+
+const outcomes = info?.outcomes ?? [];
+
+// Hero panel: show this level's skills (skills.ts) if we have them, else fall
+// back to the outcomes. Both are plain strings, so the panel renders either.
+const skills = skillsByLevel.find((s) => s.level === level)?.skills.map((s) => s.name) ?? [];
+const heroItems = skills.length ? skills : outcomes;
+const heroKind = skills.length ? 'skill' : 'outcome';
+
+// Mini-project per level: a capstone-style send-off after the lesson list.
+// L1-L3 point at the downloadable challenge; L4 at the capstone lesson; a
+// level with no match (electives) simply omits the card.
+const capstone = items.find((l) => l.data.kind === 'project');
+const miniProject = elective
+  ? null
+  : capstone
+    ? { href: withBase(`/lessons/${capstone.id}`), cta: 'Open the capstone', download: false }
+    : { href: withBase(`/artifacts/level-${level}-challenge.md`), cta: 'Get the challenge', download: true };
+
+// One merged cheat sheet per level: every lesson's naming rule on one page.
+const cheatsheetFile = elective ? 'electives-cheatsheet.md' : `level-${level}-cheatsheet.md`;
+---
+
+<BaseLayout title={elective ? 'Electives' : `${label}: ${name}`} description={info?.description} width="wide">
+  <section class:list={['head', { 'head--elective': elective }]} style={`--lv: ${lvColor}`} aria-labelledby="lvl-title">
+    <div class="head__intro">
+      <p class="eyebrow">{rangeLabel}</p>
+      <h1 id="lvl-title" class="title">{name}</h1>
+      {info?.description && <p class="lede">{info.description}</p>}
+      {startHref && (
+        <div class="head-cta">
+          <a class="cta cta--primary" href={startHref}>
+            <span>{elective ? 'Start the electives' : `Start ${label}`}</span>
+            <span class="cta__arrow" aria-hidden="true">→</span>
+          </a>
+          <a class="cta cta--ghost" href={withBase('/course-map')}>See the course map</a>
+        </div>
+      )}
+    </div>
+
+    {/* Hero panel: badge + this level's skills/outcomes + start CTA. */}
+    <aside class="hero" aria-labelledby="hero-title">
+      <div class="hero__top">
+        <span class="hero__badge" aria-hidden="true">{elective ? '★' : level}</span>
+        <h2 id="hero-title" class="hero__name">{label}</h2>
+      </div>
+      {heroItems.length > 0 && (
+        <ul class="hero__list" role="list">
+          {heroItems.map((item) => (
+            <li class="hero__item">
+              <span class="hero__dot" aria-hidden="true">{heroKind === 'skill' ? '→' : '✓'}</span>
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {startHref && (
+        <a class="cta cta--primary hero__cta" href={startHref}>
+          <span>{elective ? 'Start the electives' : `Start ${label}`}</span>
+          <span class="cta__arrow" aria-hidden="true">→</span>
+        </a>
+      )}
+    </aside>
+  </section>
+
+  {outcomes.length > 0 && (
+    <section class="outcomes" style={`--lv: ${lvColor}`} aria-labelledby="outcomes-title">
+      <h2 id="outcomes-title" class="section-heading">After this {elective ? 'track' : 'level'} you can…</h2>
+      <ul class="outcome-list" role="list">
+        {outcomes.map((o) => (
+          <li class="outcome">
+            <span class="outcome__mark" aria-hidden="true">✓</span>
+            <span>{o}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <section class="lessons" style={`--lv: ${lvColor}`} aria-labelledby="lessons-title">
+    <h2 id="lessons-title" class="section-heading">
+      {elective ? 'Electives' : `Level ${level}`} lessons
+    </h2>
+    <ol class="lesson-list" role="list">
+      {rows.map((l) => (
+        <li>
+          <a class="lesson" href={l.href}>
+            <span class="lesson__num" aria-hidden="true">{l.num}</span>
+            <span class="lesson__body">
+              <span class="lesson__head">
+                <span class="lesson__title">{l.title}</span>
+                {l.badge && <Pill tone="accent">{l.badge}</Pill>}
+                {l.kind && <Pill tone={l.kind.tone}>{l.kind.label}</Pill>}
+              </span>
+              {l.summary && <span class="lesson__summary">{l.summary}</span>}
+            </span>
+            <span class="lesson__time">{l.minutes} min</span>
+            <span class="lesson__arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  {miniProject && (
+    <section class="mini" style={`--lv: ${lvColor}`} aria-labelledby="mini-title">
+      <a class="mini__card" href={miniProject.href} download={miniProject.download || undefined}>
+        <span class="mini__tag">Mini-project</span>
+        <h2 id="mini-title" class="mini__title">{label} mini-project</h2>
+        <p class="mini__body">
+          Put it all together: use everything you learned in {label.toLowerCase()} to build one
+          small project end to end.
+        </p>
+        <span class="mini__cta">
+          <span>{miniProject.cta}</span>
+          <span class="mini__arrow" aria-hidden="true">{miniProject.download ? '↓' : '→'}</span>
+        </span>
+      </a>
+    </section>
+  )}
+
+  <section class="cheatsheet" aria-label="Cheat sheet download">
+    <h2 class="section-heading">Download this {elective ? "track" : "level"}'s cheat sheet</h2>
+    <p class="cheatsheet__note">Every lesson's naming rule on one page.</p>
+    <ArtifactCard label={`${label} cheat sheet`} file={cheatsheetFile} />
+  </section>
+</BaseLayout>
+
+<style>
+  /* ── Head - two columns: intro (left) + hero panel (right). ─────── */
+  .head {
+    --lv: var(--accent);
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: var(--space-10);
+    align-items: start;
+    margin-bottom: var(--space-12);
+  }
+  .head__intro { max-width: 62ch; }
+  @media (max-width: 52rem) {
+    .head { grid-template-columns: 1fr; gap: var(--space-8); }
+  }
+  .eyebrow {
+    margin: 0 0 var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    color: var(--lv);
+  }
+  .title {
+    margin: 0;
+    font-size: var(--fs-display);
+    background: linear-gradient(120deg, var(--text) 30%, var(--accent-strong));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .lede {
+    margin: var(--space-6) 0 0;
+    font-size: var(--fs-md);
+    color: var(--muted);
+    max-width: 58ch;
+    line-height: var(--leading-body);
+  }
+  .head-cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+    margin: var(--space-8) 0 0;
+  }
+  /* ── Hero panel (right) ────────────────────────────────────────── */
+  .hero {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    padding: var(--space-8);
+    background: var(--gradient-card);
+    border: 1px solid var(--glass-border);
+    /* Level tint as a non-text cue on the leading edge. */
+    border-top: 3px solid color-mix(in srgb, var(--lv) 65%, transparent);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-panel);
+  }
+  .hero__top { display: flex; align-items: center; gap: var(--space-4); }
+  .hero__badge {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 2.6rem;
+    height: 2.6rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-lg);
+    font-weight: 700;
+    color: var(--lv);
+    background: color-mix(in srgb, var(--lv) 15%, transparent);
+    border: 1px solid color-mix(in srgb, var(--lv) 40%, transparent);
+    border-radius: var(--radius-pill);
+  }
+  .hero__name { margin: 0; font-size: var(--fs-lg); }
+  .hero__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .hero__item {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-3);
+    align-items: start;
+    font-size: var(--fs-sm);
+    color: var(--text);
+    line-height: var(--leading-body);
+  }
+  .hero__dot {
+    flex: none;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--lv);
+  }
+  .hero__cta { align-self: flex-start; margin-top: var(--space-1); }
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-6);
+    font-weight: 650;
+    border-radius: var(--radius-pill);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .cta--primary {
+    color: var(--bg);
+    background: linear-gradient(140deg, var(--accent-strong), var(--accent));
+    box-shadow: var(--glow);
+  }
+  .cta--primary:hover {
+    text-decoration: none;
+    transform: translateY(-2px);
+    box-shadow: var(--glow-lg);
+  }
+  .cta__arrow { transition: transform 0.2s ease; }
+  .cta--primary:hover .cta__arrow { transform: translateX(3px); }
+  .cta--ghost {
+    color: var(--accent-strong);
+    border: 1px solid var(--glass-border);
+    background: var(--surface);
+  }
+  .cta--ghost:hover {
+    text-decoration: none;
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  /* ── Sections ──────────────────────────────────────────────────── */
+  .section-heading { margin: 0 0 var(--space-6); font-size: var(--fs-lg); }
+
+  .cheatsheet { margin-bottom: var(--space-12); }
+  .cheatsheet__note { margin: 0 0 var(--space-5); color: var(--muted); }
+
+  /* ── Mini-project send-off after the lesson list. ──────────────── */
+  .mini { --lv: var(--accent); margin-bottom: var(--space-12); }
+  .mini__card {
+    display: block;
+    padding: var(--space-8);
+    color: var(--text);
+    background:
+      linear-gradient(140deg, color-mix(in srgb, var(--lv) 12%, transparent), transparent 60%),
+      var(--gradient-card);
+    border: 1px solid color-mix(in srgb, var(--lv) 45%, var(--glass-border));
+    border-left: 4px solid var(--lv);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-panel);
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .mini__card:hover {
+    text-decoration: none;
+    transform: translateY(-2px);
+    border-color: var(--lv);
+    box-shadow: var(--glow-sm);
+  }
+  .mini__tag {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--lv);
+  }
+  .mini__title { margin: var(--space-2) 0 var(--space-3); font-size: var(--fs-lg); }
+  .mini__body { margin: 0 0 var(--space-5); color: var(--muted); line-height: var(--leading-body); max-width: 60ch; }
+  .mini__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-weight: 650;
+    color: var(--lv);
+  }
+  .mini__arrow { transition: transform 0.15s ease; }
+  .mini__card:hover .mini__arrow { transform: translateX(3px); }
+
+  /* "After this level you can…" outcomes as a checked list in a glass card. */
+  .outcomes { --lv: var(--accent); margin-bottom: var(--space-12); }
+  .outcome-list {
+    list-style: none;
+    margin: 0;
+    padding: var(--space-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    background: var(--gradient-card);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-panel);
+  }
+  .outcome {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-3);
+    align-items: start;
+    color: var(--text);
+    line-height: var(--leading-body);
+  }
+  .outcome__mark {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: var(--fs-sm);
+    font-weight: 700;
+    color: var(--lv);
+    background: color-mix(in srgb, var(--lv) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--lv) 35%, transparent);
+    border-radius: var(--radius-pill);
+  }
+
+  /* ── Lesson list - rows mirroring the course-map spine. ─────────── */
+  .lessons { --lv: var(--accent); }
+  .lesson-list {
+    list-style: none;
+    margin: 0 0 var(--space-12);
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  .lesson {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    color: var(--text);
+    background: var(--gradient-card);
+    border: 1px solid var(--glass-border);
+    /* Level tint on the leading edge - a non-text cue. */
+    border-left: 3px solid color-mix(in srgb, var(--lv) 60%, transparent);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-panel);
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+  .lesson:hover {
+    text-decoration: none;
+    transform: translateY(-2px);
+    border-color: var(--lv);
+    box-shadow: var(--glow-sm);
+  }
+  .lesson__num {
+    display: grid;
+    place-items: center;
+    flex: none;
+    min-width: 2.1rem;
+    height: 1.7rem;
+    padding: 0 var(--space-2);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    color: var(--lv);
+    background: color-mix(in srgb, var(--lv) 14%, transparent);
+    border-radius: var(--radius-pill);
+  }
+  .lesson__body { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; flex: 1 1 auto; }
+  .lesson__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+  }
+  .lesson__title { font-weight: 650; line-height: var(--leading-tight); }
+  .lesson__summary {
+    font-size: var(--fs-sm);
+    color: var(--muted);
+    line-height: var(--leading-body);
+  }
+  .lesson__time {
+    flex: none;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--muted);
+  }
+  .lesson__arrow {
+    flex: none;
+    color: var(--accent-strong);
+    opacity: 0;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+  .lesson:hover .lesson__arrow { opacity: 1; transform: translateX(2px); }
+
+  @media (max-width: 40rem) {
+    .lesson__time { order: 3; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cta, .cta__arrow, .lesson, .lesson__arrow, .mini__card, .mini__arrow { transition: none; }
+    .cta--primary:hover, .cta--ghost:hover, .lesson:hover, .mini__card:hover { transform: none; }
+  }
+</style>

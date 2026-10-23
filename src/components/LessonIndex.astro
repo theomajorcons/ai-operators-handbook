@@ -1,0 +1,114 @@
+---
+import { getCollection } from 'astro:content';
+import { withBase } from '../lib/base';
+import { byLessonOrder } from '../lib/lesson-order';
+
+interface Props {
+  // Current lesson's level - the sidebar shows only this level's lessons.
+  // Jumping across levels is the top bar's job.
+  currentLevel: number;
+}
+
+const { currentLevel } = Astro.props;
+
+const lessons = (await getCollection('lessons')).sort(byLessonOrder);
+const items = lessons.filter((l) => l.data.level === currentLevel);
+const trackTitle = items[0]?.data.track ?? '';
+
+// Static build emits /path/index.html, so Astro.url.pathname carries a
+// trailing slash while withBase() does not - normalize both before compare.
+const strip = (p: string) => p.replace(/\/$/, '');
+const here = strip(Astro.url.pathname);
+const isCurrent = (id: string) => here === strip(withBase(`/lessons/${id}`));
+---
+
+<nav class="lesson-index" aria-label={`${trackTitle} lessons`}>
+  <details class="lesson-index__shell" open>
+    <summary class="lesson-index__summary">{trackTitle || 'Lessons'}</summary>
+    <p class="lesson-index__track-title">{trackTitle}</p>
+    <ol class="lesson-index__list">
+      {items.map((l) => (
+        <li>
+          <a
+            href={withBase(`/lessons/${l.id}`)}
+            class="lesson-index__link"
+            aria-current={isCurrent(l.id) ? 'page' : undefined}
+          >
+            <span class="lesson-index__dot" aria-hidden="true"></span>
+            <span class="lesson-index__text">{l.data.title}</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </details>
+</nav>
+
+<style>
+  .lesson-index {
+    font-size: var(--fs-sm);
+  }
+  .lesson-index__summary {
+    font-weight: 650;
+    color: var(--text);
+    cursor: pointer;
+    list-style: none;
+    padding: var(--space-2) 0;
+  }
+  .lesson-index__summary::-webkit-details-marker { display: none; }
+  .lesson-index__track-title {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    margin: 0 0 var(--space-2);
+  }
+  .lesson-index__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+  .lesson-index__link {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-2);
+    color: var(--muted);
+    border-left: 2px solid transparent;
+    border-radius: var(--radius-sm);
+    transition: color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  }
+  .lesson-index__link:hover {
+    color: var(--text);
+    text-decoration: none;
+    background: var(--surface);
+  }
+  .lesson-index__link[aria-current='page'] {
+    color: var(--accent-strong);
+    border-left-color: var(--accent);
+    background: var(--accent-dim);
+    box-shadow: var(--glow-sm);
+    font-weight: 600;
+  }
+  .lesson-index__dot {
+    width: 0.6rem;
+    height: 0.6rem;
+    flex: none;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+  }
+  .lesson-index__link[aria-current='page'] .lesson-index__dot {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .lesson-index__text { min-width: 0; }
+
+  /* On wide screens the sidebar is always visible; the accordion
+     toggle only matters on narrow viewports. */
+  @media (min-width: 60rem) {
+    .lesson-index__summary { display: none; }
+  }
+</style>
