@@ -5,14 +5,19 @@ interface Props {
   file: string;
 }
 const { label, file } = Astro.props;
-const href = withBase('/artifacts/' + file);
+const mdHref = withBase('/artifacts/' + file);
+const docxFile = file.replace(/\.md$/, '.docx');
+const docxHref = withBase('/artifacts/' + docxFile);
 ---
 
-<a class="artifact" href={href} download>
+<div class="artifact">
   <span class="artifact__icon" aria-hidden="true">↓</span>
   <span class="artifact__label">{label}</span>
-  <span class="artifact__file">{file}</span>
-</a>
+  <span class="artifact__links">
+    <a class="artifact__link" href={mdHref} download aria-label={label + ', Markdown (.md) download'}>Markdown (.md)</a>
+    <a class="artifact__link" href={docxHref} download aria-label={label + ', Word (.docx) download'}>Word (.docx)</a>
+  </span>
+</div>
 
 <style>
   .artifact {
@@ -26,13 +31,6 @@ const href = withBase('/artifacts/' + file);
     border-radius: var(--radius);
     padding: var(--space-3) var(--space-4);
     color: var(--text);
-    text-decoration: none;
-    transition: border-color 0.1s ease, background 0.1s ease;
-  }
-  .artifact:hover {
-    border-color: var(--accent);
-    background: var(--surface-2);
-    text-decoration: none;
   }
 
   .artifact__icon {
@@ -55,11 +53,23 @@ const href = withBase('/artifacts/' + file);
     color: var(--text);
   }
 
-  .artifact__file {
+  .artifact__links {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+
+  .artifact__link {
     font-family: var(--font-mono);
     font-size: var(--fs-sm);
-    color: var(--muted);
+    color: var(--accent-strong);
+    text-decoration: underline;
     overflow-wrap: anywhere;
-    min-width: 0;
+    transition: color 0.1s ease;
+  }
+  .artifact__link:hover,
+  .artifact__link:focus-visible {
+    color: var(--text);
   }
 </style>
