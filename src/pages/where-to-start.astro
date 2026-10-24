@@ -30,7 +30,7 @@ const starts = Object.fromEntries(
   [...firstOfLevel.entries()].map(([lvl, s]) => [lvl, { lesson: s.num, href: s.href }]),
 );
 
-// 20 scenario/judgment questions, exactly 5 per level. Each has 4 options, and
+// 24 scenario/judgment questions, exactly 6 per level. Each has 4 options, and
 // the 3 wrong answers are genuine partial-knowledge mistakes (a real
 // misconception, a half-right move that misses the key nuance, or a tempting
 // over-correction) - never joke/strawman options. Getting one right requires
@@ -119,6 +119,21 @@ const questions: Q[] = [
     ],
     answer: 0,
   },
+  {
+    level: 1,
+    // Write a prompt like a spec: for something you will send/depend on, the
+    // weak part is a missing verifiable Check, not a missing word count or more
+    // length. Distractors are real over/under-corrections of "add detail".
+    question:
+      'You will paste Claude\'s draft into a proposal that goes to a client today. Your prompt already names the task, the reader, and the facts to include. What most improves the result before you run it?',
+    options: [
+      'Add a lot more background detail, since a longer prompt almost always yields a stronger draft.',
+      'Nothing more is needed; naming the task, the reader, and the facts already covers a high-stakes prompt.',
+      'Ask for a specific word count, since length is the part that separates a quick ask from a careful one.',
+      'Add a Check: the verifiable test for "done", like the three claims that must appear and a no-jargon read, so you can tell it is right before it goes out.',
+    ],
+    answer: 3,
+  },
   // ── Level 2: everyday habits (Projects, memory, connectors) ───────
   {
     level: 2,
@@ -190,6 +205,22 @@ const questions: Q[] = [
       'Rewrite the whole prompt from scratch with far more detail about what you wanted.',
     ],
     answer: 1,
+  },
+  {
+    level: 2,
+    // Research/web search: a confident time-sensitive answer may have come from
+    // training memory, not a search; the fix is an explicit search plus opening
+    // and judging a source. Distractors are the real "trust the tone"/rephrase
+    // flails, plus the half-right "ask it to double-check" (still no source).
+    question:
+      'You ask Claude which vendor tool leads the market this year and get a clear, confident ranking with no links. You are about to put it in a recommendation. What is the right move?',
+    options: [
+      'Ask Claude to search explicitly, then open and judge a couple of the sources it returns before you use the ranking.',
+      'Trust it; a ranking this specific and self-assured is a sign it drew on current, solid information.',
+      'Ask "are you sure this is up to date?" and use the ranking once Claude confirms it is current.',
+      'Rephrase the question a few different ways and go with the ranking that comes back most often.',
+    ],
+    answer: 0,
   },
   // ── Level 3: building with Claude Code, filesystem, safe tools ────
   {
@@ -264,6 +295,23 @@ const questions: Q[] = [
     ],
     answer: 2,
   },
+  {
+    level: 3,
+    // Filesystem as context: when a tool reads your folder, the structure is the
+    // prompt. A wrong-file edit among final/final2/new_final is a naming/archive
+    // problem, not a model or prompt-length problem. Correct = the structural fix;
+    // distractors are the real over-trusts (bigger model, longer prompt, "just
+    // tell it which is newest" without removing the stale copies).
+    question:
+      'Claude Code edits the stale copy in a folder holding contract-v1, contract-v2, and contract-final. What actually stops it picking the wrong one next time?',
+    options: [
+      'Archive the old versions and name the one that is current for its contents, so there is a single file left to edit and nothing stale in the way.',
+      'Write a longer, more detailed prompt each time that spells out exactly which file you mean.',
+      'Run it on a stronger model, which is better at inferring which file is the latest.',
+      'Add a note in the request saying contract-final is the newest, and leave the three files as they are.',
+    ],
+    answer: 0,
+  },
   // ── Level 4: running Claude as a dependable, guarded system ───────
   {
     level: 4,
@@ -337,16 +385,32 @@ const questions: Q[] = [
     ],
     answer: 2,
   },
+  {
+    level: 4,
+    // Human gates: the People trigger fires on a one-person, low-scope step. The
+    // trap is "small scope = safe to let run"; authority/people decide here, not
+    // blast radius. Distractors are the real half-right reads (small scope, easy
+    // undo, generic caution) that miss which of the five questions actually fires.
+    question:
+      'An automation drafts and sends one email that tells a single candidate they were not selected. Just one recipient, and you could send a correction after. Does it need a human gate?',
+    options: [
+      'No; a single recipient is tiny scope, and a one-off message to one person is too small to warrant a gate.',
+      'Yes; it affects a person\'s standing and is not yours to send unreviewed, so the people and authority questions fire even though scope is tiny and a correction is possible.',
+      'No, as long as you can send a follow-up correction, since that makes the step effectively reversible.',
+      'Only if the rejection contains private or sensitive details; a plain "not selected" line is low-risk enough to let run.',
+    ],
+    answer: 1,
+  },
 ];
 
 const total = questions.length;
 // A level counts as "solid" only when the learner gets at least this many of
-// its 5 questions right. Set to 4 so guessing cannot pass a level: with 4
-// options, the chance of guessing 4-of-5 correctly is about 1.5%. The grader
-// below starts the learner at the FIRST level they do not pass, always
-// rounding down (toward an earlier start) so nobody is pushed past a gap.
-const PASS = 4;
-const perLevel = 5; // questions per numbered level
+// its 6 questions right. Set to 5 so guessing cannot pass a level: with 4
+// options (25% a guess), the chance of guessing 5-of-6 correctly is about 0.4%.
+// The grader below starts the learner at the FIRST level they do not pass,
+// always rounding down (toward an earlier start) so nobody is pushed past a gap.
+const PASS = 5;
+const perLevel = 6; // questions per numbered level
 ---
 
 <BaseLayout
@@ -359,10 +423,13 @@ const perLevel = 5; // questions per numbered level
     <h1 id="w-title" class="w-title">Find your level</h1>
     <p class="w-lede">
       The handbook has a lot of lessons, and not everyone needs to start at the
-      beginning. Answer {total} questions (about 5 minutes) and we will point you
-      to the lesson where your knowledge starts to run out, so you can skip what
-      you already know. These go deeper than a quiz, because the aim is to place
-      you accurately, not to flatter you.
+      beginning. Answer {total} questions (about 6 to 7 minutes) and we will point
+      you to the lesson where your knowledge starts to run out, so you can skip
+      what you already know. This measures how fluent you are with AI right now,
+      nothing else: not your experience, your seniority, or how sharp you are at
+      your actual job. A 30-year veteran can land on Lesson 1 and be placed
+      exactly right. These go deeper than a quiz, because the aim is to place you
+      accurately, not to flatter you.
     </p>
     <div class="w-honest" role="note">
       <p>
@@ -479,8 +546,8 @@ const perLevel = 5; // questions per numbered level
       4: 'running Claude as a dependable, guarded system',
     };
 
-    // A level is "solid" only when the learner got at least PASS of its 5
-    // questions right (conservative: PASS is 4, so guessing can't carry a
+    // A level is "solid" only when the learner got at least PASS of its 6
+    // questions right (conservative: PASS is 5, so guessing can't carry a
     // level). We walk levels 1..4 in order and stop at the FIRST one that
     // falls short - that is where learning should begin. Rounding is always
     // toward an earlier start, so a borderline score places you lower, never
@@ -522,7 +589,8 @@ const perLevel = 5; // questions per numbered level
       const solidLine = solidThrough >= 1
         ? 'You are solid through Level ' + solidThrough + ' - you have got ' +
           (LEVEL_NAMES[solidThrough] || '') + '.'
-        : 'Everyone starts somewhere, and that is completely fine.';
+        : 'This places your AI fluency, not your ability or experience: plenty of ' +
+          'seasoned people start right here, and it is exactly the right place to begin.';
 
       return {
         headline:
